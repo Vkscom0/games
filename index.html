@@ -459,7 +459,64 @@
 
     window.onload = initDB;
 </script>
- <!-- start audio code -->
+     <!-- start share code -->
+<script>
+function shareCurrentPage() {
+    // 1. पेज का URL उठाना और ?m=1 जोड़ना सुनिश्चित करना
+    let currentUrl = window.location.href.split('?')[0];
+    const pageUrl = currentUrl + '?m=1'; 
+    
+    // 2. Blogger टाइटल को केवल पोस्ट टाइटल तक सीमित करना
+    let fullTitle = document.title;
+    let pageTitle = fullTitle.split(':').pop().trim();
+    
+    if (pageTitle === fullTitle) {
+        pageTitle = fullTitle;
+    }
+    
+    // 3. पोस्ट का सारांश (पहली लाइन) निकालने का तरीका
+    let postContent = '';
+    try {
+        const contentElement = document.querySelector('.post-body, .post-content, .entry-content'); 
+        if (contentElement) {
+            postContent = contentElement.innerText || contentElement.textContent;
+        }
+    } catch (e) {
+        console.error("Could not find post content element.", e);
+    }
+    
+    let firstLine = '';
+    if (postContent.length > 0) {
+        firstLine = postContent.substring(0, 120).trim();
+        if (postContent.length > 120 && firstLine.lastIndexOf(' ') > 0) {
+             firstLine = firstLine.substring(0, firstLine.lastIndexOf(' '));
+        }
+    } else {
+        firstLine = 'यह जानकारी बहुत महत्वपूर्ण है, जरूर देखें।';
+    }
+
+    // 4. शेयर मैसेज तैयार करना (टाइटल + फर्स्ट लाइन + ...)
+    // **अंतिम बदलाव:** शेयर टेक्स्ट में अब URL शामिल नहीं है।
+    const shareText = `${pageTitle}\n${firstLine}...`;
+
+    if (navigator.share) {
+        // navigator.share ऑब्जेक्ट URL को अलग से पास करता है, जिससे वह मैसेज के नीचे एक अलग लिंक के रूप में दिखाई देता है।
+        navigator.share({
+            title: pageTitle,
+            text: shareText, // यहाँ अब URL नहीं है
+            url: pageUrl // URL यहाँ से पास होगा
+        })
+        .then(() => console.log('Successfully shared'))
+        .catch((error) => console.error('Sharing failed', error));
+    } else {
+        // Fallback: अगर Web Share API काम नहीं करता, तो URL को मैन्युअल रूप से जोड़कर दिखाएं।
+        const fallbackMessage = 'लिंक कॉपी करें और शेयर करें:\n\n' + shareText + '\n\n' + pageUrl;
+        alert(fallbackMessage);
+    }
+}
+</script>
+<!-- end share code -->
+    <!-- start audio code -->
     <div id="vks-ad-bar" style="
     position: fixed; 
     bottom: 0; 
@@ -555,5 +612,8 @@
 </style>
 
    <!-- end audio code -->
+
+
+    
 </body>
 </html>
