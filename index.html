@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Valmiki Ramayana Samvaad Quiz - 500 Questions</title>
+    <title>Valmiki Ramayana Samvaad Quiz (500+ Questions)</title>
     <style>
         :root {
             --quiz-primary: #e67e22;
@@ -48,18 +48,6 @@
             background: #edf2f7;
             padding: 10px 15px;
             border-radius: 6px;
-        }
-
-        .resume-alert {
-            background: #e3f2fd;
-            color: #0d47a1;
-            padding: 8px 12px;
-            border-radius: 4px;
-            font-size: 13px;
-            margin-bottom: 15px;
-            text-align: center;
-            font-weight: 500;
-            display: none;
         }
 
         .quiz-samvaad-box {
@@ -138,6 +126,7 @@
         .quiz-option-btn.wrong {
             background-color: #f8d7da !important;
             border-color: var(--quiz-error) !important;
+            color: #721c24 !important;
         }
 
         .quiz-controls {
@@ -173,6 +162,14 @@
             color: var(--quiz-primary);
             margin: 20px 0;
         }
+        
+        .loading-text {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            padding: 30px;
+            color: var(--quiz-primary);
+        }
     </style>
 </head>
 <body>
@@ -181,12 +178,15 @@
     <div class="quiz-container" id="game-container">
         <h1>Valmiki Ramayana Samvaad Quiz</h1>
         
-        <div id="resume-message" class="resume-alert">जय श्री राम! आपकी पिछली प्रगति को सुरक्षित रीस्टोर कर लिया गया है।</div>
+        <!-- Loading UI -->
+        <div id="loading-ui" class="loading-text">
+            Google Sheet से 500 संवाद लोड हो रहे हैं, कृपया प्रतीक्षा करें...
+        </div>
 
         <!-- Live Quiz UI -->
-        <div id="quiz-ui">
+        <div id="quiz-ui" style="display: none;">
             <div class="quiz-status-bar">
-                <span id="progress-text">Question: 0/500</span>
+                <span id="progress-text">Question: 0/0</span>
                 <span id="score-text">Score: 0</span>
             </div>
 
@@ -205,7 +205,7 @@
         <!-- Result UI -->
         <div id="result-ui" class="quiz-result-screen" style="display: none;">
             <h2>Quiz Completed!</h2>
-            <div class="quiz-score-display" id="final-score">0 / 500</div>
+            <div class="quiz-score-display" id="final-score">0 / 0</div>
             <p id="feedback-text">Loading history...</p>
             <br>
             <button class="quiz-btn" onclick="restartQuiz()">Restart Quiz</button>
@@ -214,63 +214,14 @@
 </div>
 
 <script>
-    // 500 प्रश्नों का डेटाबेस एरे संरचना
-    const quizData = [
-        {
-            quote: "“सकृदेव प्रपन्नाय तवास्मीति च याचते। अभयं सर्वभूतेभ्यो ददाम्येतद्व्रतं मम॥”",
-            anuwad: "<strong>अनुवाद:</strong> जो एक बार भी मेरी शरण में आकर कहता है कि 'मैं आपका हूँ', उसे मैं सभी प्राणियों से अभय (सुरक्षा) दान देता हूँ, यह मेरा अटल व्रत है।",
-            question: "यह प्रसिद्ध कथन श्रीराम ने विभीषण को शरण देने के समय किस सागर तट पर किससे कहा था?",
-            options: ["लक्ष्मण से", "सुग्रीव और अन्य वानर वीरों से", "विभीषण से", "हनुमान से"],
-            answer: 1
-        },
-        {
-            quote: "“उत्साहो बलवानार्य नास्त्युत्साहात्परं बलम्। सोत्साहस्य च लोकेषु न किंचिदपि दुर्लभम्॥”",
-            anuwad: "<strong>अनुवाद:</strong> उत्साह बहुत बड़ा बल है, उत्साह से बढ़कर कोई दूसरा बल नहीं है। इस संसार में उत्साही पुरुष के लिए कुछ भी दुर्लभ या असम्भव नहीं है।",
-            question: "सीता खोज के समय जब वानर सेना और श्रीराम निराश होने लगे, तब उन्हें उत्साहित करने के लिए यह संवाद किसने कहा था?",
-            options: ["हनुमान ने", "जाम्बवन्त ने", "लक्ष्मण ने", "भरत ने"],
-            answer: 2
-        },
-        {
-            quote: "“धर्मदपि अर्थदपि कामदपि Adolescent लोकवन्दितम्। अनुगच्छामि काकुत्स्थं तं विद्धि जनकनन्दिनीम्॥”",
-            anuwad: "<strong>अनुवाद:</strong> जो धर्म, अर्थ और काम को देने वाले तथा संसार द्वारा पूजित हैं, मैं उन श्रीराम के पीछे-पीखे वन जा रही हूँ।",
-            question: "वन गमन के समय माता सीता का श्रीराम के प्रति यह अटूट प्रेम और दृढ़ निश्चय देखकर यह बात सुमित्रा के समक्ष किसने कही थी?",
-            options: ["कौशल्या ने", "सुमित्रा ने खुद", "जनक ने", "महर्षि वसिष्ठ ने"],
-            answer: 1
-        },
-        {
-            quote: "“सत्यं ब्रूयात् प्रियं ब्रूयात् न ब्रूयात् सत्यमप्रियम्॥ प्रियं च नानृतं ब्रूयात् एष धर्मः सनातनः॥”",
-            anuwad: "<strong>अनुवाद:</strong> सत्य बोलना चाहिए, प्रिय बोलना चाहिए, लेकिन ऐसा सत्य नहीं बोलना चाहिए जो किसी को अत्यधिक अप्रिय या कष्टकारी लगे।",
-            question: "रामायण के युद्ध काण्ड में, रावण को विनाश से बचाने के लिए यह हितकारी लेकिन कड़वा सत्य इनमें से किसने खुलकर कहा था?",
-            options: ["विभीषण और मारीच ने", "कुम्भकर्ण ने", "शूर्पनखा ने", "मेघनाद ने"],
-            answer: 0
-        },
-        {
-            quote: "“अपि स्वर्णमयी लंका न मे लक्ष्मण रोचते। जननी जन्मभूमिश्च स्वर्गादपि गरीयसी॥”",
-            anuwad: "<strong>अनुवाद:</strong> हे लक्ष्मण! भले ही यह लंका सोने की बनी हुई है, फिर भी इसमें मेरी कोई रुचि नहीं है। माता और जन्मभूमि का स्थान तो स्वर्ग से भी कहीं बढ़कर होता है।",
-            question: "लंका विजय के उपरान्त जब लक्ष्मण ने लंका के वैभव की प्रशंसा की, तब यह ऐतिहासिक संवाद किसने कहा था?",
-            options: ["विभीषण ने", "हनुमान ने", "श्रीराम ने", "सुग्रीव ने"],
-            answer: 2
-        }
-        // आप इसी तरह से यहाँ पर प्रश्न संख्या 6 से लेकर 500 तक आसानी से जोड़ सकते हैं।
-    ];
+    // अपनी Google Sheet का Published CSV लिंक यहाँ पेस्ट करें
+    const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTODzdeM_Wha98VVOuYgYDCvoKC4DoFQBvVrtxWEvsYD-zGB1yx4R4kqoPXt5Z01ACyib004ljEWCQL/pub?output=csv";
 
-    // यदि डेटाबेस में 500 से कम लाइव प्रश्न हैं, तो एरे को ऑटो-फिल करके पूरे 500 प्रश्नों का कोटा पूरा कर देगा।
-    while(quizData.length < 500) {
-        const loopIdx = quizData.length + 1;
-        quizData.push({
-            quote: `“राम रामेति रामेति रमे रामे मनोरमे। सहस्रनाम तत्तुल्यं रामनाम वरानने॥” (श्लोक संख्या ${loopIdx})`,
-            anuwad: `<strong>अनुवाद:</strong> राम-नाम विष्णु सहस्रनाम के समान पवित्र और फलदायी है। यह श्लोक संख्या ${loopIdx} का डमी अनुवाद है।`,
-            question: `बालकाण्ड के अंतर्गत आने वाले इस दिव्य प्रसंग के आधार पर श्लोक संख्या ${loopIdx} का सही विकल्प चुनें:`,
-            options: ["शिव जी ने पार्वती जी से", "श्रीराम ने लक्ष्मण से", "महर्षि वाल्मीकि ने नारद जी से", "काकभुशुण्डि जी ने गरुड़ जी से"],
-            answer: 0
-        });
-    }
-
+    let quizData = [];
     const DB_NAME = 'RamayanaQuizDB';
-    const DB_VERSION = 2; // वर्शन अपग्रेड स्टेट को मैनेज करने के लिए
+    const DB_VERSION = 2; // वर्शन अपग्रेड ताकि नया स्टोर बन सके
     const STORE_HISTORY = 'quiz_history';
-    const STORE_STATE = 'quiz_current_state'; // लाइव प्रोग्रेस रेज़्यूमे स्टोर करने के लिए नया स्टोर
-    
+    const STORE_STATE = 'quiz_current_state'; // प्रोग्रेस रीज़्यूम करने के लिए स्टोर
     let db;
     let currentQuestionIndex = 0;
     let score = 0;
@@ -278,7 +229,6 @@
 
     function initDB() {
         const request = indexedDB.open(DB_NAME, DB_VERSION);
-        
         request.onupgradeneeded = function(e) {
             let dbInstance = e.target.result;
             if (!dbInstance.objectStoreNames.contains(STORE_HISTORY)) {
@@ -288,58 +238,138 @@
                 dbInstance.createObjectStore(STORE_STATE, { keyPath: "id" });
             }
         };
-
         request.onsuccess = function(e) {
             db = e.target.result;
-            checkResumeState();
+            fetchQuestionsFromSheet();
+        };
+        request.onerror = function() {
+            alert("डेटाबेस लोड करने में समस्या आई।");
         };
     }
 
-    // ब्राउज़र में पिछली अनफिनिश्ड प्रोग्रेस की जांच करना
-    function checkResumeState() {
+    // Google Sheet से CSV डेटा फेच करने और पार्स करने का फंक्शन
+    async function fetchQuestionsFromSheet() {
+        try {
+            const response = await fetch(SHEET_CSV_URL);
+            if (!response.ok) throw new Error("Network response was not ok");
+            const data = await response.text();
+            
+            // Simple CSV Parser जो कोट्स और कॉमा को ठीक से संभालता है
+            quizData = parseCSV(data);
+            
+            if(quizData.length === 0) {
+                document.getElementById("loading-ui").innerText = "गूगल शीट से कोई डेटा प्राप्त नहीं हुआ। कृपया लिंक की जांच करें।";
+                return;
+            }
+
+            // डेटा लोड होने के बाद सेव की हुई प्रोग्रेस चेक करें
+            checkSavedState();
+        } catch (error) {
+            console.error("Error fetching sheet data:", error);
+            document.getElementById("loading-ui").innerText = "डेटा लोड करने में विफल। कृपया इंटरनेट कनेक्शन या शीट लिंक चेक करें।";
+        }
+    }
+
+    // कस्टम CSV पार्सर (RFC 4180 नियमों के अनुसार कोट्स को हैंडल करने के लिए)
+    function parseCSV(text) {
+        let lines = [];
+        let row = [""];
+        let inQuotes = false;
+
+        for (let i = 0; i < text.length; i++) {
+            let c = text[i];
+            let next = text[i+1];
+            if (c === '"') {
+                if (inQuotes && next === '"') { row[row.length - 1] += '"'; i++; }
+                else { inQuotes = !inQuotes; }
+            } else if (c === ',' && !inQuotes) {
+                row.push('');
+            } else if ((c === '\r' || c === '\n') && !inQuotes) {
+                if (c === '\r' && next === '\n') { i++; }
+                lines.push(row);
+                row = [''];
+            } else {
+                row[row.length - 1] += c;
+            }
+        }
+        if (row.length > 1 || row[0] !== '') lines.push(row);
+        
+        if (lines.length < 2) return [];
+
+        const headers = lines[0].map(h => h.trim().toLowerCase());
+        const result = [];
+
+        for (let i = 1; i < lines.length; i++) {
+            const currentLine = lines[i];
+            if (currentLine.length < headers.length) continue;
+
+            const rowData = {};
+            headers.forEach((header, index) => {
+                rowData[header] = currentLine[index] ? currentLine[index].trim() : "";
+            });
+
+            // ऑब्जेक्ट को पुराने स्ट्रक्चर के अनुकूल फॉर्मेट करना
+            if (rowData.quote || rowData.question) {
+                result.push({
+                    quote: rowData.quote,
+                    anuwad: rowData.anuwad ? `<strong>अनुवाद:</strong> ${rowData.anuwad}` : "",
+                    question: rowData.question,
+                    options: [rowData.option1, rowData.option2, rowData.option3, rowData.option4].filter(Boolean),
+                    answer: parseInt(rowData.answer, 10) || 0
+                });
+            }
+        }
+        return result;
+    }
+
+    // ब्राउज़र बंद होने या रीफ्रेश होने पर प्रोग्रेस रीज़्यूम करने की जांच
+    function checkSavedState() {
         const transaction = db.transaction([STORE_STATE], "readonly");
         const store = transaction.objectStore(STORE_STATE);
-        const request = store.get("live_progress");
+        const request = store.get("current_game");
 
-        request.onsuccess = function(event) {
-            const savedState = event.target.result;
+        request.onsuccess = function(e) {
+            const savedState = e.target.result;
             if (savedState && savedState.index < quizData.length) {
+                // पुराना स्टेट मिला, वहीं से शुरू करें
                 currentQuestionIndex = savedState.index;
                 score = savedState.score;
-                document.getElementById("resume-message").style.display = "block";
-                setTimeout(() => {
-                    document.getElementById("resume-message").style.fadeOut = "slow";
-                    document.getElementById("resume-message").style.display = "none";
-                }, 4000);
+                alert(`आपकी पिछली प्रोग्रेस मिल गई है! प्रश्न संख्या ${currentQuestionIndex + 1} से खेल फिर से शुरू हो रहा है।`);
+            } else {
+                currentQuestionIndex = 0;
+                score = 0;
             }
+            
+            document.getElementById("loading-ui").style.display = "none";
+            document.getElementById("quiz-ui").style.display = "block";
             loadQuestion();
         };
     }
 
-    // वर्तमान स्टेट को IndexedDB में ऑटो-सेव करना
-    function saveCurrentProgress() {
+    // वर्तमान प्रोग्रेस को IndexedDB में सुरक्षित रखना
+    function saveCurrentState() {
         if (!db) return;
         const transaction = db.transaction([STORE_STATE], "readwrite");
         const store = transaction.objectStore(STORE_STATE);
-        
-        const progressRecord = {
-            id: "live_progress",
+        store.put({
+            id: "current_game",
             index: currentQuestionIndex,
             score: score
-        };
-        store.put(progressRecord);
+        });
     }
 
-    // क्विज़ पूरा होने पर लाइव स्टेट को क्लियर करना
-    function clearLiveProgress() {
+    // गेम खत्म होने पर प्रोग्रेस स्टेट डिलीट करना
+    function clearSavedState() {
         if (!db) return;
         const transaction = db.transaction([STORE_STATE], "readwrite");
         const store = transaction.objectStore(STORE_STATE);
-        store.delete("live_progress");
+        store.delete("current_game");
     }
 
     function loadQuestion() {
         dbSaved = false;
+        saveCurrentState(); // हर नया प्रश्न लोड होने पर स्टेट सेव करें
+
         const currentQuiz = quizData[currentQuestionIndex];
         
         document.getElementById("progress-text").innerText = `Question: ${currentQuestionIndex + 1}/${quizData.length}`;
@@ -367,7 +397,6 @@
         });
 
         document.getElementById("next-btn").disabled = true;
-        saveCurrentProgress(); // प्रत्येक नए प्रश्न पर प्रोग्रेस सेव करें
     }
 
     function checkAnswer(selectedIndex, selectedButton) {
@@ -382,11 +411,13 @@
             document.getElementById("score-text").innerText = `Score: ${score}`;
         } else {
             selectedButton.classList.add("wrong");
-            optionsButtons[currentQuiz.answer].classList.add("correct");
+            if(optionsButtons[currentQuiz.answer]) {
+                optionsButtons[currentQuiz.answer].classList.add("correct");
+            }
         }
         
         document.getElementById("next-btn").disabled = false;
-        saveCurrentProgress(); // स्कोर अपडेट होने पर तुरंत सेव करें
+        saveCurrentState(); // उत्तर देने के बाद भी स्कोर अपडेट सेव करें
     }
 
     function nextQuestion() {
@@ -399,7 +430,7 @@
     }
 
     function showResults() {
-        clearLiveProgress(); // गेम समाप्त होने पर रीज्यूम स्टेट हटाएं
+        clearSavedState(); // क्विज़ पूरी होने पर रीज़्यूम स्टेट डिलीट करें
         document.getElementById("quiz-ui").style.display = "none";
         document.getElementById("result-ui").style.display = "block";
         document.getElementById("final-score").innerText = `${score} / ${quizData.length}`;
@@ -451,7 +482,7 @@
     function restartQuiz() {
         currentQuestionIndex = 0;
         score = 0;
-        clearLiveProgress();
+        clearSavedState();
         document.getElementById("result-ui").style.display = "none";
         document.getElementById("quiz-ui").style.display = "block";
         loadQuestion();
@@ -459,6 +490,7 @@
 
     window.onload = initDB;
 </script>
+
      <!-- start share code -->
 <script>
 function shareCurrentPage() {
