@@ -1,0 +1,677 @@
+<h1 style="text-align: left;"><span style="color: #e06666;">use for salary, ledgerlist, estimate slip</span></h1><p></p><span style="color: #e06666;">
+!entery - add only, entery not direct edit<p></p>
+*safety - data download when complete</span>
+<head>
+    <meta charset="UTF-8"></meta>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"></meta>
+    <title>Salary Tracker: Paste Import</title>
+    <style>
+        /* CSS स्टाइलिंग */
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f9; color: #333; }
+        .container { 
+            max-width: 450px; 
+            margin: 30px auto; 
+            padding: 25px; 
+            border: 1px solid #ddd; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            background-color: #fff;
+        }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="number"], textarea { 
+            width: 100%; 
+            padding: 10px; 
+            margin-bottom: 15px; 
+            box-sizing: border-box; 
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            color: #333;
+        }
+        textarea { height: 100px; resize: vertical; font-family: monospace; } /* Textarea for pasting data */
+        
+        /* बटन स्टाइलिंग */
+        button { 
+            width: 100%; 
+            padding: 12px; 
+            margin-bottom: 10px; 
+            color: white; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        #submitButton { background-color: #007bff; }
+        #submitButton:hover { background-color: #0056b3; }
+        #restoreButton { background-color: #6c757d; }
+        #restoreButton:hover { background-color: #5a6268; }
+        #clearButton { background-color: #dc3545; }
+        #clearButton:hover { background-color: #c82333; }
+        #exportButton { background-color: #28a745; }
+        #exportButton:hover { background-color: #1e7e34; }
+        
+        /* नया इंपोर्ट बटन */
+        #processPasteButton { background-color: #ffc107; color: #343a40; }
+        #processPasteButton:hover { background-color: #e0a800; }
+
+        .total-display { 
+            font-size: 1.5em; 
+            font-weight: bold; 
+            margin-top: 20px; 
+            padding: 15px; 
+            background-color: #e2f0fb; 
+            border-left: 5px solid #007bff; 
+            border-radius: 4px; 
+            text-align: center;
+        }
+        #message { margin-top: 10px; text-align: center; font-weight: bold; }
+        hr { margin: 20px 0; border: 0; border-top: 1px solid #eee; }
+        
+        /* टेबल स्टाइलिंग */
+        #recordsTable { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9em; }
+        #recordsTable th, #recordsTable td { 
+            border: 1px solid #ddd; 
+            padding: 8px; 
+            text-align: right;
+            color: black !important; /* टेबल टेक्स्ट ब्लैक */
+        }
+        #recordsTable th { 
+            background-color: #f2f2f2; 
+            text-align: left;
+            color: black !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>💰 मासिक सैलरी कैलकुलेटर</h2>
+
+        <label for="presentSalary">1. Present Day Salary:</label>
+        <input id="presentSalary" placeholder="मूल वेतन" required="" type="number" />
+
+        <label for="overtimeSalary">2. Overtime Salary:</label>
+        <input id="overtimeSalary" placeholder="ओवरटाइम आय" type="number" />
+
+        <button id="submitButton">Submit &amp; Save New Entry</button>
+        
+        <button id="restoreButton">Restore Last Entry to Input</button> 
+        
+        <hr />
+        
+        <div class="total-display" id="totalAmount">
+            Cumulative Total: 0.00
+        </div>
+        
+        <h3>📊 सैलरी रिकॉर्ड्स</h3>
+        <table id="recordsTable">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Present Salary</th>
+                    <th>Overtime Salary</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody id="recordsBody">
+                </tbody>
+        </table>
+        
+        <hr />
+        
+        <h3>⚙️ डेटा मैनेज करें</h3>
+        
+        <button id="clearButton">Clear All Data</button>
+        <button id="exportButton">Export All Data (Download CSV)</button>
+
+        <label for="importTextarea">Paste CSV Data from Google Sheets here:</label>
+        <textarea id="importTextarea" placeholder="उदाहरण: 
+01/01/2024, 15000.00, 2000.00, 17000.00
+01/02/2024, 16000.00, 500.00, 16500.00"></textarea>
+        <button id="processPasteButton">Process Pasted Data</button>
+        <p id="message"></p>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'salaryEntries';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // बटनों के लिए Event Listeners
+            document.getElementById('submitButton').addEventListener('click', saveNewEntry);
+            document.getElementById('restoreButton').addEventListener('click', loadLatestEntryToInput); 
+            document.getElementById('clearButton').addEventListener('click', clearLocalStorage);
+            document.getElementById('exportButton').addEventListener('click', exportCSV);
+            
+            // नया इंपोर्ट Event Listener
+            document.getElementById('processPasteButton').addEventListener('click', importPastedData); 
+            
+            renderRecords();
+        });
+
+        // लोकल स्टोरेज फंक्शंस
+        function getEntries() {
+            const data = localStorage.getItem(STORAGE_KEY);
+            try {
+                return JSON.parse(data) || [];
+            } catch (e) {
+                console.error("Error parsing JSON from localStorage:", e);
+                return [];
+            }
+        }
+        
+        function setEntries(entries) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+            renderRecords(); 
+        }
+
+        // 1. नई एंट्री सेव करना
+        function saveNewEntry() {
+            const present = parseFloat(document.getElementById('presentSalary').value) || 0;
+            const overtime = parseFloat(document.getElementById('overtimeSalary').value) || 0;
+
+            if (present <= 0 && overtime <= 0) {
+                showMessage("❌ कृपया Present या Overtime Salary डालें!", 'red');
+                return;
+            }
+
+            const newEntry = {
+                date: new Date().toLocaleDateString('en-IN'), 
+                present: present.toFixed(2),
+                overtime: overtime.toFixed(2),
+                total: (present + overtime).toFixed(2)
+            };
+            
+            const entries = getEntries();
+            entries.push(newEntry);
+            setEntries(entries);
+            
+            document.getElementById('presentSalary').value = '';
+            document.getElementById('overtimeSalary').value = '';
+
+            showMessage("✅ New entry successfully saved!", 'green');
+        }
+
+        // 2. सबसे हालिया एंट्री को इनपुट में लोड करना
+        function loadLatestEntryToInput() {
+            const entries = getEntries();
+            
+            if (entries.length === 0) {
+                showMessage("❌ Local Storage में कोई रिकॉर्ड नहीं है!", 'red');
+                return;
+            }
+            
+            const latestEntry = entries[entries.length - 1];
+            
+            document.getElementById('presentSalary').value = latestEntry.present;
+            document.getElementById('overtimeSalary').value = latestEntry.overtime;
+
+            showMessage("↩️ Last entry restored to input fields.", 'blue');
+        }
+
+
+        // 3. सभी एंट्रीज़ को डिस्प्ले करना और टोटल कैलकुलेट करना
+        function renderRecords() {
+            const entries = getEntries();
+            const body = document.getElementById('recordsBody');
+            body.innerHTML = ''; 
+            
+            let cumulativeTotal = 0;
+
+            if (entries.length === 0) {
+                body.innerHTML = '<tr><td colspan="4" style="text-align: center;">No records found.</td></tr>';
+            } else {
+                entries.forEach((entry) => {
+                    const row = body.insertRow();
+                    row.insertCell(0).textContent = entry.date;
+                    row.insertCell(1).textContent = parseFloat(entry.present).toFixed(2);
+                    row.insertCell(2).textContent = parseFloat(entry.overtime).toFixed(2);
+                    row.insertCell(3).textContent = parseFloat(entry.total).toFixed(2);
+                    cumulativeTotal += parseFloat(entry.total);
+                });
+            }
+
+            document.getElementById('totalAmount').textContent = `Cumulative Total: ${cumulativeTotal.toFixed(2)}`;
+        }
+
+        // 4. Local Storage क्लियर करना
+        function clearLocalStorage() {
+            if (confirm("⚠️ क्या आप वाकई सभी सेव किया हुआ सैलरी डेटा हटाना चाहते हैं?")) {
+                localStorage.removeItem(STORAGE_KEY);
+                renderRecords(); 
+                showMessage("🗑️ All records cleared!", 'red');
+            }
+        }
+
+        // 5. CSV डेटा Export करना (रो-वाइज सभी रिकॉर्ड्स)
+        function exportCSV() {
+            const entries = getEntries();
+            if (entries.length === 0) {
+                showMessage("❌ Export failed. No records to export.", 'red');
+                return;
+            }
+            
+            let csvContent = "data:text/csv;charset=utf-8,";
+            
+            csvContent += "Date,Present Salary,Overtime Salary,Total\r\n";
+            
+            entries.forEach(entry => {
+                csvContent += `${entry.date},${entry.present},${entry.overtime},${entry.total}\r\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `salary_records_export_${new Date().toLocaleDateString().replace(/\//g, '-')}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showMessage("📤 All data exported as CSV!", 'green');
+        }
+
+        // 6. ✨ नया फ़ंक्शन: पेस्ट किए गए डेटा को इंपोर्ट करना
+        function importPastedData() {
+            const csvText = document.getElementById('importTextarea').value;
+            if (!csvText.trim()) {
+                showMessage("❌ Textarea खाली है। कृपया Google Sheets से डेटा पेस्ट करें।", 'red');
+                return;
+            }
+
+            try {
+                // लाइनों में विभाजित करें और खाली लाइनों को हटा दें
+                const lines = csvText.split('\n').filter(line => line.trim() !== '');
+
+                // यदि पहली लाइन हेडर है, तो उसे छोड़ दें
+                const firstLine = lines[0].trim().toLowerCase();
+                const startIndex = (firstLine.includes('date') && firstLine.includes('salary')) ? 1 : 0;
+                
+                const importedEntries = [];
+
+                for (let i = startIndex; i < lines.length; i++) {
+                    // डेटा अक्सर Tab (\t) या Comma (,) से अलग होता है। हम दोनों को संभालते हैं।
+                    let values = lines[i].split(',');
+                    if (values.length < 4) {
+                       values = lines[i].split('\t'); // Tab-separated (Google Sheets से सीधे कॉपी करने पर)
+                    }
+
+                    if (values.length >= 3) { // कम से कम Date, Present Salary, Overtime Salary चाहिए
+                        // यहाँ हम Total कॉलम को अनदेखा करते हैं और उसे कोड में फिर से कैलकुलेट करते हैं
+                        const date = values[0].trim();
+                        const present = parseFloat(values[1].trim().replace(/[^0-9.]/g, '') || '0');
+                        const overtime = parseFloat(values[2].trim().replace(/[^0-9.]/g, '') || '0');
+
+                        // सुनिश्चित करें कि मान वैध हैं
+                        if (!isNaN(present) && !isNaN(overtime)) {
+                            const entry = {
+                                date: date,
+                                present: present.toFixed(2),
+                                overtime: overtime.toFixed(2),
+                                total: (present + overtime).toFixed(2) // Total को फिर से कैलकुलेट करें
+                            };
+                            importedEntries.push(entry);
+                        }
+                    }
+                }
+
+                if (importedEntries.length > 0) {
+                    // मौजूदा डेटा को नए इंपोर्ट किए गए डेटा से बदल दें (आप इसे जोड़ना भी चुन सकते हैं)
+                    setEntries(importedEntries); 
+                    document.getElementById('importTextarea').value = ''; // टेक्स्टबॉक्स खाली करें
+                    showMessage(`📥 ${importedEntries.length} records imported successfully!`, 'green');
+                } else {
+                    showMessage("❌ Pasted data has no valid records. Ensure format is correct.", 'red');
+                }
+
+            } catch (error) {
+                showMessage("❌ Error processing data. Check console for details.", 'red');
+                console.error("Import Error:", error);
+            }
+        }
+
+        // 7. मैसेज डिस्प्ले करना
+        function showMessage(msg, color) {
+            const msgElement = document.getElementById('message');
+            msgElement.textContent = msg;
+            msgElement.style.color = color;
+            setTimeout(() => {
+                msgElement.textContent = '';
+                msgElement.style.color = '';
+            }, 5000);
+        }
+    </script>
+</body>
+
+
+<html lang="en"></html>
+
+<h1 style="text-align: left;"><span style="color: #e06666;">Salary form use for salary, ledgerlist, estimate slip</span></h1><p></p><span style="color: #e06666;">
+!entery - add only, entery not direct edit</span>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"></meta>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"></meta>
+    <title>Multi-Entry Salary Tracker with Restore</title>
+    <style>
+        /* CSS स्टाइलिंग */
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f9; color: #333; } /* Default text color set to dark gray */
+        .container { 
+            max-width: 450px; 
+            margin: 30px auto; 
+            padding: 25px; 
+            border: 1px solid #ddd; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            background-color: #fff;
+        }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="number"] { 
+            width: 100%; 
+            padding: 10px; 
+            margin-bottom: 15px; 
+            box-sizing: border-box; 
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            color: #333; /* Ensure input text is also readable */
+        }
+        /* बटन स्टाइलिंग */
+        button { 
+            width: 100%; 
+            padding: 12px; 
+            margin-bottom: 10px; 
+            color: white; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        #submitButton { background-color: #007bff; }
+        #submitButton:hover { background-color: #0056b3; }
+        #restoreButton { background-color: #6c757d; }
+        #restoreButton:hover { background-color: #5a6268; }
+        #clearButton { background-color: #dc3545; }
+        #clearButton:hover { background-color: #c82333; }
+        #exportButton { background-color: #28a745; }
+        #exportButton:hover { background-color: #1e7e34; }
+        #importButton { background-color: #ffc107; color: #343a40; }
+        #importButton:hover { background-color: #e0a800; }
+
+        .total-display { 
+            font-size: 1.5em; 
+            font-weight: bold; 
+            margin-top: 20px; 
+            padding: 15px; 
+            background-color: #e2f0fb; 
+            border-left: 5px solid #007bff; 
+            border-radius: 4px; 
+            text-align: center;
+        }
+        #message { margin-top: 10px; text-align: center; font-weight: bold; }
+        hr { margin: 20px 0; border: 0; border-top: 1px solid #eee; }
+        
+        /* टेबल स्टाइलिंग */
+        #recordsTable { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9em; }
+        #recordsTable th, #recordsTable td { 
+            border: 1px solid #ddd; 
+            padding: 8px; 
+            text-align: right;
+            color: black !important; /* टेबल टेक्स्ट को ब्लैक करने के लिए मुख्य बदलाव */
+        }
+        #recordsTable th { 
+            background-color: #f2f2f2; 
+            text-align: left;
+            color: black !important; /* सुनिश्चित करें कि हेडर टेक्स्ट भी ब्लैक हो */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>💰 मासिक सैलरी कैलकुलेटर - Salary form</h2>
+
+        <label for="presentSalary">1. Present Day Salary:</label>
+        <input id="presentSalary" placeholder="मूल वेतन" required="" type="number" />
+
+        <label for="overtimeSalary">2. Overtime Salary:</label>
+        <input id="overtimeSalary" placeholder="ओवरटाइम आय" type="number" />
+
+        <button id="submitButton">Submit &amp; Save New Entry</button>
+        
+        <button id="restoreButton">Restore Last Entry to Input</button> 
+        
+        <hr />
+        
+        <div class="total-display" id="totalAmount">
+            Cumulative Total: 0.00
+        </div>
+        
+        <h3>📊 सैलरी रिकॉर्ड्स</h3>
+        <table id="recordsTable">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Present Salary</th>
+                    <th>Overtime Salary</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody id="recordsBody">
+                </tbody>
+        </table>
+        
+        <hr />
+        
+        <h3>⚙️ डेटा मैनेज करें</h3>
+        
+        <button id="clearButton">Clear All Data</button>
+        <button id="exportButton">Export All Data (Download CSV)</button>
+        <button id="importButton">Import Data (Upload CSV)</button>
+        
+        <input accept=".csv" id="importFile" style="display: none;" type="file" />
+
+        <p id="message"></p>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'salaryEntries';
+
+        // 1. DOMContentLoaded: सुनिश्चित करता है कि JavaScript तब तक नहीं चलता जब तक पूरा HTML लोड न हो जाए।
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // बटनों के लिए Event Listeners
+            document.getElementById('submitButton').addEventListener('click', saveNewEntry);
+            document.getElementById('restoreButton').addEventListener('click', loadLatestEntryToInput); 
+            document.getElementById('clearButton').addEventListener('click', clearLocalStorage);
+            document.getElementById('exportButton').addEventListener('click', exportCSV);
+            
+            document.getElementById('importButton').addEventListener('click', () => {
+                document.getElementById('importFile').click(); 
+            });
+            document.getElementById('importFile').addEventListener('change', importCSV);
+            
+            renderRecords();
+        });
+
+        // Local Storage से सभी एंट्रीज़ लोड करें
+        function getEntries() {
+            const data = localStorage.getItem(STORAGE_KEY);
+            try {
+                return JSON.parse(data) || [];
+            } catch (e) {
+                console.error("Error parsing JSON from localStorage:", e);
+                return [];
+            }
+        }
+        
+        // Local Storage में सभी एंट्रीज़ सेव करें
+        function setEntries(entries) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+            renderRecords(); 
+        }
+
+        // 2. नई एंट्री सेव करना
+        function saveNewEntry() {
+            const present = parseFloat(document.getElementById('presentSalary').value) || 0;
+            const overtime = parseFloat(document.getElementById('overtimeSalary').value) || 0;
+
+            if (present <= 0 && overtime <= 0) {
+                showMessage("❌ कृपया Present या Overtime Salary डालें!", 'red');
+                return;
+            }
+
+            const newEntry = {
+                date: new Date().toLocaleDateString('en-IN'), 
+                present: present.toFixed(2),
+                overtime: overtime.toFixed(2),
+                total: (present + overtime).toFixed(2)
+            };
+            
+            const entries = getEntries();
+            entries.push(newEntry);
+            setEntries(entries);
+            
+            // इनपुट फ़ील्ड क्लियर करें
+            document.getElementById('presentSalary').value = '';
+            document.getElementById('overtimeSalary').value = '';
+
+            showMessage("✅ New entry successfully saved!", 'green');
+        }
+
+        // 3. सबसे हालिया एंट्री को इनपुट में लोड करना
+        function loadLatestEntryToInput() {
+            const entries = getEntries();
+            
+            if (entries.length === 0) {
+                showMessage("❌ Local Storage में कोई रिकॉर्ड नहीं है!", 'red');
+                return;
+            }
+            
+            const latestEntry = entries[entries.length - 1];
+            
+            document.getElementById('presentSalary').value = latestEntry.present;
+            document.getElementById('overtimeSalary').value = latestEntry.overtime;
+
+            showMessage("↩️ Last entry restored to input fields.", 'blue');
+        }
+
+
+        // 4. सभी एंट्रीज़ को डिस्प्ले करना और टोटल कैलकुलेट करना
+        function renderRecords() {
+            const entries = getEntries();
+            const body = document.getElementById('recordsBody');
+            body.innerHTML = ''; 
+            
+            let cumulativeTotal = 0;
+
+            if (entries.length === 0) {
+                body.innerHTML = '<tr><td colspan="4" style="text-align: center;">No records found.</td></tr>';
+            } else {
+                entries.forEach((entry) => {
+                    const row = body.insertRow();
+                    row.insertCell(0).textContent = entry.date;
+                    row.insertCell(1).textContent = parseFloat(entry.present).toFixed(2);
+                    row.insertCell(2).textContent = parseFloat(entry.overtime).toFixed(2);
+                    row.insertCell(3).textContent = parseFloat(entry.total).toFixed(2);
+                    cumulativeTotal += parseFloat(entry.total);
+                });
+            }
+
+            // टोटल डिस्प्ले (सिंबल के बिना)
+            document.getElementById('totalAmount').textContent = `Cumulative Total: ${cumulativeTotal.toFixed(2)}`;
+        }
+
+        // 5. Local Storage क्लियर करना
+        function clearLocalStorage() {
+            if (confirm("⚠️ क्या आप वाकई सभी सेव किया हुआ सैलरी डेटा हटाना चाहते हैं?")) {
+                localStorage.removeItem(STORAGE_KEY);
+                renderRecords(); 
+                showMessage("🗑️ All records cleared!", 'red');
+            }
+        }
+
+        // 6. CSV डेटा Export करना (रो-वाइज सभी रिकॉर्ड्स)
+        function exportCSV() {
+            const entries = getEntries();
+            if (entries.length === 0) {
+                showMessage("❌ Export failed. No records to export.", 'red');
+                return;
+            }
+            
+            let csvContent = "data:text/csv;charset=utf-8,";
+            
+            csvContent += "Date,Present Salary,Overtime Salary,Total\r\n";
+            
+            entries.forEach(entry => {
+                csvContent += `${entry.date},${entry.present},${entry.overtime},${entry.total}\r\n`;
+            });
+
+            // डाउनलोड कोड
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `salary_records_export_${new Date().toLocaleDateString().replace(/\//g, '-')}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showMessage("📤 All data exported as CSV!", 'green');
+        }
+
+        // 7. CSV डेटा Import करना
+        function importCSV(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const csvText = e.target.result;
+                    const lines = csvText.split('\n').filter(line => line.trim() !== '');
+
+                    if (lines.length <= 1) { 
+                         showMessage("❌ Invalid CSV format. No data found.", 'red');
+                         return;
+                    }
+                    
+                    const importedEntries = [];
+                    for (let i = 1; i < lines.length; i++) {
+                        const values = lines[i].split(',');
+                        if (values.length >= 4) { 
+                            const entry = {
+                                date: values[0].trim(),
+                                present: parseFloat(values[1].trim() || '0').toFixed(2),
+                                overtime: parseFloat(values[2].trim() || '0').toFixed(2),
+                                total: parseFloat(values[3].trim() || '0').toFixed(2)
+                            };
+                            importedEntries.push(entry);
+                        }
+                    }
+
+                    if (importedEntries.length > 0) {
+                        setEntries(importedEntries); 
+                        showMessage("📥 Data imported successfully!", 'green');
+                    } else {
+                        showMessage("❌ No valid data rows found in CSV.", 'red');
+                    }
+
+
+                } catch (error) {
+                    showMessage("❌ Error importing CSV data.", 'red');
+                    console.error("Import Error:", error);
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = null; 
+        }
+
+        // 8. मैसेज डिस्प्ले करना
+        function showMessage(msg, color) {
+            const msgElement = document.getElementById('message');
+            msgElement.textContent = msg;
+            msgElement.style.color = color;
+            setTimeout(() => {
+                msgElement.textContent = '';
+                msgElement.style.color = '';
+            }, 4000);
+        }
+    </script>
+</body>
+</html>
