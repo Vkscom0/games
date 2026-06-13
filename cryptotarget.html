@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Trade Logger</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="number"], select, textarea {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 15px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .output {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background-color: #e9ecef;
+            border-radius: 4px;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🪙 Crypto Trade Form</h2>
+
+    <section>
+        <label for="importData">**Import Data (CSV/Text) 📄**</label>
+        <textarea id="importData" rows="4" placeholder="CSV format: Name,Entry,Exit,Quantity,P/L,Leverage,ROE. Ya plain text paste karein."></textarea>
+        <button onclick="loadFromTextarea()">Import to Form</button>
+        <p style="font-size: 0.8em; color: #555;">(Excel/Google Sheet data ko CSV ya Tab-separated format mein copy karke yahan paste karein.)</p>
+        <hr>
+    </section>
+
+    <form id="cryptoForm">
+        <label for="currencyName">**Crypto Currency Name:**</label>
+        <input type="text" id="currencyName" required>
+
+        <label for="positionEntry">**Position Entry (LONG/SHORT):**</label>
+        <select id="positionEntry" required>
+            <option value="">-- Select --</option>
+            <option value="LONG">LONG</option>
+            <option value="SHORT">SHORT</option>
+        </select>
+
+        <label for="priceEntry">**Price Entry:**</label>
+        <input type="number" id="priceEntry" step="any" required>
+
+        <label for="priceExit">**Price Exit:**</label>
+        <input type="number" id="priceExit" step="any" required>
+
+        <label for="priceQuantity">**Quantity (Coins):**</label>
+        <input type="number" id="priceQuantity" step="any" required>
+
+        <label for="leverage">**Leverage Required (Enter or Select):**</label>
+        <input type="text" id="leverage" list="leverageOptions" pattern="[0-9]+" title="Only numbers are allowed for leverage." required>
+        
+        <datalist id="leverageOptions">
+            <option value="1">1x</option>
+            <option value="5">5x</option>
+            <option value="10">10x</option>
+            <option value="25">25x</option>
+            <option value="50">50x</option>
+            <option value="100">100x</option>
+            <option value="200">200x (Max)</option>
+        </datalist>
+
+        <label for="pnl" class="hidden">P/L (Calculated):</label>
+        <input type="text" id="pnl" class="hidden" readonly>
+
+        <label for="marginRoe">**Margin ROE (%) (Calculated):**</label>
+        <input type="text" id="marginRoe" readonly>
+
+        <button type="submit" id="submitBtn">**Submit & Calculate P/L**</button>
+        <button type="button" onclick="exportData()">**Export Data** 📤</button>
+        <button type="button" onclick="restoreData()">**Restore Data** 🔄</button>
+    </form>
+
+    <div id="statusMessage" class="output hidden"></div>
+</div>
+
+<script>
+    const STORAGE_KEY = 'cryptoTradeData';
+    let tradeData = [];
+
+    // Local Storage se data load karna
+    function loadTradeData() {
+        const storedData = localStorage.getItem(STORAGE_KEY);
+        if (storedData) {
+            tradeData = JSON.parse(storedData);
+        } else {
+            tradeData = [];
+        }
+    }
+    loadTradeData(); // Page load hone par data load karein
+
+    // P/L aur Margin ROE calculate karna
+    function calculateTrade(entry, exit, position, leverage) {
+        const entryPrice = parseFloat(entry);
+        const exitPrice = parseFloat(exit);
+        // Leverage अब input type="text" से आ रहा है, इसलिए इसे parse करना ज़रूरी है
+        const lev = parseInt(leverage); 
+
+        if (isNaN(entryPrice) || isNaN(exitPrice) || isNaN(lev) || !position) {
+            return { pnl: 'Invalid Input', roe: 'Invalid Input' };
+        }
+
+        let priceChange = 0;
+        if (position === 'LONG') {
+            priceChange = ((exitPrice - entryPrice) / entryPrice) * 100;
+        } else if (position === 'SHORT') {
+            priceChange = ((entryPrice - exitPrice) / entryPrice) * 100;
+        } else {
+            return { pnl: 'Invalid Position', roe: 'Invalid Position' };
+        }
+
+        // P/L (Change in Price)
+        const pnl = priceChange.toFixed(2) + '%'; 
+        
+        // Margin ROE (%) = Price Change % * Leverage
+        const roe = (priceChange * lev).toFixed(2) + '%';
+        
+        return { pnl: pnl, roe: roe };
+    }
+
+    // Submit button click handler
+    document.getElementById('cryptoForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const name = document.getElementById('currencyName').value;
+        const entry = document.getElementById('priceEntry').value;
+        const exit = document.getElementById('priceExit').value;
+        const position = document.getElementById('positionEntry').value;
+        const quantity = document.getElementById('priceQuantity').value;
+        
+        // अब leverage value textbox से ली जा रही है
+        const leverage = document.getElementById('leverage').value; 
+
+        // Calculate P/L and ROE
+        const result = calculateTrade(entry, exit, position, leverage);
+        
+        // Form fields update
+        document.getElementById('pnl').value = result.pnl;
+        document.getElementById('marginRoe').value = result.roe;
+
+        // Data object
+        const trade = {
+            id: Date.now(), // Unique ID
+            name: name,
+            position: position,
+            priceEntry: entry,
+            priceExit: exit,
+            quantity: quantity,
+            pnl: result.pnl,
+            leverage: leverage + 'x', // 'x' suffix जोड़ा गया
+            marginRoe: result.roe,
+            date: new Date().toLocaleString()
+        };
+
+        // Store data locally
+        tradeData.push(trade);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(tradeData));
+        
+        // Status message
+        showMessage(`Trade for **${name}** Calculated and Saved to Local Storage! ROE: **${result.roe}**`, 'success');
+        
+        // Form reset (optional)
+        // document.getElementById('cryptoForm').reset();
+    });
+
+    // Import functionality
+    function loadFromTextarea() {
+        const text = document.getElementById('importData').value.trim();
+        if (!text) {
+            showMessage('Import area is empty!', 'error');
+            return;
+        }
+
+        // CSV/Text se pehla record assume karke form mein bharein (sirf ek entry ke liye)
+        const lines = text.split('\n');
+        const firstLine = lines[0];
+        
+        // Comma ya Tab se separated values ko split karein
+        const values = firstLine.split(/,?\s{1,}/).map(v => v.trim()); 
+        
+        if (values.length >= 7) {
+            // Assuming order: Name, Position, Entry, Exit, Quantity, P/L (ignored), Leverage
+            document.getElementById('currencyName').value = values[0];
+            document.getElementById('positionEntry').value = values[1].toUpperCase().includes('LONG') ? 'LONG' : 'SHORT';
+            document.getElementById('priceEntry').value = values[2];
+            document.getElementById('priceExit').value = values[3];
+            document.getElementById('priceQuantity').value = values[4];
+            
+            // Leverage value को सीधा टेक्स्टबॉक्स में सेट करें
+            const levValue = values[5].replace('x', '').trim();
+            document.getElementById('leverage').value = levValue;
+
+            showMessage('Data loaded into the form fields!', 'success');
+        } else {
+            showMessage('Could not parse data. Ensure it is separated by commas or tabs with at least 7 fields (Name, Position, Entry, Exit, Quantity, P/L, Leverage).', 'error');
+        }
+    }
+
+    // Export functionality (Google Sheet/Excel ke liye CSV)
+    function exportData() {
+        if (tradeData.length === 0) {
+            showMessage('No data to export!', 'error');
+            return;
+        }
+
+        let csvContent = "data:text/csv;charset=utf-8,";
+        
+        // Header Row
+        const headers = ["ID", "Name", "Position", "Price Entry", "Price Exit", "Quantity", "P/L (%)", "Leverage", "Margin ROE (%)", "Date"];
+        csvContent += headers.join(",") + "\n";
+        
+        // Data Rows
+        tradeData.forEach(function(trade) {
+            const row = [
+                trade.id,
+                trade.name,
+                trade.position,
+                trade.priceEntry,
+                trade.priceExit,
+                trade.quantity,
+                trade.pnl.replace('%', ''), // Remove % for calculation in spreadsheet
+                trade.leverage.replace('x', ''),
+                trade.marginRoe.replace('%', ''),
+                trade.date
+            ];
+            csvContent += row.join(",") + "\n";
+        });
+
+        // Download link
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "crypto_trades.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showMessage('Data exported as **crypto_trades.csv**! You can open this in Google Sheets/Excel.', 'success');
+    }
+
+    // Restore functionality
+    function restoreData() {
+        loadTradeData(); // Local storage se data reload karein
+
+        if (tradeData.length > 0) {
+            const lastTrade = tradeData[tradeData.length - 1]; // Last saved trade ko form mein bharein
+            
+            document.getElementById('currencyName').value = lastTrade.name;
+            document.getElementById('positionEntry').value = lastTrade.position;
+            document.getElementById('priceEntry').value = lastTrade.priceEntry;
+            document.getElementById('priceExit').value = lastTrade.priceExit;
+            document.getElementById('priceQuantity').value = lastTrade.quantity;
+            document.getElementById('pnl').value = lastTrade.pnl;
+            // 'x' हटाकर leverage value को textbox में सेट करें
+            document.getElementById('leverage').value = lastTrade.leverage.replace('x', ''); 
+            document.getElementById('marginRoe').value = lastTrade.marginRoe;
+            
+            showMessage(`Last trade for **${lastTrade.name}** restored!`, 'success');
+        } else {
+            showMessage('No saved data in local storage to restore.', 'error');
+        }
+    }
+
+    // Status message display
+    function showMessage(msg, type) {
+        const statusDiv = document.getElementById('statusMessage');
+        statusDiv.innerHTML = msg;
+        statusDiv.className = `output ${type === 'success' ? 'success' : 'error'}`;
+        statusDiv.style.borderColor = type === 'success' ? '#28a745' : '#dc3545';
+        statusDiv.style.backgroundColor = type === 'success' ? '#d4edda' : '#f8d7da';
+        statusDiv.classList.remove('hidden');
+        setTimeout(() => statusDiv.classList.add('hidden'), 5000);
+    }
+</script>
+
+</body>
+</html>
