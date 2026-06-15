@@ -214,63 +214,6 @@
 </div>
 
 <script>
-         <!-- start share code -->
-<script>
-function shareCurrentPage() {
-    // 1. पेज का URL उठाना और ?m=1 जोड़ना सुनिश्चित करना
-    let currentUrl = window.location.href.split('?')[0];
-    const pageUrl = currentUrl + '?m=1'; 
-    
-    // 2. Blogger टाइटल को केवल पोस्ट टाइटल तक सीमित करना
-    let fullTitle = document.title;
-    let pageTitle = fullTitle.split(':').pop().trim();
-    
-    if (pageTitle === fullTitle) {
-        pageTitle = fullTitle;
-    }
-    
-    // 3. पोस्ट का सारांश (पहली लाइन) निकालने का तरीका
-    let postContent = '';
-    try {
-        const contentElement = document.querySelector('.post-body, .post-content, .entry-content'); 
-        if (contentElement) {
-            postContent = contentElement.innerText || contentElement.textContent;
-        }
-    } catch (e) {
-        console.error("Could not find post content element.", e);
-    }
-    
-    let firstLine = '';
-    if (postContent.length > 0) {
-        firstLine = postContent.substring(0, 120).trim();
-        if (postContent.length > 120 && firstLine.lastIndexOf(' ') > 0) {
-             firstLine = firstLine.substring(0, firstLine.lastIndexOf(' '));
-        }
-    } else {
-        firstLine = 'यह जानकारी बहुत महत्वपूर्ण है, जरूर देखें।';
-    }
-
-    // 4. शेयर मैसेज तैयार करना (टाइटल + फर्स्ट लाइन + ...)
-    // **अंतिम बदलाव:** शेयर टेक्स्ट में अब URL शामिल नहीं है।
-    const shareText = `${pageTitle}\n${firstLine}...`;
-
-    if (navigator.share) {
-        // navigator.share ऑब्जेक्ट URL को अलग से पास करता है, जिससे वह मैसेज के नीचे एक अलग लिंक के रूप में दिखाई देता है।
-        navigator.share({
-            title: pageTitle,
-            text: shareText, // यहाँ अब URL नहीं है
-            url: pageUrl // URL यहाँ से पास होगा
-        })
-        .then(() => console.log('Successfully shared'))
-        .catch((error) => console.error('Sharing failed', error));
-    } else {
-        // Fallback: अगर Web Share API काम नहीं करता, तो URL को मैन्युअल रूप से जोड़कर दिखाएं।
-        const fallbackMessage = 'लिंक कॉपी करें और शेयर करें:\n\n' + shareText + '\n\n' + pageUrl;
-        alert(fallbackMessage);
-    }
-}
-</script>
-<!-- end share code -->
 
     // अपनी Google Sheet का Published CSV लिंक यहाँ पेस्ट करें
     const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTODzdeM_Wha98VVOuYgYDCvoKC4DoFQBvVrtxWEvsYD-zGB1yx4R4kqoPXt5Z01ACyib004ljEWCQL/pub?output=csv";
@@ -548,7 +491,150 @@ function shareCurrentPage() {
 
     window.onload = initDB;
 </script>
+<!-- start share code -->
+    <button onclick="shareCurrentPage()" style="background-color: #075e54; border-radius: 8px; border: none; color: white; cursor: pointer; font-size: 18px; font-weight: bold; margin-top: 20px; padding: 15px 30px;">दोस्तों को शेयर करें
+</button>
 
+
+  
+<script>
+    if ('speechSynthesis' in window) {
+        // Step 1: main-post-content से कंटेंट लेकर post-content-to-read में डालें
+        // यह सुनिश्चित करता है कि TTS केवल दृश्यमान टेक्स्ट को पढ़ेगा।
+        var mainContent = document.getElementById('main-post-content');
+        var ttsContentDiv = document.getElementById('post-content-to-read');
+        if (mainContent && ttsContentDiv) {
+            ttsContentDiv.textContent = mainContent.textContent;
+        }
+
+        var synth = window.speechSynthesis;
+        var textToSpeak = ttsContentDiv.textContent.trim(); 
+        var utterance = new SpeechSynthesisUtterance(textToSpeak);
+
+        // भाषा को हिंदी (India) पर सेट करें
+        utterance.lang = 'hi-IN';
+
+        function setHindiVoice() {
+            var voices = synth.getVoices();
+            var hindiVoice = voices.find(voice => voice.lang === 'hi-IN' || voice.lang.startsWith('hi'));
+            if (hindiVoice) {
+                utterance.voice = hindiVoice;
+            }
+        }
+        
+        synth.onvoiceschanged = setHindiVoice;
+        setHindiVoice(); 
+
+        // बटन लॉजिक
+        utterance.onstart = function() {
+            document.getElementById('play-tts').style.display = 'none';
+            document.getElementById('pause-tts').style.display = 'inline-block';
+            document.getElementById('stop-tts').style.display = 'inline-block';
+            document.getElementById('resume-tts').style.display = 'none';
+        };
+
+        utterance.onpause = function() {
+            document.getElementById('pause-tts').style.display = 'none';
+            document.getElementById('resume-tts').style.display = 'inline-block';
+        };
+
+        utterance.onresume = function() {
+            document.getElementById('resume-tts').style.display = 'none';
+            document.getElementById('pause-tts').style.display = 'inline-block';
+        };
+
+        utterance.onend = function() {
+            document.getElementById('play-tts').style.display = 'inline-block';
+            document.getElementById('pause-tts').style.display = 'none';
+            document.getElementById('resume-tts').style.display = 'none';
+            document.getElementById('stop-tts').style.display = 'none';
+        };
+
+        window.speakText = function() {
+            if (synth.speaking) {
+                synth.cancel();
+            }
+            synth.speak(utterance);
+        };
+
+        window.pauseText = function() {
+            if (synth.speaking && !synth.paused) {
+                synth.pause();
+            }
+        };
+
+        window.resumeText = function() {
+            if (synth.paused) {
+                synth.resume();
+            }
+        };
+
+        window.stopText = function() {
+            synth.cancel();
+        };
+
+    } else {
+        document.getElementById('tts-player').innerHTML = '<p style="color:red; font-weight:bold;">माफ़ करें, आपका ब्राउज़र Text-to-Speech का समर्थन नहीं करता है।</p>';
+    }
+</script>
+
+
+<script>
+function shareCurrentPage() {
+    // 1. पेज का URL उठाना और ?m=1 जोड़ना सुनिश्चित करना
+    let currentUrl = window.location.href.split('?')[0];
+    const pageUrl = currentUrl + '?m=1'; 
+    
+    // 2. Blogger टाइटल को केवल पोस्ट टाइटल तक सीमित करना
+    let fullTitle = document.title;
+    let pageTitle = fullTitle.split(':').pop().trim();
+    
+    if (pageTitle === fullTitle) {
+        pageTitle = fullTitle;
+    }
+    
+    // 3. पोस्ट का सारांश (पहली लाइन) निकालने का तरीका
+    let postContent = '';
+    try {
+        const contentElement = document.querySelector('.post-body, .post-content, .entry-content'); 
+        if (contentElement) {
+            postContent = contentElement.innerText || contentElement.textContent;
+        }
+    } catch (e) {
+        console.error("Could not find post content element.", e);
+    }
+    
+    let firstLine = '';
+    if (postContent.length > 0) {
+        firstLine = postContent.substring(0, 120).trim();
+        if (postContent.length > 120 && firstLine.lastIndexOf(' ') > 0) {
+             firstLine = firstLine.substring(0, firstLine.lastIndexOf(' '));
+        }
+    } else {
+        firstLine = 'यह जानकारी बहुत महत्वपूर्ण है, जरूर देखें।';
+    }
+
+    // 4. शेयर मैसेज तैयार करना (टाइटल + फर्स्ट लाइन + ...)
+    // **अंतिम बदलाव:** शेयर टेक्स्ट में अब URL शामिल नहीं है।
+    const shareText = `${pageTitle}\n${firstLine}...`;
+
+    if (navigator.share) {
+        // navigator.share ऑब्जेक्ट URL को अलग से पास करता है, जिससे वह मैसेज के नीचे एक अलग लिंक के रूप में दिखाई देता है।
+        navigator.share({
+            title: pageTitle,
+            text: shareText, // यहाँ अब URL नहीं है
+            url: pageUrl // URL यहाँ से पास होगा
+        })
+        .then(() => console.log('Successfully shared'))
+        .catch((error) => console.error('Sharing failed', error));
+    } else {
+        // Fallback: अगर Web Share API काम नहीं करता, तो URL को मैन्युअल रूप से जोड़कर दिखाएं।
+        const fallbackMessage = 'लिंक कॉपी करें और शेयर करें:\n\n' + shareText + '\n\n' + pageUrl;
+        alert(fallbackMessage);
+    }
+}
+</script>
+    <!-- end share code -->
 
     <!-- start audio code -->
     <div id="vks-ad-bar" style="
