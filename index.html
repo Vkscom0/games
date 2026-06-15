@@ -491,7 +491,107 @@
 
     window.onload = initDB;
 </script>
-<!-- start share code -->
+
+
+    <!-- start audio code -->
+    <div id="vks-ad-bar" style="
+    position: fixed; 
+    bottom: 0; 
+    left: 0; 
+    width: 100%; 
+    background: #ffffff; 
+    border-top: 2px solid #007bff; 
+    padding: 10px 20px; 
+    box-shadow: 0 -3px 15px rgba(0,0,0,0.2); 
+    z-index: 99999; 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between;
+    font-family: Arial, sans-serif;
+    box-sizing: border-box;">
+
+    <div style="display: flex; align-items: center; gap: 15px;">
+        <a href="https://vkscom.blogspot.com" target="_blank">
+            <img src="https://cdn-icons-png.flaticon.com/512/3898/3898082.png" 
+                 alt="VKS Logo" 
+                 style="width: 45px; height: 45px; border-radius: 5px; cursor: pointer; border: 1px solid #ddd;">
+        </a>
+        
+        <div style="cursor: pointer;">
+            <div onclick="toggleLanguage()" style="font-weight: bold; color: #333; font-size: 15px;">
+                Translate Hindi ⇄ English
+            </div>
+            <div onclick="toggleAudio()" style="font-size: 12px; color: #007bff; font-weight: bold;">
+                🔊 Click to Listen Post
+            </div>
+        </div>
+    </div>
+
+    <a href="https://vkscom.blogspot.com" target="_blank" style="text-decoration: none;">
+        <button style="
+            background: #007bff; 
+            color: white; 
+            border: none; 
+            padding: 10px 25px; 
+            border-radius: 5px; 
+            font-weight: bold; 
+            cursor: pointer;
+            font-size: 16px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+            GO
+        </button>
+    </a>
+
+    <div id="google_translate_element" style="display:none !important;"></div>
+</div>
+
+<script type="text/javascript">
+    function googleTranslateElementInit() {
+        new google.translate.TranslateElement({
+            pageLanguage: 'auto', 
+            includedLanguages: 'hi,en', 
+            layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+        }, 'google_translate_element');
+    }
+
+    // Translate Logic
+    function toggleLanguage() {
+        var combo = document.querySelector('.goog-te-combo');
+        if (combo) {
+            combo.value = (combo.value === 'hi') ? 'en' : 'hi';
+            combo.dispatchEvent(new Event('change'));
+        }
+    }
+
+    // Audio Logic
+    let isReading = false;
+    function toggleAudio() {
+        if (!isReading) {
+            window.speechSynthesis.cancel();
+            const content = document.querySelector('article') || document.body;
+            const msg = new SpeechSynthesisUtterance(content.innerText);
+            msg.lang = document.documentElement.lang || 'hi-IN';
+            msg.onend = () => isReading = false;
+            window.speechSynthesis.speak(msg);
+            isReading = true;
+        } else {
+            window.speechSynthesis.cancel();
+            isReading = false;
+        }
+    }
+</script>
+<script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+<style>
+    body { padding-bottom: 80px !important; }
+    .goog-te-banner-frame, .goog-te-gadget-icon { display: none !important; }
+    body { top: 0px !important; }
+</style>
+
+   <!-- end audio code -->
+
+
+    <!-- start share code -->
     <button onclick="shareCurrentPage()" style="background-color: #075e54; border-radius: 8px; border: none; color: white; cursor: pointer; font-size: 18px; font-weight: bold; margin-top: 20px; padding: 15px 30px;">दोस्तों को शेयर करें
 </button>
 
@@ -635,105 +735,5 @@ function shareCurrentPage() {
 }
 </script>
     <!-- end share code -->
-
-    <!-- start audio code -->
-    <div id="vks-ad-bar" style="
-    position: fixed; 
-    bottom: 0; 
-    left: 0; 
-    width: 100%; 
-    background: #ffffff; 
-    border-top: 2px solid #007bff; 
-    padding: 10px 20px; 
-    box-shadow: 0 -3px 15px rgba(0,0,0,0.2); 
-    z-index: 99999; 
-    display: flex; 
-    align-items: center; 
-    justify-content: space-between;
-    font-family: Arial, sans-serif;
-    box-sizing: border-box;">
-
-    <div style="display: flex; align-items: center; gap: 15px;">
-        <a href="https://vkscom.blogspot.com" target="_blank">
-            <img src="https://cdn-icons-png.flaticon.com/512/3898/3898082.png" 
-                 alt="VKS Logo" 
-                 style="width: 45px; height: 45px; border-radius: 5px; cursor: pointer; border: 1px solid #ddd;">
-        </a>
-        
-        <div style="cursor: pointer;">
-            <div onclick="toggleLanguage()" style="font-weight: bold; color: #333; font-size: 15px;">
-                Translate Hindi ⇄ English
-            </div>
-            <div onclick="toggleAudio()" style="font-size: 12px; color: #007bff; font-weight: bold;">
-                🔊 Click to Listen Post
-            </div>
-        </div>
-    </div>
-
-    <a href="https://vkscom.blogspot.com" target="_blank" style="text-decoration: none;">
-        <button style="
-            background: #007bff; 
-            color: white; 
-            border: none; 
-            padding: 10px 25px; 
-            border-radius: 5px; 
-            font-weight: bold; 
-            cursor: pointer;
-            font-size: 16px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-            GO
-        </button>
-    </a>
-
-    <div id="google_translate_element" style="display:none !important;"></div>
-</div>
-
-<script type="text/javascript">
-    function googleTranslateElementInit() {
-        new google.translate.TranslateElement({
-            pageLanguage: 'auto', 
-            includedLanguages: 'hi,en', 
-            layout: google.translate.TranslateElement.InlineLayout.SIMPLE
-        }, 'google_translate_element');
-    }
-
-    // Translate Logic
-    function toggleLanguage() {
-        var combo = document.querySelector('.goog-te-combo');
-        if (combo) {
-            combo.value = (combo.value === 'hi') ? 'en' : 'hi';
-            combo.dispatchEvent(new Event('change'));
-        }
-    }
-
-    // Audio Logic
-    let isReading = false;
-    function toggleAudio() {
-        if (!isReading) {
-            window.speechSynthesis.cancel();
-            const content = document.querySelector('article') || document.body;
-            const msg = new SpeechSynthesisUtterance(content.innerText);
-            msg.lang = document.documentElement.lang || 'hi-IN';
-            msg.onend = () => isReading = false;
-            window.speechSynthesis.speak(msg);
-            isReading = true;
-        } else {
-            window.speechSynthesis.cancel();
-            isReading = false;
-        }
-    }
-</script>
-<script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-
-<style>
-    body { padding-bottom: 80px !important; }
-    .goog-te-banner-frame, .goog-te-gadget-icon { display: none !important; }
-    body { top: 0px !important; }
-</style>
-
-   <!-- end audio code -->
-
-
-    
 </body>
 </html>
