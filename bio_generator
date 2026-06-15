@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>बायो और लिंक्स</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --bg-color: #f5f7fa;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --danger-color: #e74c3c;
+            --success-color: #2ecc71;
+            --share-color: #34495e;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            box-sizing: border-box;
+        }
+
+        /* बायो हेडर स्टाइल */
+        .bio-header {
+            text-align: center;
+            border-bottom: 2px solid #eaeded;
+            padding-bottom: 20px;
+            margin-bottom: 25px;
+        }
+
+        .bio-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .bio-title {
+            margin: 10px 0 5px 0;
+            font-size: 24px;
+        }
+
+        .bio-desc {
+            color: #666;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        /* कंटेंट लिस्ट स्टाइल */
+        .heading-block {
+            margin-bottom: 30px;
+            padding: 15px;
+            border-left: 4px solid var(--primary-color);
+            background: #fafbfc;
+            border-radius: 0 8px 8px 0;
+            position: relative;
+        }
+
+        .heading-title {
+            margin: 0 110px 10px 0; /* बटन के लिए स्पेस छोड़ा */
+            font-size: 20px;
+            color: #2c3e50;
+            word-wrap: break-word;
+        }
+
+        .content-level {
+            padding-left: 10px;
+            margin-top: 10px;
+        }
+
+        .content-link {
+            display: inline-block;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 10px;
+            word-break: break-all;
+        }
+
+        .content-link:hover {
+            text-decoration: underline;
+        }
+
+        .content-img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 6px;
+            display: block;
+            margin-top: 5px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        /* एक्शन बटन्स */
+        .action-buttons-container {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn-action {
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .btn-delete {
+            background: var(--danger-color);
+            display: none; /* सिर्फ लॉगिन के बाद दिखेगा */
+        }
+
+        .btn-share {
+            background: var(--share-color);
+        }
+
+        /* एडमिन इंटरफेस */
+        .admin-controls-wrapper {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .admin-btn {
+            background: #7f8c8d;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .logout-btn {
+            background: var(--danger-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            display: none;
+        }
+
+        .admin-panel {
+            display: none;
+            background: #edf2f7;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #cbd5e0;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .btn-submit {
+            background: var(--success-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .btn-build {
+            background: #9b59b6;
+            color: white;
+            border: none;
+            padding: 12px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- मुख्य बायो और डिस्प्ले कंटेनर -->
+    <div class="container" id="mainCardContainer">
+        <div class="bio-header" id="bioHeader">
+            <img src="https://via.placeholder.com/100" alt="Avatar" class="bio-avatar" id="dispAvatar">
+            <h1 class="bio-title" id="dispTitle">आपका नाम / टाइटल</h1>
+            <p class="bio-desc" id="dispDesc">यहाँ आपका संक्षिप्त विवरण या डिस्क्रिप्शन दिखाई देगा।</p>
+        </div>
+
+        <!-- डायनामिक हेडिंग्स यहाँ लोड होंगी -->
+        <div id="headingsContainer"></div>
+    </div>
+
+    <!-- एडमिन लॉगिन और लॉगआउट कंट्रोल्स -->
+    <div class="admin-controls-wrapper" id="adminActionArea">
+        <button class="admin-btn" id="loginBtn" onclick="toggleAdmin()">एडमिन लॉगिन</button>
+        <button class="logout-btn" id="logoutBtn" onclick="logoutAdmin()">लॉगआउट</button>
+    </div>
+
+    <!-- एडमिन एडिट पैनल -->
+    <div class="container admin-panel" id="adminPanel">
+        <h3>प्रोफ़ाइल बायो बदलें</h3>
+        <div class="form-group">
+            <label>बायो इमेज (URL):</label>
+            <input type="text" id="bioImgInput" autocomplete="off">
+        </div>
+        <div class="form-group">
+            <label>बायो टाइटल:</label>
+            <input type="text" id="bioTitleInput" autocomplete="off">
+        </div>
+        <div class="form-group">
+            <label>बायो डिस्क्रिप्शन:</label>
+            <textarea id="bioDescInput" rows="2" autocomplete="off"></textarea>
+        </div>
+        <button class="btn-submit" onclick="saveBio()">बायो अपडेट करें</button>
+
+        <hr style="border: 0; border-top: 1px solid #cbd5e0; margin: 20px 0;">
+
+        <h3>नयी हेडिंग और लिंक जोड़ें</h3>
+        <div class="form-group">
+            <label>हेडिंग (Heading Level):</label>
+            <input type="text" id="headInput" placeholder="उदा: मेरी पसंदीदा वेबसाइट्स" autocomplete="off">
+        </div>
+        <div class="form-group">
+            <label>इमेज (URL):</label>
+            <input type="text" id="imgInput" placeholder="https://example.com/image.jpg" autocomplete="off">
+        </div>
+        <div class="form-group">
+            <label>लिंक टेक्स्ट:</label>
+            <input type="text" id="linkTextInput" placeholder="उदा: गूगल पर जाएँ" autocomplete="off">
+        </div>
+        <div class="form-group">
+            <label>वेबसाइट लिंक (URL):</label>
+            <input type="text" id="urlInput" placeholder="https://example.com" autocomplete="off">
+        </div>
+
+        <button class="btn-submit" onclick="addHeadingBlock()">नया ब्लॉक जोड़ें</button>
+
+        <hr style="border: 0; border-top: 1px solid #cbd5e0; margin: 20px 0;">
+        
+        <!-- फाइनल बिल्ड बटन -->
+        <h3>फाइनल एक्सपोर्ट</h3>
+        <p style="font-size: 13px; color: #555; margin-top: -5px;">यह बिना एडमिन पैनल और बिना पासवर्ड वाले रेडी-टू-यूज़ कोड की फाइल डाउनलोड कर देगा।</p>
+        <button class="btn-build" onclick="exportFinalHTML()">Download Final HTML Code</button>
+    </div>
+
+    <script>
+        // डिफ़ॉल्ट क्रेडेंशियल्स
+        const ADMIN_USER = "admin";
+        const ADMIN_PASS = "12345";
+        
+        let isAdminLoggedIn = false;
+        let db;
+
+        // IndexedDB सेटअप
+        const request = indexedDB.open("BioDatabase", 1);
+
+        request.onupgradeneeded = function(event) {
+            db = event.target.result;
+            if (!db.objectStoreNames.contains("profile")) {
+                db.createObjectStore("profile", { keyPath: "id" });
+            }
+            if (!db.objectStoreNames.contains("headings")) {
+                db.createObjectStore("headings", { keyPath: "id", autoIncrement: true });
+            }
+        };
+
+        request.onsuccess = function(event) {
+            db = event.target.result;
+            loadBio();
+            loadHeadings();
+        };
+
+        // एडमिन लॉगिन/लॉगआउट मैनेजमेंट
+        function toggleAdmin() {
+            if (isAdminLoggedIn) return;
+
+            const user = prompt("Username दर्ज करें:");
+            const pass = prompt("Password दर्ज करें:");
+
+            if (user === ADMIN_USER && pass === ADMIN_PASS) {
+                isAdminLoggedIn = true;
+                document.getElementById('adminPanel').style.display = 'block';
+                document.getElementById('loginBtn').style.display = 'none';
+                document.getElementById('logoutBtn').style.display = 'block';
+                showDeleteButtons(true);
+                alert("सफलतापूर्वक लॉगिन हुआ!");
+            } else {
+                alert("गलत Username या Password!");
+            }
+        }
+
+        function logoutAdmin() {
+            isAdminLoggedIn = false;
+            document.getElementById('adminPanel').style.display = 'none';
+            document.getElementById('loginBtn').style.display = 'block';
+            document.getElementById('logoutBtn').style.display = 'none';
+            showDeleteButtons(false);
+        }
+
+        function showDeleteButtons(show) {
+            const deleteButtons = document.querySelectorAll('.btn-delete');
+            deleteButtons.forEach(btn => btn.style.display = show ? 'block' : 'none');
+        }
+
+        // बायो डेटा हैंडलिंग
+        function loadBio() {
+            const transaction = db.transaction(["profile"], "readonly");
+            const store = transaction.objectStore("profile");
+            const req = store.get("bioData");
+
+            req.onsuccess = function() {
+                if (req.result) {
+                    document.getElementById('dispAvatar').src = req.result.img || 'https://via.placeholder.com/100';
+                    document.getElementById('dispTitle').innerText = req.result.title || 'आपका नाम';
+                    document.getElementById('dispDesc').innerText = req.result.desc || 'विवरण';
+                    
+                    document.getElementById('bioImgInput').value = req.result.img || '';
+                    document.getElementById('bioTitleInput').value = req.result.title || '';
+                    document.getElementById('bioDescInput').value = req.result.desc || '';
+                }
+            };
+        }
+
+        function saveBio() {
+            if (!isAdminLoggedIn) return alert("कृपया पहले लॉगिन करें।");
+            
+            const bioData = {
+                id: "bioData",
+                img: document.getElementById('bioImgInput').value,
+                title: document.getElementById('bioTitleInput').value,
+                desc: document.getElementById('bioDescInput').value
+            };
+
+            const transaction = db.transaction(["profile"], "readwrite");
+            const store = transaction.objectStore("profile");
+            store.put(bioData);
+
+            transaction.oncomplete = function() {
+                loadBio();
+                alert("बायो सफलतापूर्वक अपडेट हुआ!");
+            };
+        }
+
+        // हेडिंग ब्लॉक्स मैनेजमेंट
+        function loadHeadings() {
+            const container = document.getElementById('headingsContainer');
+            container.innerHTML = "";
+
+            const transaction = db.transaction(["headings"], "readonly");
+            const store = transaction.objectStore("headings");
+            const req = store.getAll();
+
+            req.onsuccess = function() {
+                const list = req.result;
+                list.forEach(item => {
+                    const block = document.createElement('div');
+                    block.className = 'heading-block';
+                    
+                    block.innerHTML = `
+                        <div class="action-buttons-container">
+                            <button class="btn-action btn-share" onclick="shareLink('${item.url}', '${item.linkText}')">शेयर</button>
+                            <button class="btn-action btn-delete" onclick="deleteBlock(${item.id})">डिलीट</button>
+                        </div>
+                        <h2 class="heading-title">${item.heading}</h2>
+                                                    ${item.img ? `<img src="${item.img}" class="content-img" alt="Content Image">` : ''}
+                        <div class="content-level">
+                            <a href="${item.url}" target="_blank" class="content-link">${item.linkText}</a>
+
+                        </div>
+                    `;
+                    container.appendChild(block);
+                });
+                if (isAdminLoggedIn) showDeleteButtons(true);
+            };
+        }
+
+        function addHeadingBlock() {
+            if (!isAdminLoggedIn) return alert("कृपया पहले लॉगिन करें।");
+
+            const heading = document.getElementById('headInput').value;
+             const img = document.getElementById('imgInput').value;
+            const linkText = document.getElementById('linkTextInput').value;
+            const url = document.getElementById('urlInput').value;
+         
+
+            if (!heading || !linkText || !url) {
+                alert("कृपया हेडिंग, लिंक टेक्स्ट और URL ज़रूर भरें!");
+                return;
+            }
+
+            const newItem = { heading, linkText, url, img };
+
+            const transaction = db.transaction(["headings"], "readwrite");
+            const store = transaction.objectStore("headings");
+            store.add(newItem);
+
+            transaction.oncomplete = function() {
+                loadHeadings();
+                document.getElementById('headInput').value = '';
+                document.getElementById('linkTextInput').value = '';
+                document.getElementById('urlInput').value = '';
+                document.getElementById('imgInput').value = '';
+            };
+        }
+
+        function deleteBlock(id) {
+            if (!isAdminLoggedIn) return;
+            
+            if (confirm("क्या आप वाकई इसे डिलीट करना चाहते हैं?")) {
+                const transaction = db.transaction(["headings"], "readwrite");
+                const store = transaction.objectStore("headings");
+                store.delete(id);
+
+                transaction.oncomplete = function() {
+                    loadHeadings();
+                };
+            }
+        }
+
+        // शेयर फीचर फंक्शन
+        function shareLink(url, title) {
+            if (navigator.share) {
+                navigator.share({
+                    title: title,
+                    url: url
+                }).catch(err => console.log("Share failed:", err));
+            } else {
+                navigator.clipboard.writeText(url).then(() => {
+                    alert("लिंक कॉपी कर लिया गया है!");
+                }).catch(err => {
+                    alert("कॉपी करने में विफल: " + err);
+                });
+            }
+        }
+
+        // फाइनल बिल्ड HTML जनरेटर (बिना एडमिन कोड के क्लीन फ़ाइल)
+        function exportFinalHTML() {
+            const currentCardHTML = document.getElementById('mainCardContainer').innerHTML;
+            
+            // नया साफ़-सुथरा कोड तैयार करना जो बिना डेटाबेस के सीधे चलेगा
+            const finalHTMLCode = `<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>मेरी बायो प्रोफाइल</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --bg-color: #f5f7fa;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --share-color: #34495e;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            box-sizing: border-box;
+        }
+        .bio-header {
+            text-align: center;
+            border-bottom: 2px solid #eaeded;
+            padding-bottom: 20px;
+            margin-bottom: 25px;
+        }
+        .bio-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--primary-color);
+            margin-bottom: 10px;
+        }
+        .bio-title { margin: 10px 0 5px 0; font-size: 24px; }
+        .bio-desc { color: #666; font-size: 14px; margin: 0; }
+        .heading-block {
+            margin-bottom: 30px;
+            padding: 15px;
+            border-left: 4px solid var(--primary-color);
+            background: #fafbfc;
+            border-radius: 0 8px 8px 0;
+            position: relative;
+        }
+        .heading-title { margin: 0 70px 10px 0; font-size: 20px; color: #2c3e50; word-wrap: break-word; }
+        .content-level { padding-left: 10px; margin-top: 10px; }
+        .content-link { display: inline-block; color: var(--primary-color); text-decoration: none; font-weight: bold; font-size: 16px; margin-bottom: 10px; word-break: break-all; }
+        .content-link:hover { text-decoration: underline; }
+        .content-img { max-width: 100%; height: auto; border-radius: 6px; display: block; margin-top: 5px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .action-buttons-container { position: absolute; top: 10px; right: 10px; }
+        .btn-action { border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; color: white; font-weight: bold; background: var(--share-color); }
+        .btn-delete { display: none !important; } /* डिलीट बटन्स पूरी तरह हटाए गए */
+    </style>
+</head>
+<body>
+    <div class="container">
+        ${currentCardHTML}
+    </div>
+    <script>
+        function shareLink(url, title) {
+            if (navigator.share) {
+                navigator.share({ title: title, url: url }).catch(err => console.log(err));
+            } else {
+                navigator.clipboard.writeText(url).then(() => { alert("लिंक कॉपी कर लिया गया है!"); });
+            }
+        }
+    <\/script>
+</body>
+</html>`;
+
+            // फ़ाइल डाउनलोड प्रक्रिया
+            const blob = new Blob([finalHTMLCode], { type: "text/html" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "final_biopage.html";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
