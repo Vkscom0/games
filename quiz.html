@@ -794,20 +794,23 @@ function shareCurrentPage() {
         }
     }
 
-    function showAd() {
-        if(adsData.length === 0) return;
-        const ad = adsData[currentAdIndex];
-        const container = document.getElementById("bottom-ad-container");
-        const img = document.getElementById("ad-image");
-        const link = document.getElementById("ad-link");
+ /* --- पुराने showAd() फंक्शन को इससे बदलें --- */
+function showAd() {
+    if(adsData.length === 0) return;
+    const ad = adsData[currentAdIndex];
+    const container = document.getElementById("bottom-ad-container");
+    const img = document.getElementById("ad-image");
+    const link = document.getElementById("ad-link");
+    const txt = document.getElementById("ad-text"); // टेक्स्ट एलिमेंट पकड़ा
 
-        if(container && img && link) {
-            img.src = ad.image;
-            img.alt = ad.alt;
-            link.href = ad.url;
-            container.style.display = "block";
-        }
+    if(container && img && link && txt) {
+        img.src = ad.image;
+        img.alt = ad.alt;
+        link.href = ad.url;
+        txt.innerText = ad.alt; // गूगल शीट के तीसरे कॉलम (Alt text) को यहां टेक्स्ट की तरह दिखाया जाएगा
+        container.style.display = "block";
     }
+}
 
     function startRotation() {
         if(adsData.length <= 1) return;
