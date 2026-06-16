@@ -690,9 +690,13 @@ function shareCurrentPage() {
 }
 </script>
 <div id="bottom-ad-container">
+    <!-- क्लोज बटन को लिंक से बाहर रखा है ताकि बंद करते समय लिंक न खुले -->
     <button id="close-ad-btn" onclick="closeAd()" aria-label="Close Ad">✕</button>
+    
     <a id="ad-link" href="#" target="_blank" rel="noopener noreferrer">
         <img id="ad-image" src="" alt="Advertisement">
+        <!-- यह नया एलिमेंट विज्ञापन का टेक्स्ट दिखाएगा -->
+        <span id="ad-text"></span>
     </a>
 </div>
 
