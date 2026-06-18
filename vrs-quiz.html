@@ -1,15 +1,96 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title></title>
+    <title>Valmiki Ramayana Samvaad Quiz (500+ Questions)</title>
+    <style> 
+        :root { --quiz-primary: #e67e22; --quiz-secondary: #2c3e50; --quiz-success: #27ae60; --quiz-error: #c0392b; --quiz-bg: #f5f6fa; } 
+        .quiz-wrapper { background-color: var(--quiz-bg) !important; color: var(--quiz-secondary) !important; padding: 15px; font-family: 'Segoe UI', Arial, sans-serif !important; } 
+        .quiz-container { max-width: 650px; width: 100%; background: #ffffff !important; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-top: 5px solid var(--quiz-primary); margin: 10px auto; box-sizing: border-box; } 
+        .quiz-container h1 { text-align: center; color: var(--quiz-primary) !important; margin-bottom: 15px; font-size: 22px !important; } 
+        .quiz-status-bar { display: flex; justify-content: space-between; margin-bottom: 20px; font-weight: bold; font-size: 14px; background: #edf2f7; padding: 10px 15px; border-radius: 6px; } 
+        .quiz-samvaad-box { background: #fff9f2 !important; border-left: 4px solid var(--quiz-primary) !important; padding: 15px; margin-bottom: 20px; font-size: 17px !important; line-height: 1.6; color: #333 !important; } 
+        .shlok-text { font-weight: bold; font-style: italic; margin-bottom: 10px; color: #b35300; } 
+        .anuwad-text { font-size: 15px !important; color: #555 !important; background: #fff0e0; padding: 8px 12px; border-radius: 4px; margin-top: 8px; display: block; } 
+        .quiz-question-box { font-size: 18px !important; margin-bottom: 20px; font-weight: 600; color: var(--quiz-secondary); } 
+        ul.quiz-options-list { list-style-type: none !important; padding: 0 !important; margin: 0 0 20px 0 !important; } 
+        ul.quiz-options-list li { margin-bottom: 12px !important; list-style: none !important; padding: 0 !important; } 
+        .quiz-option-btn { display: block !important; width: 100% !important; background: #ffffff !important; border: 2px solid #cbd5e0 !important; padding: 12px 20px !important; border-radius: 8px !important; cursor: pointer; text-align: left !important; font-size: 16px !important; color: var(--quiz-secondary) !important; transition: all 0.2s ease; box-sizing: border-box; } 
+        .quiz-option-btn:hover:not([disabled]) { background: #f7fafc !important; border-color: var(--quiz-primary) !important; } 
+        .quiz-option-btn.correct { background-color: #d4edda !important; border-color: var(--quiz-success) !important; color: #155724 !important; font-weight: bold; } 
+        .quiz-option-btn.wrong { background-color: #f8d7da !important; border-color: var(--quiz-error) !important; color: #721c24 !important; } 
+        .quiz-controls { display: flex; justify-content: flex-end; } 
+        .quiz-btn { background-color: var(--quiz-primary) !important; color: white !important; border: none !important; padding: 12px 25px !important; font-size: 16px !important; border-radius: 6px !important; cursor: pointer; font-weight: bold; } 
+        .quiz-btn:disabled { background-color: #cbd5e0 !important; cursor: not-allowed; color: #718096 !important; } 
+        .quiz-result-screen { text-align: center; padding: 20px 0; } 
+        .quiz-score-display { font-size: 44px; font-weight: bold; color: var(--quiz-primary); margin: 20px 0; } 
+        .loading-text { text-align: center; font-size: 18px; font-weight: bold; padding: 30px; color: var(--quiz-primary); } 
+        #bottom-ad-container { position: fixed; bottom: 0; left: 0; width: 100%; background: #fff9f2; border-top: 3px solid var(--quiz-primary); box-shadow: 0 -3px 15px rgba(0,0,0,0.2); z-index: 99999; display: none; box-sizing: border-box;}
+        #ad-link { display: flex; align-items: center; justify-content: center; gap: 15px; padding: 10px 40px 10px 20px; text-decoration: none; width: 100%; box-sizing: border-box;}
+        #ad-image { max-height: 50px; max-width: 100px; object-fit: contain;}
+        #ad-text { font-family: Arial, sans-serif; font-size: 16px; font-weight: bold; color: #2c3e50; }
+        #close-ad-btn { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); background: #c0392b; color: #fff; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 14px; line-height: 24px; padding: 0; z-index: 100000; }
+        body { padding-bottom: 160px !important; } 
+        .goog-te-banner-frame, .goog-te-gadget-icon { display: none !important; } 
+        body { top: 0px !important; }
+    </style>
 </head>
 <body>
+    <div id="post-content-to-read" style="display:none;"></div>
+    <div class="quiz-wrapper">
+        <div class="quiz-container" id="game-container">
+            <h1>Valmiki Ramayana Samvaad Quiz</h1>
+            <div style="text-align: center;">
+                <a href="https://vkscom0.github.io/games/quiz.html" style="margin-left: 1em; margin-right: 1em;" target="_blank">
+                    <img border="0" height="125" src="https://raw.githubusercontent.com/Vkscom0/water/refs/heads/Vkscom0-images/Valmiki%20Ramayana%20Samvaad%20Quiz.png" width="225" />
+                </a>
+            </div>
+            <div id="main-post-content">
+                <div class="container" id="myText">
+                    <br />
+                    <p><b>वाल्मीकि रामायण क्विज़ गेम: एक ज्ञानवर्धक चुनौती</b></p>
+                    <p>यह वाल्मीकि रामायण के प्राचीन महाकाव्य, पात्रों और घटनाओं पर आधारित एक मनोरंजक और ज्ञानवर्धक क्विज़ गेम है।</p>
+                    <blockquote><p><b>⚠️ महत्वपूर्ण डिस्क्लेमर (Disclaimer):</b> यह गेम केवल मनोरंजन, शिक्षा और सामान्य ज्ञान के उद्देश्य से बनाया गया है।</p></blockquote>
+                </div>
+            </div>
+            <button id="toggleBtn" onclick="toggleText()">छिपाएं (Hide)</button>
+            
+            <div id="loading-ui" class="loading-text"> Google Sheet से 500 संवाद लोड हो रहे हैं, कृपया प्रतीक्षा करें... </div>
+            
+            <div id="quiz-ui" style="display: none;">
+                <div class="quiz-status-bar"><span id="progress-text">Question: 0/0</span><span id="score-text">Score: 0</span></div>
+                <div class="quiz-samvaad-box" id="samvaad-box"></div>
+                <div class="quiz-question-box" id="question-box"></div>
+                <form autocomplete="off" onsubmit="event.preventDefault();"><ul class="quiz-options-list" id="options-box"></ul></form>
+                <div class="quiz-controls"><button class="quiz-btn" id="next-btn" onclick="nextQuestion()" disabled>Next Question</button></div>
+            </div>
+            
+            <div id="result-ui" class="quiz-result-screen" style="display: none;">
+                <h2>Quiz Completed!</h2>
+                <div class="quiz-score-display" id="final-score">0 / 0</div>
+                <p id="feedback-text">Loading history...</p><br>
+                <button class="quiz-btn" onclick="restartQuiz()">Restart Quiz</button>
+            </div>
+        </div>
+    </div>
 
-    <h1></h1>
+    <div id="vks-ad-bar" style="position: fixed; bottom: 70px; left: 0; width: 100%; background: #ffffff; border-top: 2px solid #007bff; padding: 10px 20px; box-shadow: 0 -3px 15px rgba(0,0,0,0.2); z-index: 99999; display: flex; align-items: center; justify-content: space-between; font-family: Arial, sans-serif; box-sizing: border-box;">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <a href="https://vkscom.blogspot.com" target="_blank"><img src="https://cdn-icons-png.flaticon.com/512/3898/3898082.png" alt="VKS Logo" style="width: 45px; height: 45px; border-radius: 5px; cursor: pointer; border: 1px solid #ddd;"></a>
+            <div style="cursor: pointer;">
+                <div onclick="toggleLanguage()" style="font-weight: bold; color: #333; font-size: 15px;"> Translate Hindi ⇄ English </div>
+                <div onclick="toggleAudio()" style="font-size: 12px; color: #007bff; font-weight: bold;"> 🔊 Click to Listen Post </div>
+            </div>
+        </div>
+        <a href="https://vkscom.blogspot.com" target="_blank" style="text-decoration: none;"><button style="background: #007bff; color: white; border: none; padding: 10px 25px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 16px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">GO</button></a>
+        <div id="google_translate_element" style="display:none !important;"></div>
+    </div>
 
-    <script src="https://raw.githubusercontent.com/Vkscom0/games/refs/heads/main/vrs-quiz.js"></script>
-    
+    <div style="text-align: center;"><button onclick="shareCurrentPage()" style="background-color: #075e54; border-radius: 8px; border: none; color: white; cursor: pointer; font-size: 18px; font-weight: bold; margin-top: 20px; padding: 15px 30px;">दोस्तों को शेयर करें</button></div>
+
+    <div id="bottom-ad-container"><button id="close-ad-btn" onclick="closeAd()" aria-label="Close Ad">✕</button><a id="ad-link" href="#" target="_blank" rel="noopener noreferrer"><img id="ad-image" src="" alt="Advertisement"><span id="ad-text"></span></a></div>
+
+    <script src="https://vkscom0.github.io/games/vrs-quiz.js" defer></script>
 </body>
 </html>
