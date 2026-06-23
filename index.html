@@ -885,12 +885,59 @@ body { padding-bottom: 160px !important; }
 </script>
     <!-- end advertise code -->
      <!-- live view -->
+### Step 2: Code ko Quiz Page me lagayein
+Firebase ka ek inbuilt feature hota hai `.info/connected` jo track karta hai ki user online hai ya nahi. Jaise hi user page band karega, uska count minus ho jayega.
+
+Aap is script ko apne Blogger Post me add kar sakte hain (Apni Firebase Config details replace karke):
+
+```html
 <div style="padding: 10px; background: #eef9f0; border: 1px solid #c3e6cb; border-radius: 5px; color: #155724; font-family: Arial;">
   🟢 <span id="real-live-count">1</span> log abhi is Quiz ko khel rahe hain.
-   
 </div>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+
+<!-- Firebase SDK Libs -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+<script>
+  // Apne Firebase project ki details yahan dalein
+  const firebaseConfig = {
+    apiKey: "AIzaSyApDF9CebUNf3K30o5QrGG1tuuCiMNglog",
+    authDomain: "vrs-quiz-lives.firebaseapp.com",
+    databaseURL: "https://vrs-quiz-lives-default-rtdb.asia-southeast1.firebasedatabase.app/",
+    projectId: "vrs-quiz-lives",
+    storageBucket: "vrs-quiz-lives.firebasestorage.app",
+    messagingSenderId: "978047919808",
+    appId: "1:978047919808:web:9ead6cc24b4f102d88ef25"
+  };
+
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  const database = firebase.database();
+
+  // VRS Quiz page ke liye ek unique key path
+  const pageStatusRef = database.ref('/status/vrs_quiz_page');
+  const myPresenceRef = pageStatusRef.push();
+
+  // Connection check karne ke liye
+  database.ref('.info/connected').on('value', (snapshot) => {
+    if (snapshot.val() === true) {
+      // Jab user online aaye to true set karein aur disconnect hone par delete karein
+      myPresenceRef.set(true);
+      myPresenceRef.onDisconnect().remove();
+    }
+  });
+
+  // Total active users ka count live sunne ke liye
+  pageStatusRef.on('value', (snapshot) => {
+    if (snapshot.exists()) {
+      const totalUsers = Object.keys(snapshot.val()).length;
+      document.getElementById('real-live-count').innerText = totalUsers;
+    } else {
+      document.getElementById('real-live-count').innerText = "1";
+    }
+  });
+</script>
       <!-- live view -->
 </body>
 </html>
