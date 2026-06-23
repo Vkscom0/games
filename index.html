@@ -885,22 +885,19 @@ body { padding-bottom: 160px !important; }
 </script>
     <!-- end advertise code -->
      <!-- live view -->
-### Step 2: Code ko Quiz Page me lagayein
-Firebase ka ek inbuilt feature hota hai `.info/connected` jo track karta hai ki user online hai ya nahi. Jaise hi user page band karega, uska count minus ho jayega.
-
-Aap is script ko apne Blogger Post me add kar sakte hain (Apni Firebase Config details replace karke):
-
-```html
-<div style="padding: 10px; background: #eef9f0; border: 1px solid #c3e6cb; border-radius: 5px; color: #155724; font-family: Arial;">
-  🟢 <span id="real-live-count">1</span> log abhi is Quiz ko khel rahe hain.
+<div style="padding: 10px; background: #eef9f0; border: 1px solid #c3e6cb; border-radius: 5px; color: #155724; font-family: Arial; display: inline-flex; align-items: center; gap: 8px;">
+  <span style="height: 10px; width: 10px; background-color: #28a745; border-radius: 50%; display: inline-block; animation: blink 1.2s infinite both;"></span>
+  <span><strong id="real-live-count">1</strong> log abhi is Quiz ko khel rahe hain.</span>
 </div>
 
-<!-- Firebase SDK Libs -->
+<style>
+@keyframes blink { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+</style>
+
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
 <script>
-  // Apne Firebase project ki details yahan dalein
   const firebaseConfig = {
     apiKey: "AIzaSyApDF9CebUNf3K30o5QrGG1tuuCiMNglog",
     authDomain: "vrs-quiz-lives.firebaseapp.com",
@@ -912,23 +909,20 @@ Aap is script ko apne Blogger Post me add kar sakte hain (Apni Firebase Config d
   };
 
   // Initialize Firebase
-  firebase.initializeApp(firebaseConfig);
-  const database = firebase.database();
+  const app = firebase.initializeApp(firebaseConfig);
+  // Singapore server ke liye explicitly URL pass karna zaroori hota hai
+  const database = firebase.database(app, "https://vrs-quiz-lives-default-rtdb.asia-southeast1.firebasedatabase.app/");
 
-  // VRS Quiz page ke liye ek unique key path
   const pageStatusRef = database.ref('/status/vrs_quiz_page');
   const myPresenceRef = pageStatusRef.push();
 
-  // Connection check karne ke liye
   database.ref('.info/connected').on('value', (snapshot) => {
     if (snapshot.val() === true) {
-      // Jab user online aaye to true set karein aur disconnect hone par delete karein
       myPresenceRef.set(true);
       myPresenceRef.onDisconnect().remove();
     }
   });
 
-  // Total active users ka count live sunne ke liye
   pageStatusRef.on('value', (snapshot) => {
     if (snapshot.exists()) {
       const totalUsers = Object.keys(snapshot.val()).length;
