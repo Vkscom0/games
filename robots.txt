@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://vkscom0.github.io/sitemap.xml
+Sitemap: https://vkscom0.github.io/games/sitemap.xml
