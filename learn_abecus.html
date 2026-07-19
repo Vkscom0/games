@@ -1,1 +1,284 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>कैलकुलेटर और एबैकस डिस्प्ले</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            color: #000000; /* सभी टेक्स्ट ब्लैक कलर में */
+            font-family: Arial, sans-serif;
+        }
+        body {
+            padding: 10px; /* मोबाइल पर पैडिंग कम की */
+            margin: 0;
+            background-color: #f9f9f9;
+        }
+        .container {
+            max-width: 600px;
+            margin: 10px auto;
+            background: #ffffff;
+            padding: 15px; /* मोबाइल के लिए पैडिंग एडजस्ट की */
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+        h2, h3 {
+            text-align: center;
+            font-size: 1.5rem; /* रेस्पॉन्सिव फॉन्ट साइज */
+        }
+        /* मोबाइल पर इनपुट्स को सही से दिखाने के लिए */
+        .input-group {
+            display: flex;
+            flex-wrap: wrap; /* छोटी स्क्रीन पर नीचे शिफ्ट होने के लिए */
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        input, select, button {
+            padding: 12px; /* मोबाइल टच के लिए बेहतर पैडिंग */
+            font-size: 16px;
+            border: 1px solid #000;
+            border-radius: 4px;
+            background: #fff;
+        }
+        input[type="number"] {
+            flex: 1 1 120px; /* मिनिमम विड्थ 120px */
+            min-width: 0;
+        }
+        select {
+            flex: 1 1 70px;
+            text-align: center;
+        }
+        button {
+            width: 100%;
+            cursor: pointer;
+            font-weight: bold;
+            background-color: #ddd;
+            margin-top: 5px;
+        }
+        button:hover {
+            background-color: #bbb;
+        }
+        
+        /* टेबल को ओवरफ्लो होने से बचाने के लिए रैपर */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 450px; /* ताकि डेटा सिकुड़े नहीं */
+        }
+        th, td {
+            border: 1px solid #000;
+            padding: 10px 5px;
+            text-align: center;
+            font-size: 14px;
+        }
+        th {
+            background-color: #eee;
+        }
+        /* एबैकस स्टाइल */
+        .abacus-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 5px;
+            gap: 8px; /* मोबाइल पर गैप कम किया */
+            flex-wrap: nowrap; /* एबैकस एक लाइन में रहे */
+        }
+        .abacus-rod {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 2px solid #000;
+            padding: 3px;
+            width: 40px; /* मोबाइल के हिसाब से चौड़ाई सेट की */
+            background: #fff;
+        }
+        .rod-label {
+            font-size: 11px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        .upper-deck, .lower-deck {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            width: 100%;
+            align-items: center;
+        }
+        .beam {
+            width: 100%;
+            height: 4px;
+            background-color: #000;
+            margin: 5px 0;
+        }
+        .bead {
+            width: 25px; /* मोबाइल के लिए परफेक्ट साइज */
+            height: 12px;
+            border: 1px solid #000;
+            background-color: #000;
+            border-radius: 10px;
+        }
+        .bead.inactive {
+            background-color: transparent;
+        }
+        .explanation {
+            margin-top: 15px;
+            font-size: 14px;
+            line-height: 1.6;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>कैलकुलेटर + एबैकस</h2>
+    
+    <div class="input-group">
+        <input type="number" id="num1" placeholder="पहला नंबर">
+        <select id="operator">
+            <option value="+">+</option>
+            <option value="-">-</option>
+            <option value="*">*</option>
+            <option value="/">/</option>
+        </select>
+        <input type="number" id="num2" placeholder="दूसरा नंबर">
+    </div>
+    
+    <button onclick="calculate()">Calculate</button>
+
+    <div class="table-responsive">
+        <table id="resultTable" style="display: none;">
+            <thead>
+                <tr>
+                    <th>सवाल (Equation)</th>
+                    <th>जवाब (Answer)</th>
+                    <th>एबैकस डिस्प्ले (Abacus View)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td id="cellEquation"></td>
+                    <td id="cellAnswer" style="font-size: 18px; font-weight: bold;"></td>
+                    <td>
+                        <div class="abacus-container" id="abacusDisplay"></div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div id="explanationDiv" class="explanation"></div>
+</div>
+
+<script>
+function calculate() {
+    const num1 = parseFloat(document.getElementById('num1').value);
+    const num2 = parseFloat(document.getElementById('num2').value);
+    const operator = document.getElementById('operator').value;
+    
+    if (isNaN(num1) || isNaN(num2)) {
+        alert("कृपया दोनों बॉक्स में सही नंबर भरें।");
+        return;
+    }
+
+    let answer = 0;
+    let opWord = "";
+
+    switch (operator) {
+        case '+': answer = num1 + num2; opWord = "जोड़ा (Plus किया)"; break;
+        case '-': answer = num1 - num2; opWord = "घटाया (Minus किया)"; break;
+        case '*': answer = num1 * num2; opWord = "गुणा (Multiply किया)"; break;
+        case '/': 
+            if (num2 === 0) {
+                alert("0 से डिवाइड नहीं किया जा सकता!");
+                return;
+            }
+            answer = num1 / num2; 
+            opWord = "भाग (Divide किया)"; 
+            break;
+    }
+
+    if (!Number.isInteger(answer)) {
+        answer = parseFloat(answer.toFixed(2));
+    }
+
+    document.getElementById('resultTable').style.display = "table";
+    document.getElementById('cellEquation').innerText = `${num1} ${operator} ${num2}`;
+    document.getElementById('cellAnswer').innerText = answer;
+
+    generateAbacus(answer);
+    generateExplanation(num1, num2, operator, answer, opWord);
+}
+
+function generateAbacus(value) {
+    const container = document.getElementById('abacusDisplay');
+    container.innerHTML = "";
+
+    let absValue = Math.abs(Math.floor(value));
+    let strValue = absValue.toString();
+
+    if (strValue === "0") strValue = "0";
+
+    for (let i = 0; i < strValue.length; i++) {
+        let digit = parseInt(strValue[i]);
+        let place = Math.pow(10, strValue.length - 1 - i);
+
+        let rod = document.createElement('div');
+        rod.className = 'abacus-rod';
+
+        let upperDeck = document.createElement('div');
+        upperDeck.className = 'upper-deck';
+        let upperBead = document.createElement('div');
+        upperBead.className = digit >= 5 ? 'bead' : 'bead inactive';
+        upperDeck.appendChild(upperBead);
+
+        let beam = document.createElement('div');
+        beam.className = 'beam';
+
+        let lowerDeck = document.createElement('div');
+        lowerDeck.className = 'lower-deck';
+        let activeLowerBeads = digit % 5;
+
+        for (let b = 1; b <= 4; b++) {
+            let lowerBead = document.createElement('div');
+            lowerBead.className = b <= activeLowerBeads ? 'bead' : 'bead inactive';
+            lowerDeck.appendChild(lowerBead);
+        }
+
+        let label = document.createElement('div');
+        label.className = 'rod-label';
+        label.innerText = place;
+
+        rod.appendChild(upperDeck);
+        rod.appendChild(beam);
+        rod.appendChild(lowerDeck);
+        rod.appendChild(label);
+
+        container.appendChild(rod);
+    }
+}
+
+function generateExplanation(num1, num2, operator, answer, opWord) {
+    const expDiv = document.getElementById('explanationDiv');
+    let text = `<h3>यह आंसर कैसे आया?</h3>`;
+    text += `<p>1. आपने पहले बॉक्स में <strong>${num1}</strong> और दूसरे बॉक्स में <strong>${num2}</strong> लिखा।</p>`;
+    text += `<p>2. आपने बीच में <strong>'${operator}'</strong> चुना, जिसका मतलब है कि हमें इन दोनों नंबर्स को आपस में <strong>${opWord}</strong> है।</p>`;
+    text += `<p>3. जब गणित के नियम के अनुसार ${num1} को ${num2} के साथ मैथमैटिकल प्रोसेस किया गया, तो फाइनल रिजल्ट <strong>${answer}</strong> निकला।</p>`;
+    
+    if (answer >= 0) {
+        text += `<p>4. <strong>एबैकस रीड़िंग:</strong> एबैकस टेबल में नीचे लिखे नंबर्स (1, 10, 100) स्थान (Place Value) को दर्शाते हैं। बीम (काली पट्टी) के पास जो बीड्स (Beads) डार्क हैं, उन्हें गिना गया है। ऊपरी बीड की वैल्यू 5 है और नीचे की हर बीड की वैल्यू 1 है।</p>`;
+    }
+    
+    expDiv.innerHTML = text;
+}
+</script>
+
+</body>
+</html>
 
