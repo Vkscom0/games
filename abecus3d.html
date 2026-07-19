@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D अबैकस कैलकुलेटर</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+            color: #000000; /* सभी टेक्स्ट ब्लैक कलर में */
+        }
+        body {
+            background-color: #f0f2f5;
+            padding: 15px;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        h2, h3 {
+            text-align: center;
+            margin-top: 0;
+        }
+        .calc-inputs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+            justify-content: space-between;
+        }
+        input, select, button {
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #333;
+            border-radius: 6px;
+            text-align: center;
+        }
+        input {
+            width: 30%;
+        }
+        select {
+            width: 25%;
+            background: white;
+        }
+        button {
+            width: 100%;
+            background-color: #e0e0e0;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: 0.2s;
+        }
+        button:hover {
+            background-color: #cccccc;
+        }
+        .result-box {
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 6px;
+            border: 1px dashed #333;
+        }
+        
+        /* 3D अबैकस स्टाइल */
+        .abacus-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .abacus-frame {
+            position: relative;
+            width: 280px;
+            height: 180px;
+            border: 12px solid #5c4033; /* लकड़ी का फ्रेम */
+            border-radius: 8px;
+            background: #fff8dc;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5), 0 8px 16px rgba(0,0,0,0.3);
+            display: flex;
+            justify-content: space-around;
+            padding: 0 5px;
+        }
+        /* बीच की पट्टी (Divider/Beam) */
+        .abacus-beam {
+            position: absolute;
+            top: 45px;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background: #3e2723;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+            z-index: 5;
+        }
+        .abacus-rod {
+            position: relative;
+            width: 4px;
+            height: 100%;
+            background: #7f8c8d;
+            box-shadow: inset 1px 0 2px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+        }
+        /* 3D बीड्स (मनके) */
+        .bead {
+            position: absolute;
+            width: 30px;
+            height: 16px;
+            left: -13px;
+            background: radial-gradient(circle at 50% 30%, #ff6b6b, #c0392b);
+            border-radius: 50% / 30%;
+            box-shadow: 0 3px 5px rgba(0,0,0,0.4), inset 0 -2px 4px rgba(0,0,0,0.4);
+            transition: top 0.3s ease;
+        }
+        /* रॉड के नीचे के नंबर */
+        .rod-label {
+            position: absolute;
+            bottom: -35px;
+            left: -10px;
+            width: 24px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .explanation {
+            margin-top: 35px;
+            padding: 12px;
+            background: #f9f9f9;
+            border-left: 5px solid #333;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>3D अबैकस कैलकुलेटर</h2>
+    
+    <div class="calc-inputs">
+        <input type="number" id="num1" placeholder="संख्या 1" value="12">
+        <select id="operator">
+            <option value="+">+</option>
+            <option value="-">-</option>
+            <option value="*">×</option>
+            <option value="/">÷</option>
+        </select>
+        <input type="number" id="num2" placeholder="संख्या 2" value="5">
+    </div>
+    
+    <button onclick="calculate()">बनाएं और गणना करें</button>
+    
+    <div class="result-box" id="resultLabel">उत्तर: 17</div>
+
+    <h3>3D अबैकस व्यू</h3>
+    <div class="abacus-container">
+        <div class="abacus-frame">
+            <div class="abacus-beam"></div>
+            
+            <div class="abacus-rod">
+                <div class="bead" id="b2_upper"></div>
+                <div class="bead" id="b2_lower1"></div>
+                <div class="bead" id="b2_lower2"></div>
+                <div class="bead" id="b2_lower3"></div>
+                <div class="bead" id="b2_lower4"></div>
+                <div class="rod-label">सैकड़ा<br><span id="val2">0</span></div>
+            </div>
+            
+            <div class="abacus-rod">
+                <div class="bead" id="b1_upper"></div>
+                <div class="bead" id="b1_lower1"></div>
+                <div class="bead" id="b1_lower2"></div>
+                <div class="bead" id="b1_lower3"></div>
+                <div class="bead" id="b1_lower4"></div>
+                <div class="rod-label">दहाई<br><span id="val1">1</span></div>
+            </div>
+            
+            <div class="abacus-rod">
+                <div class="bead" id="b0_upper"></div>
+                <div class="bead" id="b0_lower1"></div>
+                <div class="bead" id="b0_lower2"></div>
+                <div class="bead" id="b0_lower3"></div>
+                <div class="bead" id="b0_lower4"></div>
+                <div class="rod-label">इकाई<br><span id="val0">7</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="explanation" id="explanationText">
+        <strong>यह उत्तर कैसे आया?</strong><br>
+        जब हमने 12 में 5 जोड़ा तो कुल 17 आया।<br>
+        अबैकस पर इसे देखने के लिए:<br>
+        • दहाई (Tens) वाली रॉड पर 1 लोअर बीड ऊपर है = 10<br>
+        • इकाई (Ones) वाली रॉड पर 1 अपर बीड (5) नीचे है और 2 लोअर बीड ऊपर हैं (2) = 7<br>
+        कुल मिलाकर: 10 + 7 = 17।
+    </div>
+</div>
+
+<script>
+    // बीड्स की पोजीशन सेट करने की पोजीशन (Pixels में)
+    // अपर बीड: एक्टिव (नीचे पट्टी के पास) = 29px, इनएक्टिव (ऊपर फ्रेम के पास) = 2px
+    // लोअर बीड्स: बेस इनएक्टिव पोजीशन (नीचे फ्रेम के पास) और एक्टिव पोजीशन (ऊपर पट्टी के पास)
+    
+    function updateAbacusRod(rodIndex, value) {
+        const upperActive = value >= 5;
+        const lowerCount = value % 5;
+        
+        // अपर बीड सेट करना
+        const upperBead = document.getElementById(`b${rodIndex}_upper`);
+        if (upperActive) {
+            upperBead.style.top = "29px"; // पट्टी के पास नीचे आया
+        } else {
+            upperBead.style.top = "2px";  // ऊपर फ्रेम के पास गया
+        }
+        
+        // 4 लोअर बीड्स सेट करना
+        // इनएक्टिव बेस पोजीशन नीचे से तय होती हैं
+        const lowerPositions = [135, 117, 99, 81]; // डिफ़ॉल्ट नीचे बैठे हुए (नीचे से ऊपर की ओर)
+        const activePositions = [55, 73, 91, 109]; // एक्टिव होने पर ऊपर पट्टी के पास चिपके हुए
+        
+        for (let i = 1; i <= 4; i++) {
+            const lowerBead = document.getElementById(`b${rodIndex}_lower${i}`);
+            if (i <= lowerCount) {
+                // यह बीड एक्टिव होकर ऊपर जाएगा
+                lowerBead.style.top = activePositions[i-1] + "px";
+            } else {
+                // यह बीड इनएक्टिव होकर नीचे रहेगा
+                lowerBead.style.top = lowerPositions[i-1] + "px";
+            }
+        }
+        
+        // रॉड के नीचे नंबर लिखना
+        document.getElementById(`val${rodIndex}`).innerText = value;
+    }
+
+    function calculate() {
+        const num1 = parseFloat(document.getElementById('num1').value) || 0;
+        const num2 = parseFloat(document.getElementById('num2').value) || 0;
+        const operator = document.getElementById('operator').value;
+        
+        let result = 0;
+        let opWord = "";
+        
+        switch(operator) {
+            case '+': result = num1 + num2; opWord = "जोड़ा"; break;
+            case '-': result = num1 - num2; opWord = "घटाया"; break;
+            case '*': result = num1 * num2; opWord = "गुणा किया"; break;
+            case '/': 
+                if(num2 === 0) {
+                    alert("0 से भाग नहीं किया जा सकता!");
+                    return;
+                }
+                result = num1 / num2; 
+                opWord = "भाग (तकसीम) किया"; 
+                break;
+        }
+        
+        // परिणाम को राउंड करना ताकि अबैकस दिखा सके (0-999 के बीच)
+        let displayResult = Math.round(result);
+        if (displayResult < 0) displayResult = 0;
+        if (displayResult > 999) displayResult = 999;
+        
+        document.getElementById('resultLabel').innerText = "उत्तर: " + result;
+        
+        // संख्या को इकाई, दहाई, सैकड़ा में तोड़ना
+        const ones = displayResult % 10;
+        const tens = Math.floor((displayResult % 100) / 10);
+        const hundreds = Math.floor(displayResult / 100);
+        
+        // अबैकस अपडेट करना
+        updateAbacusRod(0, ones);
+        updateAbacusRod(1, tens);
+        updateAbacusRod(2, hundreds);
+        
+        // स्पष्टीकरण लिखना
+        let exp = `<strong>यह उत्तर कैसे आया?</strong><br>`;
+        exp += `जब हमने ${num1} को ${num2} से ${opWord}, तो सटीक उत्तर <strong>${result}</strong> आया।<br>`;
+        if(result !== displayResult) {
+            exp += `(अबैकस पर दिखाने के लिए इसे पूर्णांक <strong>${displayResult}</strong> माना गया है)<br>`;
+        }
+        exp += `इसे अबैकस पर दर्शाने का तरीका:<br>`;
+        if(hundreds > 0) exp += `• <strong>सैकड़ा (Hundreds):</strong> मूल्य ${hundreds}00 है। इसमें ${hundreds >= 5 ? '1 ऊपरी बीड (5) और ' + (hundreds-5) + ' निचले बीड' : hundreds + ' निचले बीड'} एक्टिव हैं।<br>`;
+        if(tens > 0 || hundreds > 0) exp += `• <strong>दहाई (Tens):</strong> मूल्य ${tens}0 है। इसमें ${tens >= 5 ? '1 ऊपरी बीड (5) और ' + (tens-5) + ' निचले बीड' : tens + ' निचले बीड'} एक्टिव हैं।<br>`;
+        exp += `• <strong>इकाई (Ones):</strong> मूल्य ${ones} है। इसमें ${ones >= 5 ? '1 ऊपरी बीड (5) और ' + (ones-5) + ' निचले बीड' : ones + ' निचले बीड'} एक्टिव हैं।<br>`;
+        exp += `कुल योग: ${hundreds*100} + ${tens*10} + ${ones} = <strong>${displayResult}</strong>`;
+        
+        document.getElementById('explanationText').innerHTML = exp;
+    }
+
+    // पहली बार लोड होने पर रन करें
+    calculate();
+</script>
+
+</body>
+</html>
