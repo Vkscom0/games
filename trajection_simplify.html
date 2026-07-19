@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IndexedDB Advanced Data Manager</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f6f9;
+            color: #333;
+        }
+        h2 { color: #2c3e50; }
+        .controls {
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-primary { background-color: #3498db; color: white; }
+        .btn-danger { background-color: #e74c3c; color: white; }
+        .btn-edit { background-color: #f39c12; color: white; padding: 4px 8px; font-size: 12px; }
+        input[type="text"], input[type="url"] {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            min-width: 200px;
+        }
+        .table-container {
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #34495e;
+            color: white;
+            cursor: grab;
+            user-select: none;
+        }
+        tr[draggable="true"] {
+            cursor: move;
+        }
+        tr.dragging { opacity: 0.5; background: #e0e0e0; }
+        th.dragging { opacity: 0.5; background: #2c3e50; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <h2>IndexedDB Data Table Manager</h2>
+
+    <!-- Control Panel for Import and Filters -->
+    <div class="controls">
+        <div>
+            <label><strong>File Import:</strong> </label>
+            <input type="file" id="fileInput" accept=".json" multiple>
+        </div>
+        <div>
+            <label><strong>URL Import:</strong> </label>
+            <input type="url" id="urlInput" placeholder="https://api.example.com/data.json">
+            <button class="btn btn-primary" onclick="importFromURL()">Fetch & Import</button>
+        </div>
+        <div>
+            <label><strong>Filter:</strong> </label>
+            <input type="text" id="filterInput" placeholder="Search data here..." oninput="applyFilter()">
+        </div>
+    </div>
+
+    <!-- Inline Edit Form (Hidden by default) -->
+    <div id="editFormSection" class="controls hidden">
+        <strong>Edit Record:</strong>
+        <input type="hidden" id="editId">
+        <input type="text" id="editFileName" placeholder="File Origin" disabled>
+        <input type="text" id="editContent" placeholder="Content Data">
+        <button class="btn btn-primary" onclick="saveEdit()">Update</button>
+        <button class="btn" onclick="hideEditForm()">Cancel</button>
+    </div>
+
+    <!-- Data Table Display -->
+    <div class="table-container">
+        <table id="dataTable">
+            <thead>
+                <tr id="tableHeader">
+                    <!-- Column Header dynamically generated, attributes for drag and drop -->
+                    <th draggable="true" data-col="id">ID</th>
+                    <th draggable="true" data-col="fileName">Source/File Name</th>
+                    <th draggable="true" data-col="content">Data Content</th>
+                    <th data-col="actions">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <!-- Rows will come here dynamically -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // --- 1. INDEXEDDB SETUP ---
+        const dbName = "MultiFileDB";
+        const storeName = "records";
+        let db;
+
+        const request = indexedDB.open(dbName, 1);
+        request.onupgradeneeded = function(e) {
+            db = e.target.result;
+            if (!db.objectStoreNames.contains(storeName)) {
+                db.createObjectStore(storeName, { keyPath: "id", autoIncrement: true });
+            }
+        };
+        request.onsuccess = function(e) {
+            db = e.target.result;
+            loadDataFromDB(); // Page load par data display karein
+        };
+        request.onerror = function(e) { console.error("Database error:", e.target.error); };
+
+        // --- 2. DATA IMPORT LOGIC (2+ Files & URL) ---
+        // Multiple File Input Handler
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const files = e.target.files;
+            if (!files.length) return;
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    try {
+                        const parsedData = JSON.parse(evt.target.result);
+                        // Agar file me single object hai toh array bana lo, varna array handle karo
+                        const dataArray = Array.isArray(parsedData) ? parsedData : [parsedData];
+                        saveToDB(dataArray, file.name);
+                    } catch (err) {
+                        alert(`Error parsing JSON from file: ${file.name}`);
+                    }
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        // URL Import Handler
+        async function importFromURL() {
+            const url = document.getElementById('urlInput').value.trim();
+            if (!url) return alert("Valid URL daalein");
+            try {
+                const response = await fetch(url);
+                const parsedData = await response.json();
+                const dataArray = Array.isArray(parsedData) ? parsedData : [parsedData];
+                saveToDB(dataArray, `URL: ${new URL(url).hostname}`);
+                document.getElementById('urlInput').value = '';
+            } catch (err) {
+                alert("URL se data fetch karne me dikkat aayi. Check CORS configuration.");
+            }
+        }
+
+        // Save parsed data array to IndexedDB
+        function saveToDB(dataArray, sourceName) {
+            const tx = db.transaction(storeName, "readwrite");
+            const store = tx.objectStore(storeName);
+            
+            dataArray.forEach(item => {
+                // Har entry ko generic payload banakar store karte hain
+                store.add({
+                    fileName: sourceName,
+                    content: typeof item === 'object' ? JSON.stringify(item) : item
+                });
+            });
+
+            tx.oncomplete = function() {
+                loadDataFromDB();
+            };
+        }
+
+        // --- 3. FETCH & DISPLAY LOGIC WITH FILTER ---
+        let allRecords = []; // Memory me reference taaki active filtering fast ho
+
+        function loadDataFromDB() {
+            if (!db) return;
+            const tx = db.transaction(storeName, "readonly");
+            const store = tx.objectStore(storeName);
+            const request = store.getAll();
+
+            request.onsuccess = function() {
+                allRecords = request.result;
+                renderTable(allRecords);
+            };
+        }
+
+        function renderTable(records) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            records.forEach((record, index) => {
+                const tr = document.createElement('tr');
+                tr.setAttribute('draggable', 'true');
+                tr.setAttribute('data-index', index);
+                
+                // Row Drag events
+                tr.addEventListener('dragstart', handleRowDragStart);
+                tr.addEventListener('dragover', handleRowDragOver);
+                tr.addEventListener('drop', handleRowDrop);
+                tr.addEventListener('dragend', handleRowDragEnd);
+
+                // Dynamic rendering current column order ke hisab se
+                const colOrder = getColumnOrder();
+                colOrder.forEach(col => {
+                    const td = document.createElement('td');
+                    if (col === 'id') td.innerText = record.id;
+                    else if (col === 'fileName') td.innerText = record.fileName;
+                    else if (col === 'content') td.innerText = record.content;
+                    else if (col === 'actions') {
+                        td.innerHTML = `
+                            <button class="btn btn-edit" onclick="showEditForm(${record.id}, '${record.fileName}', \`${record.content}\`)">Edit</button>
+                            <button class="btn btn-danger" style="padding: 4px 8px; font-size:12px;" onclick="deleteRecord(${record.id})">Delete</button>
+                        `;
+                    }
+                    tr.appendChild(td);
+                });
+
+                tbody.appendChild(tr);
+            });
+        }
+
+        function getColumnOrder() {
+            const headers = document.querySelectorAll('#tableHeader th');
+            return Array.from(headers).map(th => th.getAttribute('data-col'));
+        }
+
+        // Live Filter function
+        function applyFilter() {
+            const query = document.getElementById('filterInput').value.toLowerCase();
+            const filtered = allRecords.filter(r => 
+                r.fileName.toLowerCase().includes(query) || 
+                r.content.toLowerCase().includes(query) || 
+                r.id.toString().includes(query)
+            );
+            renderTable(filtered);
+        }
+
+        // --- 4. EDIT & DELETE ACTIONS ---
+        function deleteRecord(id) {
+            if (!confirm("Kya aap is record ko delete karna chahte hain?")) return;
+            const tx = db.transaction(storeName, "readwrite");
+            const store = tx.objectStore(storeName);
+            store.delete(id);
+            tx.oncomplete = function() {
+                loadDataFromDB();
+            };
+        }
+
+        function showEditForm(id, fileName, content) {
+            document.getElementById('editFormSection').classList.remove('hidden');
+            document.getElementById('editId').value = id;
+            document.getElementById('editFileName').value = fileName;
+            document.getElementById('editContent').value = content;
+        }
+
+        function hideEditForm() {
+            document.getElementById('editFormSection').classList.add('hidden');
+        }
+
+        function saveEdit() {
+            const id = parseInt(document.getElementById('editId').value);
+            const fileName = document.getElementById('editFileName').value;
+            const content = document.getElementById('editContent').value;
+
+            const tx = db.transaction(storeName, "readwrite");
+            const store = tx.objectStore(storeName);
+            store.put({ id, fileName, content });
+
+            tx.oncomplete = function() {
+                hideEditForm();
+                loadDataFromDB();
+            };
+        }
+
+        // --- 5. DRAG AND DROP LOGIC (COLUMNS & ROWS) ---
+        // Column Drag and Drop
+        let dragSrcEl = null;
+        const headers = document.querySelectorAll('#tableHeader th');
+        
+        headers.forEach(header => {
+            header.addEventListener('dragstart', function(e) {
+                if(this.getAttribute('data-col') === 'actions') return e.preventDefault(); // Actions column strict rakhein
+                dragSrcEl = this;
+                this.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+            });
+            header.addEventListener('dragover', function(e) { e.preventDefault(); });
+            header.addEventListener('drop', function(e) {
+                e.preventDefault();
+                if (dragSrcEl !== this && this.getAttribute('data-col') !== 'actions') {
+                    // Header positions swap karein
+                    let headersArr = Array.from(document.querySelectorAll('#tableHeader th'));
+                    let srcIdx = headersArr.indexOf(dragSrcEl);
+                    let targetIdx = headersArr.indexOf(this);
+                    
+                    if(srcIdx < targetIdx) {
+                        this.parentNode.insertBefore(dragSrcEl, this.nextSibling);
+                    } else {
+                        this.parentNode.insertBefore(dragSrcEl, this);
+                    }
+                    renderTable(allRecords); // New alignment par table re-render karein
+                }
+            });
+            header.addEventListener('dragend', function() { this.classList.remove('dragging'); });
+        });
+
+        // Row Drag and Drop
+        let draggedRowIdx = null;
+
+        function handleRowDragStart(e) {
+            draggedRowIdx = this.getAttribute('data-index');
+            this.classList.add('dragging');
+        }
+        function handleRowDragOver(e) { e.preventDefault(); }
+        function handleRowDrop(e) {
+            e.preventDefault();
+            const targetRowIdx = this.getAttribute('data-index');
+            if (draggedRowIdx !== null && draggedRowIdx !== targetRowIdx) {
+                // Array elements ko rearrange karein visual change ke liye
+                const movedItem = allRecords.splice(draggedRowIdx, 1)[0];
+                allRecords.splice(targetRowIdx, 0, movedItem);
+                renderTable(allRecords);
+            }
+        }
+        function handleRowDragEnd() { this.classList.remove('dragging'); }
+    </script>
+</body>
+</html>
