@@ -1,353 +1,658 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IndexedDB Advanced Data Manager</title>
+    <title>Advanced Voice & Image Ledger</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f4f6f9;
-            color: #333;
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --primary: #4f46e5;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --text: #0f172a;
+            --border: #e2e8f0;
         }
-        h2 { color: #2c3e50; }
-        .controls {
-            background: #fff;
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            margin: 0;
             padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .container {
+            max-width: 750px;
+            margin: 0 auto;
+        }
+
+        /* Header customization */
+        .header-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
             margin-bottom: 20px;
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .logo-container {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            border: 2px dashed #cbd5e1;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            cursor: pointer;
+            background: #f1f5f9;
+        }
+
+        .logo-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .logo-placeholder {
+            font-size: 0.75rem;
+            color: #64748b;
+            text-align: center;
+            padding: 5px;
+        }
+
+        .editable-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+            border: 1px transparent dashed;
+            padding: 2px 8px;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        .editable-title:hover, .editable-title:focus {
+            border-color: var(--primary);
+            background: #f0fdf4;
+        }
+
+        .balance-box {
+            text-align: center;
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-bottom: 25px;
+            padding: 12px;
+            background: #e0e7ff;
+            border-radius: 8px;
+            color: var(--primary);
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        h3 { margin-top: 0; margin-bottom: 15px; font-size: 1.1rem; color: #334155; }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #475569;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 0.95rem;
+            background: #f8fafc;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: #fff;
+        }
+
+        /* Textarea separation format */
+        .separation-textarea {
+            font-family: monospace;
+            background: #1e293b;
+            color: #38bdf8;
+            font-size: 0.9rem;
+            resize: vertical;
+        }
+
+        .btn-group {
             display: flex;
             flex-wrap: wrap;
-            gap: 15px;
-            align-items: center;
+            gap: 8px;
+            margin-top: 15px;
         }
-        .btn {
-            padding: 8px 15px;
+
+        button, .file-label {
+            flex: 1;
+            min-width: 100px;
+            padding: 10px 14px;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
             cursor: pointer;
-            font-weight: bold;
+            text-align: center;
+            box-sizing: border-box;
+            transition: background 0.2s;
         }
-        .btn-primary { background-color: #3498db; color: white; }
-        .btn-danger { background-color: #e74c3c; color: white; }
-        .btn-edit { background-color: #f39c12; color: white; padding: 4px 8px; font-size: 12px; }
-        input[type="text"], input[type="url"] {
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            min-width: 200px;
+
+        .btn-voice { background-color: var(--primary); color: white; }
+        .btn-save { background-color: var(--success); color: white; }
+        .btn-clear { background-color: #64748b; color: white; }
+        .btn-file { background-color: #0284c7; color: white; display: inline-block; }
+        .btn-utility { background-color: #475569; color: white; }
+
+        .listening {
+            animation: pulse 1.5s infinite;
+            background-color: var(--danger) !important;
         }
-        .table-container {
-            background: #fff;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+        /* Table Area */
+        .table-wrapper {
             overflow-x: auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            margin-bottom: 20px;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
+            font-size: 0.88rem;
         }
+
         th, td {
-            border: 1px solid #ddd;
-            padding: 10px;
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
             text-align: left;
         }
-        th {
-            background-color: #34495e;
-            color: white;
-            cursor: grab;
-            user-select: none;
+
+        th { background-color: #f1f5f9; font-weight: 600; color: #475569; }
+
+        .c-credit { color: var(--success); font-weight: bold; }
+        .c-debit { color: var(--danger); font-weight: bold; }
+
+        .td-img {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 1px solid var(--border);
         }
-        tr[draggable="true"] {
-            cursor: move;
+
+        .actions-btn {
+            padding: 4px 8px;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            margin-right: 4px;
+            border: none;
+            cursor: pointer;
         }
-        tr.dragging { opacity: 0.5; background: #e0e0e0; }
-        th.dragging { opacity: 0.5; background: #2c3e50; }
-        .hidden { display: none; }
+        .edit-btn { background: #f59e0b; color: white; }
+        .del-btn { background: #ef4444; color: white; }
+
+        .hidden-input { display: none; }
+
+        /* Print Media Styles */
+        @media print {
+            body { background: white; color: black; padding: 0; }
+            .card, .btn-group, .actions-btn, th:last-child, td:last-child, .logo-placeholder, .hidden-print {
+                display: none !important;
+            }
+            .container { max-width: 100%; }
+            .table-wrapper { box-shadow: none; overflow: visible; }
+            th { background-color: #e2e8f0 !important; -webkit-print-color-adjust: exact; }
+        }
     </style>
 </head>
 <body>
 
-    <h2>IndexedDB Data Table Manager</h2>
+<div class="container">
+    
+    <!-- Custom Header Zone -->
+    <div class="header-section">
+        <div class="logo-container" onclick="document.getElementById('logoInput').click()">
+            <input type="file" id="logoInput" class="hidden-input" accept="image/*">
+            <img id="logoImg" src="" style="display:none;">
+            <div id="logoText" class="logo-placeholder">Click to set Logo / Icon</div>
+        </div>
+        <div class="editable-title" id="pageTitle" contenteditable="true">My Digital Ledger</div>
+    </div>
 
-    <!-- Control Panel for Import and Filters -->
-    <div class="controls">
-        <div>
-            <label><strong>File Import:</strong> </label>
-            <input type="file" id="fileInput" accept=".json" multiple>
+    <div class="balance-box">
+        Total Balance: ₹<span id="totalBalance">0</span>
+    </div>
+
+    <!-- Data Form -->
+    <div class="card">
+        <h3>Transaction Entry</h3>
+        <div class="grid-2">
+            <div class="form-group">
+                <label>Date</label>
+                <input type="date" id="txDate">
+            </div>
+            <div class="form-group">
+                <label>Transaction Type</label>
+                <select id="txType">
+                    <option value="Credit">Credit (+)</option>
+                    <option value="Debit">Debit (-)</option>
+                </select>
+            </div>
         </div>
-        <div>
-            <label><strong>URL Import:</strong> </label>
-            <input type="url" id="urlInput" placeholder="https://api.example.com/data.json">
-            <button class="btn btn-primary" onclick="importFromURL()">Fetch & Import</button>
+        
+        <div class="grid-2">
+            <div class="form-group">
+                <label>Description</label>
+                <input type="text" id="txDesc" placeholder="e.g., Salary, Grocery">
+            </div>
+            <div class="form-group">
+                <label>Amount (₹)</label>
+                <input type="number" id="txAmount" placeholder="0.00">
+            </div>
         </div>
-        <div>
-            <label><strong>Filter:</strong> </label>
-            <input type="text" id="filterInput" placeholder="Search data here..." oninput="applyFilter()">
+
+        <div class="form-group">
+            <label>Attach Image (Camera / Folder)</label>
+            <label for="cameraInput" class="btn-file" style="width:100px;">📷 Capture/Pick</label>
+            <input type="file" id="cameraInput" class="hidden-input" accept="image/*">
+            <span id="fileStatus" style="font-size:0.8rem; margin-left:10px; color:#64748b;">No image attached</span>
+        </div>
+
+        <!-- Real-time Synchronization Textbox -->
+        <div class="form-group">
+            <label>Separation Format String (Live Sync)</label>
+            <textarea id="separationTxt" class="separation-textarea" rows="2" placeholder="Format: Date | Description | Type | Amount"></textarea>
+        </div>
+
+        <input type="hidden" id="editKey">
+        <input type="hidden" id="imageBase64">
+
+        <div class="btn-group">
+            <button class="btn-voice" id="voiceBtn">🎤 Voice Input</button>
+            <button class="btn-save" id="saveBtn">Save Entry</button>
+            <button class="btn-clear" id="clearBtn">Clear</button>
         </div>
     </div>
 
-    <!-- Inline Edit Form (Hidden by default) -->
-    <div id="editFormSection" class="controls hidden">
-        <strong>Edit Record:</strong>
-        <input type="hidden" id="editId">
-        <input type="text" id="editFileName" placeholder="File Origin" disabled>
-        <input type="text" id="editContent" placeholder="Content Data">
-        <button class="btn btn-primary" onclick="saveEdit()">Update</button>
-        <button class="btn" onclick="hideEditForm()">Cancel</button>
-    </div>
-
-    <!-- Data Table Display -->
-    <div class="table-container">
-        <table id="dataTable">
+    <!-- Data Table -->
+    <div class="table-wrapper">
+        <table id="ledgerTable">
             <thead>
-                <tr id="tableHeader">
-                    <!-- Column Header dynamically generated, attributes for drag and drop -->
-                    <th draggable="true" data-col="id">ID</th>
-                    <th draggable="true" data-col="fileName">Source/File Name</th>
-                    <th draggable="true" data-col="content">Data Content</th>
-                    <th data-col="actions">Actions</th>
+                <tr>
+                    <th>Img</th>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Total</th>
+                    <th class="hidden-print">Actions</th>
                 </tr>
             </thead>
-            <tbody id="tableBody">
-                <!-- Rows will come here dynamically -->
+            <tbody id="ledgerBody">
+                <!-- Records injected here -->
             </tbody>
         </table>
     </div>
 
-    <script>
-        // --- 1. INDEXEDDB SETUP ---
-        const dbName = "MultiFileDB";
-        const storeName = "records";
-        let db;
+    <!-- Backup & Print Controls -->
+    <div class="card hidden-print">
+        <h3>Utilities</h3>
+        <div class="btn-group">
+            <button class="btn-utility" id="exportCsvBtn">📥 Download CSV</button>
+            <label for="importCsvInput" class="btn-utility" style="display:inline-block;">📤 Upload CSV</label>
+            <input type="file" id="importCsvInput" class="hidden-input" accept=".csv">
+            <button class="btn-utility" onclick="window.print()">🖨️ Print / Save PDF</button>
+        </div>
+    </div>
+</div>
 
-        const request = indexedDB.open(dbName, 1);
-        request.onupgradeneeded = function(e) {
-            db = e.target.result;
-            if (!db.objectStoreNames.contains(storeName)) {
-                db.createObjectStore(storeName, { keyPath: "id", autoIncrement: true });
-            }
+<script>
+    // --- DATABASE CONFIGURATION ---
+    let db;
+    const dbName = "AdvancedLedgerDB";
+    const storeName = "ledger_entries";
+    const settingsStore = "app_settings";
+
+    const request = indexedDB.open(dbName, 2);
+    request.onupgradeneeded = (e) => {
+        db = e.target.result;
+        if (!db.objectStoreNames.contains(storeName)) {
+            db.createObjectStore(storeName, { keyPath: "id", autoIncrement: true });
+        }
+        if (!db.objectStoreNames.contains(settingsStore)) {
+            db.createObjectStore(settingsStore, { keyPath: "key" });
+        }
+    };
+    request.onsuccess = (e) => {
+        db = e.target.result;
+        loadSettings();
+        loadLedgerData();
+    };
+
+    // Set Default Date
+    document.getElementById('txDate').value = new Date().toISOString().substring(0, 10);
+
+    // --- TWO-WAY SYNC SYSTEM ---
+    const inputs = ['txDate', 'txDesc', 'txType', 'txAmount'];
+    const sepTxt = document.getElementById('separationTxt');
+
+    function updateSeparationString() {
+        const date = document.getElementById('txDate').value;
+        const desc = document.getElementById('txDesc').value || 'Empty';
+        const type = document.getElementById('txType').value;
+        const amount = document.getElementById('txAmount').value || '0';
+        sepTxt.value = `${date} | ${desc} | ${type} | ${amount}`;
+    }
+
+    inputs.forEach(id => {
+        document.getElementById(id).addEventListener('input', updateSeparationString);
+        document.getElementById(id).addEventListener('change', updateSeparationString);
+    });
+
+    sepTxt.addEventListener('input', () => {
+        const parts = sepTxt.value.split('|');
+        if (parts.length === 4) {
+            document.getElementById('txDate').value = parts[0].trim();
+            document.getElementById('txDesc').value = parts[1].trim();
+            document.getElementById('txType').value = parts[2].trim();
+            document.getElementById('txAmount').value = parts[3].trim();
+        }
+    });
+
+    // --- CAMERA & FILE MANAGEMENT ---
+    document.getElementById('cameraInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            document.getElementById('fileStatus').textContent = file.name;
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                document.getElementById('imageBase64').value = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // --- LOGO & TITLE CONFIGURATION ---
+    document.getElementById('logoInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                saveSetting('logo', event.target.result);
+                displayLogo(event.target.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    document.getElementById('pageTitle').addEventListener('blur', function() {
+        saveSetting('title', this.textContent);
+    });
+
+    function saveSetting(key, val) {
+        const tx = db.transaction(settingsStore, "readwrite");
+        tx.objectStore(settingsStore).put({ key: key, value: val });
+    }
+
+    function loadSettings() {
+        const tx = db.transaction(settingsStore, "readonly");
+        tx.objectStore(settingsStore).get('title').onsuccess = (e) => {
+            if(e.target.result) document.getElementById('pageTitle').textContent = e.target.result.value;
         };
-        request.onsuccess = function(e) {
-            db = e.target.result;
-            loadDataFromDB(); // Page load par data display karein
+        tx.objectStore(settingsStore).get('logo').onsuccess = (e) => {
+            if(e.target.result) displayLogo(e.target.result.value);
         };
-        request.onerror = function(e) { console.error("Database error:", e.target.error); };
+    }
 
-        // --- 2. DATA IMPORT LOGIC (2+ Files & URL) ---
-        // Multiple File Input Handler
-        document.getElementById('fileInput').addEventListener('change', function(e) {
-            const files = e.target.files;
-            if (!files.length) return;
+    function displayLogo(base64) {
+        const img = document.getElementById('logoImg');
+        const txt = document.getElementById('logoText');
+        img.src = base64;
+        img.style.display = 'block';
+        txt.style.display = 'none';
+    }
 
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                const reader = new FileReader();
-                reader.onload = function(evt) {
-                    try {
-                        const parsedData = JSON.parse(evt.target.result);
-                        // Agar file me single object hai toh array bana lo, varna array handle karo
-                        const dataArray = Array.isArray(parsedData) ? parsedData : [parsedData];
-                        saveToDB(dataArray, file.name);
-                    } catch (err) {
-                        alert(`Error parsing JSON from file: ${file.name}`);
-                    }
-                };
-                reader.readAsText(file);
-            }
+    // --- VOICE TO TEXT CAPABILITIES ---
+    const voiceBtn = document.getElementById('voiceBtn');
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (SpeechRecognition) {
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'en-US'; 
+        recognition.interimResults = false;
+
+        voiceBtn.addEventListener('click', () => {
+            if (voiceBtn.classList.contains('listening')) recognition.stop();
+            else recognition.start();
         });
 
-        // URL Import Handler
-        async function importFromURL() {
-            const url = document.getElementById('urlInput').value.trim();
-            if (!url) return alert("Valid URL daalein");
-            try {
-                const response = await fetch(url);
-                const parsedData = await response.json();
-                const dataArray = Array.isArray(parsedData) ? parsedData : [parsedData];
-                saveToDB(dataArray, `URL: ${new URL(url).hostname}`);
-                document.getElementById('urlInput').value = '';
-            } catch (err) {
-                alert("URL se data fetch karne me dikkat aayi. Check CORS configuration.");
-            }
+        recognition.onstart = () => {
+            voiceBtn.textContent = "🛑 Listening...";
+            voiceBtn.classList.add('listening');
+        };
+        recognition.onend = () => {
+            voiceBtn.textContent = "🎤 Voice Input";
+            voiceBtn.classList.remove('listening');
+        };
+        recognition.onresult = (event) => {
+            const text = event.results[0][0].transcript;
+            parseVoice(text);
+        };
+    } else {
+        voiceBtn.disabled = true;
+        voiceBtn.textContent = "Mic Not Supported";
+    }
+
+    function parseVoice(text) {
+        // Splits by word "comma" or symbol ","
+        let parts = text.split(/comma|,/i);
+        if (parts.length >= 2) {
+            document.getElementById('txDesc').value = parts[0].trim();
+            if(text.toLowerCase().includes('credit')) document.getElementById('txType').value = 'Credit';
+            if(text.toLowerCase().includes('debit')) document.getElementById('txType').value = 'Debit';
+            let match = text.match(/\d+/);
+            if (match) document.getElementById('txAmount').value = match[0];
+        } else {
+            document.getElementById('txDesc').value = text;
+        }
+        updateSeparationString();
+    }
+
+    // --- CORE CRUD FUNCTIONALITY ---
+    const saveBtn = document.getElementById('saveBtn');
+    saveBtn.addEventListener('click', () => {
+        const date = document.getElementById('txDate').value;
+        const desc = document.getElementById('txDesc').value;
+        const type = document.getElementById('txType').value;
+        const amount = parseFloat(document.getElementById('txAmount').value) || 0;
+        const image = document.getElementById('imageBase64').value;
+        const editKey = document.getElementById('editKey').value;
+
+        if (!desc || amount <= 0) {
+            alert("Fill basic description and valid positive amount.");
+            return;
         }
 
-        // Save parsed data array to IndexedDB
-        function saveToDB(dataArray, sourceName) {
+        const dataPayload = { date, desc, type, amount, image };
+        const tx = db.transaction(storeName, "readwrite");
+        const store = tx.objectStore(storeName);
+
+        if (editKey) {
+            dataPayload.id = parseInt(editKey);
+            store.put(dataPayload);
+        } else {
+            store.add(dataPayload);
+        }
+
+        tx.oncomplete = () => {
+            clearForm();
+            loadLedgerData();
+        };
+    });
+
+    function loadLedgerData() {
+        const tx = db.transaction(storeName, "readonly");
+        const store = tx.objectStore(storeName);
+        store.getAll().onsuccess = (e) => {
+            const list = e.target.result;
+            list.sort((a,b) => new Date(a.date) - new Date(b.date));
+
+            const tbody = document.getElementById('ledgerBody');
+            tbody.innerHTML = "";
+            let runningTotal = 0;
+
+            list.forEach(item => {
+                runningTotal += (item.type === "Credit") ? item.amount : -item.amount;
+                
+                let imgEl = item.image ? `<img src="${item.image}" class="td-img" onclick="viewFullImage('${item.image}')">` : `❌`;
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${imgEl}</td>
+                    <td>${item.date}</td>
+                    <td>${item.desc}</td>
+                    <td class="${item.type === 'Credit' ? 'c-credit' : 'c-debit'}">${item.type}</td>
+                    <td>₹${item.amount}</td>
+                    <td style="font-weight:bold;">₹${runningTotal}</td>
+                    <td class="hidden-print">
+                        <button class="actions-btn edit-btn" onclick="editEntry(${item.id})">Edit</button>
+                        <button class="actions-btn del-btn" onclick="deleteEntry(${item.id})">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            document.getElementById('totalBalance').textContent = runningTotal;
+        };
+    }
+
+    window.editEntry = function(id) {
+        const tx = db.transaction(storeName, "readonly");
+        tx.objectStore(storeName).get(id).onsuccess = (e) => {
+            const item = e.target.result;
+            document.getElementById('txDate').value = item.date;
+            document.getElementById('txDesc').value = item.desc;
+            document.getElementById('txType').value = item.type;
+            document.getElementById('txAmount').value = item.amount;
+            document.getElementById('imageBase64').value = item.image || "";
+            document.getElementById('editKey').value = item.id;
+            document.getElementById('fileStatus').textContent = item.image ? "Saved image loaded" : "No image";
+            document.getElementById('saveBtn').textContent = "Update Entry";
+            updateSeparationString();
+        };
+    };
+
+    window.deleteEntry = function(id) {
+        if (confirm("Delete this entry forever?")) {
+            const tx = db.transaction(storeName, "readwrite");
+            tx.objectStore(storeName).delete(id).onsuccess = () => loadLedgerData();
+        }
+    };
+
+    window.viewFullImage = function(base64) {
+        const w = window.open();
+        w.document.write(`<img src="${base64}" style="max-width:100%; height:auto;">`);
+    };
+
+    function clearForm() {
+        document.getElementById('txDesc').value = "";
+        document.getElementById('txAmount').value = "";
+        document.getElementById('editKey').value = "";
+        document.getElementById('imageBase64').value = "";
+        document.getElementById('fileStatus').textContent = "No image attached";
+        document.getElementById('txDate').value = new Date().toISOString().substring(0, 10);
+        document.getElementById('saveBtn').textContent = "Save Entry";
+        updateSeparationString();
+    }
+    document.getElementById('clearBtn').addEventListener('click', clearForm);
+
+    // --- CSV IMPLEMENTATION (EXPORT/IMPORT) ---
+    document.getElementById('exportCsvBtn').addEventListener('click', () => {
+        const tx = db.transaction(storeName, "readonly");
+        tx.objectStore(storeName).getAll().onsuccess = (e) => {
+            const records = e.target.result;
+            let csvContent = "data:text/csv;charset=utf-8,Date,Description,Type,Amount\n";
+            records.forEach(r => {
+                csvContent += `${r.date},"${r.desc.replace(/"/g, '""')}",${r.type},${r.amount}\n`;
+            });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `ledger_backup_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+    });
+
+    document.getElementById('importCsvInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            const lines = evt.target.result.split("\n");
             const tx = db.transaction(storeName, "readwrite");
             const store = tx.objectStore(storeName);
             
-            dataArray.forEach(item => {
-                // Har entry ko generic payload banakar store karte hain
-                store.add({
-                    fileName: sourceName,
-                    content: typeof item === 'object' ? JSON.stringify(item) : item
-                });
-            });
-
-            tx.oncomplete = function() {
-                loadDataFromDB();
-            };
-        }
-
-        // --- 3. FETCH & DISPLAY LOGIC WITH FILTER ---
-        let allRecords = []; // Memory me reference taaki active filtering fast ho
-
-        function loadDataFromDB() {
-            if (!db) return;
-            const tx = db.transaction(storeName, "readonly");
-            const store = tx.objectStore(storeName);
-            const request = store.getAll();
-
-            request.onsuccess = function() {
-                allRecords = request.result;
-                renderTable(allRecords);
-            };
-        }
-
-        function renderTable(records) {
-            const tbody = document.getElementById('tableBody');
-            tbody.innerHTML = '';
-
-            records.forEach((record, index) => {
-                const tr = document.createElement('tr');
-                tr.setAttribute('draggable', 'true');
-                tr.setAttribute('data-index', index);
-                
-                // Row Drag events
-                tr.addEventListener('dragstart', handleRowDragStart);
-                tr.addEventListener('dragover', handleRowDragOver);
-                tr.addEventListener('drop', handleRowDrop);
-                tr.addEventListener('dragend', handleRowDragEnd);
-
-                // Dynamic rendering current column order ke hisab se
-                const colOrder = getColumnOrder();
-                colOrder.forEach(col => {
-                    const td = document.createElement('td');
-                    if (col === 'id') td.innerText = record.id;
-                    else if (col === 'fileName') td.innerText = record.fileName;
-                    else if (col === 'content') td.innerText = record.content;
-                    else if (col === 'actions') {
-                        td.innerHTML = `
-                            <button class="btn btn-edit" onclick="showEditForm(${record.id}, '${record.fileName}', \`${record.content}\`)">Edit</button>
-                            <button class="btn btn-danger" style="padding: 4px 8px; font-size:12px;" onclick="deleteRecord(${record.id})">Delete</button>
-                        `;
-                    }
-                    tr.appendChild(td);
-                });
-
-                tbody.appendChild(tr);
-            });
-        }
-
-        function getColumnOrder() {
-            const headers = document.querySelectorAll('#tableHeader th');
-            return Array.from(headers).map(th => th.getAttribute('data-col'));
-        }
-
-        // Live Filter function
-        function applyFilter() {
-            const query = document.getElementById('filterInput').value.toLowerCase();
-            const filtered = allRecords.filter(r => 
-                r.fileName.toLowerCase().includes(query) || 
-                r.content.toLowerCase().includes(query) || 
-                r.id.toString().includes(query)
-            );
-            renderTable(filtered);
-        }
-
-        // --- 4. EDIT & DELETE ACTIONS ---
-        function deleteRecord(id) {
-            if (!confirm("Kya aap is record ko delete karna chahte hain?")) return;
-            const tx = db.transaction(storeName, "readwrite");
-            const store = tx.objectStore(storeName);
-            store.delete(id);
-            tx.oncomplete = function() {
-                loadDataFromDB();
-            };
-        }
-
-        function showEditForm(id, fileName, content) {
-            document.getElementById('editFormSection').classList.remove('hidden');
-            document.getElementById('editId').value = id;
-            document.getElementById('editFileName').value = fileName;
-            document.getElementById('editContent').value = content;
-        }
-
-        function hideEditForm() {
-            document.getElementById('editFormSection').classList.add('hidden');
-        }
-
-        function saveEdit() {
-            const id = parseInt(document.getElementById('editId').value);
-            const fileName = document.getElementById('editFileName').value;
-            const content = document.getElementById('editContent').value;
-
-            const tx = db.transaction(storeName, "readwrite");
-            const store = tx.objectStore(storeName);
-            store.put({ id, fileName, content });
-
-            tx.oncomplete = function() {
-                hideEditForm();
-                loadDataFromDB();
-            };
-        }
-
-        // --- 5. DRAG AND DROP LOGIC (COLUMNS & ROWS) ---
-        // Column Drag and Drop
-        let dragSrcEl = null;
-        const headers = document.querySelectorAll('#tableHeader th');
-        
-        headers.forEach(header => {
-            header.addEventListener('dragstart', function(e) {
-                if(this.getAttribute('data-col') === 'actions') return e.preventDefault(); // Actions column strict rakhein
-                dragSrcEl = this;
-                this.classList.add('dragging');
-                e.dataTransfer.effectAllowed = 'move';
-            });
-            header.addEventListener('dragover', function(e) { e.preventDefault(); });
-            header.addEventListener('drop', function(e) {
-                e.preventDefault();
-                if (dragSrcEl !== this && this.getAttribute('data-col') !== 'actions') {
-                    // Header positions swap karein
-                    let headersArr = Array.from(document.querySelectorAll('#tableHeader th'));
-                    let srcIdx = headersArr.indexOf(dragSrcEl);
-                    let targetIdx = headersArr.indexOf(this);
-                    
-                    if(srcIdx < targetIdx) {
-                        this.parentNode.insertBefore(dragSrcEl, this.nextSibling);
-                    } else {
-                        this.parentNode.insertBefore(dragSrcEl, this);
-                    }
-                    renderTable(allRecords); // New alignment par table re-render karein
+            // Skip index 0 header row
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i].trim()) continue;
+                const columns = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/); // Regex to bypass quotes commas
+                if(columns.length >= 4) {
+                    store.add({
+                        date: columns[0].trim(),
+                        desc: columns[1].replace(/^"|"$/g, '').trim(),
+                        type: columns[2].trim(),
+                        amount: parseFloat(columns[3]) || 0,
+                        image: ""
+                    });
                 }
-            });
-            header.addEventListener('dragend', function() { this.classList.remove('dragging'); });
-        });
-
-        // Row Drag and Drop
-        let draggedRowIdx = null;
-
-        function handleRowDragStart(e) {
-            draggedRowIdx = this.getAttribute('data-index');
-            this.classList.add('dragging');
-        }
-        function handleRowDragOver(e) { e.preventDefault(); }
-        function handleRowDrop(e) {
-            e.preventDefault();
-            const targetRowIdx = this.getAttribute('data-index');
-            if (draggedRowIdx !== null && draggedRowIdx !== targetRowIdx) {
-                // Array elements ko rearrange karein visual change ke liye
-                const movedItem = allRecords.splice(draggedRowIdx, 1)[0];
-                allRecords.splice(targetRowIdx, 0, movedItem);
-                renderTable(allRecords);
             }
-        }
-        function handleRowDragEnd() { this.classList.remove('dragging'); }
-    </script>
+            tx.oncomplete = () => {
+                alert("CSV Data Imported successfully!");
+                loadLedgerData();
+            };
+        };
+        reader.readAsText(file);
+    });
+
+    // Run startup parsing
+    updateSeparationString();
+</script>
 </body>
 </html>
