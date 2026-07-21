@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editable Time Table</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+    body {
+      background-color: #f4f6f9;
+      color: #000000;
+      padding: 20px;
+      margin: 0;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      color: #000000;
+      margin-bottom: 20px;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+    }
+    input[type="time"], input[type="text"] {
+      padding: 8px 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      color: #000000;
+      font-size: 14px;
+    }
+    button {
+      padding: 8px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.2s;
+    }
+    .btn-add { background-color: #28a745; color: #fff; }
+    .btn-add:hover { background-color: #218838; }
+    
+    .btn-edit { background-color: #ffc107; color: #000; margin-right: 5px; }
+    .btn-edit:hover { background-color: #e0a800; }
+    
+    .btn-save-row { background-color: #007bff; color: #fff; margin-right: 5px; }
+    .btn-save-row:hover { background-color: #0069d9; }
+
+    .btn-cancel { background-color: #6c757d; color: #fff; margin-right: 5px; }
+    .btn-cancel:hover { background-color: #5a6268; }
+
+    .btn-delete { background-color: #dc3545; color: #fff; }
+    .btn-delete:hover { background-color: #c82333; }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid #000000;
+      padding: 10px;
+      text-align: left;
+      color: #000000;
+    }
+    th {
+      background-color: #e9ecef;
+      font-weight: bold;
+    }
+    
+    /* Edit mode highlight */
+    .editing-cell {
+      outline: 2px solid #007bff;
+      background-color: #fffde7;
+    }
+
+    .action-cell {
+      white-space: nowrap;
+    }
+
+    .status-msg {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #28a745;
+      font-weight: bold;
+      height: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>My Editable Time Table</h2>
+
+  <div class="controls">
+    <input type="time" id="timeInput">
+    <input type="text" id="taskInput" placeholder="Task description..." style="flex-grow: 1;">
+    <button type="button" class="btn-add" id="addBtn">Add Time Block</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 20%;">Time</th>
+        <th style="width: 55%;">Activity / Task</th>
+        <th style="width: 25%;">Action</th>
+      </tr>
+    </thead>
+    <tbody id="timetableBody"></tbody>
+  </table>
+
+  <div id="statusMsg" class="status-msg"></div>
+</div>
+
+<script>
+  let items = [];
+  let editingIndex = -1; // Tracks currently active edit row
+
+  function loadData() {
+    const saved = localStorage.getItem("timetable_data");
+    if (saved) {
+      try {
+        items = JSON.parse(saved);
+      } catch (e) {
+        items = [];
+      }
+    }
+    renderTable();
+  }
+
+  function saveData() {
+    localStorage.setItem("timetable_data", JSON.stringify(items));
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById("timetableBody");
+    tbody.innerHTML = "";
+
+    // Sort by time
+    items.sort((a, b) => (a.time || "").localeCompare(b.time || ""));
+
+    items.forEach((item, index) => {
+      const tr = document.createElement("tr");
+      const isEditing = editingIndex === index;
+
+      // Time Column
+      const timeTd = document.createElement("td");
+      timeTd.textContent = item.time || "";
+
+      // Task Column
+      const taskTd = document.createElement("td");
+      taskTd.textContent = item.task || "";
+
+      if (isEditing) {
+        timeTd.contentEditable = "true";
+        taskTd.contentEditable = "true";
+        timeTd.classList.add("editing-cell");
+        taskTd.classList.add("editing-cell");
+      }
+
+      // Action Column
+      const actionTd = document.createElement("td");
+      actionTd.className = "action-cell";
+
+      if (isEditing) {
+        // Save Button
+        const saveBtn = document.createElement("button");
+        saveBtn.className = "btn-save-row";
+        saveBtn.textContent = "Save";
+        saveBtn.onclick = () => saveInlineEdit(index, timeTd, taskTd);
+
+        // Cancel Button
+        const cancelBtn = document.createElement("button");
+        cancelBtn.className = "btn-cancel";
+        cancelBtn.textContent = "Cancel";
+        cancelBtn.onclick = () => {
+          editingIndex = -1;
+          renderTable();
+        };
+
+        actionTd.appendChild(saveBtn);
+        actionTd.appendChild(cancelBtn);
+      } else {
+        // Edit Button
+        const editBtn = document.createElement("button");
+        editBtn.className = "btn-edit";
+        editBtn.textContent = "Edit";
+        editBtn.onclick = () => {
+          editingIndex = index;
+          renderTable();
+        };
+
+        // Delete Button
+        const delBtn = document.createElement("button");
+        delBtn.className = "btn-delete";
+        delBtn.textContent = "Delete";
+        delBtn.onclick = () => deleteItem(index);
+
+        actionTd.appendChild(editBtn);
+        actionTd.appendChild(delBtn);
+      }
+
+      tr.appendChild(timeTd);
+      tr.appendChild(taskTd);
+      tr.appendChild(actionTd);
+
+      tbody.appendChild(tr);
+    });
+  }
+
+  function saveInlineEdit(index, timeTd, taskTd) {
+    const updatedTime = timeTd.textContent.trim();
+    const updatedTask = taskTd.textContent.trim();
+
+    if (!updatedTime) {
+      alert("Time khali nahi ho sakta!");
+      return;
+    }
+
+    items[index].time = updatedTime;
+    items[index].task = updatedTask;
+
+    editingIndex = -1;
+    saveData();
+    renderTable();
+    showStatus("Changes saved!");
+  }
+
+  function addItem() {
+    const timeInput = document.getElementById("timeInput");
+    const taskInput = document.getElementById("taskInput");
+
+    const timeVal = timeInput.value;
+    const taskVal = taskInput.value.trim();
+
+    if (!timeVal) {
+      alert("Kripya Time select karein!");
+      return;
+    }
+
+    items.push({
+      id: Date.now(),
+      time: timeVal,
+      task: taskVal || "New Task"
+    });
+
+    saveData();
+    renderTable();
+
+    timeInput.value = "";
+    taskInput.value = "";
+    showStatus("Added successfully!");
+  }
+
+  function deleteItem(index) {
+    if (confirm("Kya aap is entry ko delete karna chahte hain?")) {
+      items.splice(index, 1);
+      if (editingIndex === index) editingIndex = -1;
+      saveData();
+      renderTable();
+      showStatus("Deleted!");
+    }
+  }
+
+  function showStatus(msg) {
+    const status = document.getElementById("statusMsg");
+    status.innerText = msg;
+    setTimeout(() => { status.innerText = ""; }, 2000);
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    loadData();
+    document.getElementById("addBtn").addEventListener("click", addItem);
+  });
+</script>
+
+</body>
+</html>
