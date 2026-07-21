@@ -1,59 +1,829 @@
-
-multi rombus
-1
 <!DOCTYPE html>
-2
 <html lang="hi">
-3
 <head>
-4
     <meta charset="UTF-8">
-5
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-6
     <title id="page-title-element">रोम्बस डेटा ग्रिड - मल्टी-पेज & ऑथेंटिकेशन</title>
-7
     <style>
-8
         :root {
-9
             --primary-color: #1e293b;
-10
             --accent-color: #2563eb;
-11
             --bg-color: #f8fafc;
-12
             --cell-width: 100px;
-13
             --cell-height: 100px;
-14
         }
-15
-​
-16
+
         body {
-17
             font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-18
             background-color: var(--bg-color);
-19
             margin: 0;
-20
             padding: 15px;
-21
             display: flex;
-22
             flex-direction: column;
-23
             align-items: center;
-24
             color: #334155;
-25
         }
-26
-​
-27
+
         /* 🔒 लॉगिन मॉडल स्क्रीन */
-28
         .login-overlay {
-Post publishedPost: Edit
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #0f172a;
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .login-card {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+            width: 320px;
+            text-align: center;
+        }
+        .login-card h3 { margin-top: 0; color: var(--primary-color); }
+        .login-card input {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            box-sizing: border-box;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+        }
+        .login-card button {
+            width: 100%;
+            padding: 10px;
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .login-card button:hover { opacity: 0.9; }
+        .error-msg { color: #ef4444; font-size: 12px; margin-top: 5px; display: none; }
+
+        /* हेडर और पेज नेविगेशन बार */
+        .page-bar {
+            background: #ffffff;
+            padding: 12px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin-bottom: 12px;
+            width: 95%;
+            max-width: 1250px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box;
+        }
+        .page-controls { display: flex; align-items: center; gap: 10px; }
+        .page-select { padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 14px; font-weight: 600; }
+
+        /* मुख्य कंट्रोल पैनल */
+        .controls, .formatting-toolbar {
+            background: #ffffff;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin-bottom: 15px;
+            width: 95%;
+            max-width: 1250px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            justify-content: space-between;
+            box-sizing: border-box;
+        }
+
+        .formatting-toolbar {
+            border-left: 5px solid var(--accent-color);
+            background: #f1f5f9;
+        }
+
+        .section-group { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+        input[type="text"], input[type="number"] {
+            padding: 6px 10px;
+            font-size: 13px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            outline: none;
+        }
+
+        .size-number-input { width: 55px; }
+
+        /* बटन स्टाइल्स */
+        .btn {
+            padding: 6px 12px;
+            font-size: 13px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .btn-tool { background: #fff; border: 1px solid #cbd5e1; color: #334155; }
+        .btn-tool.active { background: var(--accent-color); color: white; border-color: var(--accent-color); }
+        .btn-undo { background: #f59e0b; color: white; }
+        .btn-redo { background: #10b981; color: white; }
+        .btn-add { background-color: #10b981; color: white; }
+        .btn-del { background-color: #ef4444; color: white; }
+        .btn-track { background-color: #0d9488; color: white; }
+        .btn-download { background-color: #8b5cf6; color: white; }
+        .btn-csv { background-color: #059669; color: white; }
+        .btn-logout { background-color: #64748b; color: white; }
+        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+        .slider-group { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; }
+
+        #display-title {
+            color: var(--primary-color);
+            margin: 10px 0 20px 0;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        /* रोम्बस टेबल स्ट्रक्चर */
+        .table-container {
+            padding: 140px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            overflow: auto;
+        }
+
+        .rhombus-table {
+            border-collapse: collapse;
+            transform: rotate(45deg);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+            background: #fff;
+        }
+
+        .rhombus-table td {
+            width: var(--cell-width);
+            height: var(--cell-height);
+            border: 2px solid #ffffff;
+            padding: 0;
+            text-align: center;
+            vertical-align: middle;
+            position: relative;
+            transition: background-color 0.2s;
+            cursor: pointer;
+        }
+
+        .rhombus-table td.selected-cell {
+            outline: 3px solid #f59e0b;
+            outline-offset: -3px;
+            z-index: 10;
+        }
+
+        .cell-content {
+            box-sizing: border-box;
+            width: 141.4%;
+            height: 141.4%;
+            margin-left: -20.7%;
+            margin-top: -20.7%;
+            transform: rotate(-45deg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+            overflow: hidden;
+        }
+
+        .cell-content input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            text-align: center;
+            outline: none;
+            font-family: inherit;
+            padding: 2px 0;
+            box-sizing: border-box;
+        }
+
+        .link-indicator {
+            font-size: 10px;
+            color: #f59e0b;
+            text-decoration: underline;
+            margin-top: 2px;
+            font-weight: bold;
+            display: block;
+            white-space: nowrap;
+        }
+
+        /* ट्री मॉडल */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            max-width: 650px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .tree-node { margin-left: 15px; border-left: 2px dashed #cbd5e1; padding-left: 12px; margin-top: 6px; }
+        .tree-leaf { background: #f8fafc; padding: 6px 10px; margin: 4px 0; border-radius: 6px; font-size: 13px; border: 1px solid #e2e8f0; }
+
+        .app-container { width: 100%; display: flex; flex-direction: column; align-items: center; }
+    </style>
+</head>
+<body>
+
+    <!-- 🔒 लॉगिन स्क्रीन Overlay -->
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-card">
+            <h3>🔐 Login Required</h3>
+            <p style="font-size: 12px; color: #64748b;">Default: admin / 1234</p>
+            <input type="text" id="username" placeholder="Username">
+            <input type="password" id="password" placeholder="Password">
+            <button onclick="handleLogin()">Login</button>
+            <div class="error-msg" id="loginError">गलत यूज़रनेम या पासवर्ड!</div>
+        </div>
+    </div>
+
+    <!-- मेन एप्लीकेशन कंटेनर -->
+    <div class="app-container" id="appContainer" style="display: none;">
+        
+        <!-- मल्टी-पेज नेविगेशन बार -->
+        <div class="page-bar">
+            <div class="page-controls">
+                <span style="font-weight: bold; color: var(--primary-color);">📑 एक्टिव पेज:</span>
+                <select class="page-select" id="pageSelect" onchange="switchPage(this.value)"></select>
+                <button class="btn btn-add" onclick="addNewPage()">+ New Page</button>
+                <button class="btn btn-del" onclick="deleteCurrentPage()">🗑️ Delete Page</button>
+            </div>
+            <div>
+                <button class="btn btn-logout" onclick="handleLogout()">🔒 Logout</button>
+            </div>
+        </div>
+
+        <!-- मुख्य कंट्रोल पैनल -->
+        <div class="controls">
+            <div class="section-group">
+                <input id="table-title" oninput="updateTitle(this.value)" placeholder="पेज/टेबल टाइटल..." type="text" />
+                <button class="btn btn-add" onclick="modifyGrid('addRow')">+ Row</button>
+                <button class="btn btn-del" onclick="modifyGrid('removeRow')">- Row</button>
+                <button class="btn btn-add" onclick="modifyGrid('addCol')">+ Col</button>
+                <button class="btn btn-del" onclick="modifyGrid('removeCol')">- Col</button>
+            </div>
+            
+            <div class="section-group">
+                <div class="slider-group">
+                    <label>चौड़ाई:</label>
+                    <input id="width-slider" max="200" min="70" oninput="syncCellSize('width', this.value)" type="range" value="100" />
+                    <input class="size-number-input" id="width-number" max="200" min="70" oninput="syncCellSize('width', this.value)" type="number" value="100" /> px
+                </div>
+                <div class="slider-group">
+                    <label>ऊंचाई:</label>
+                    <input id="height-slider" max="200" min="70" oninput="syncCellSize('height', this.value)" type="range" value="100" />
+                    <input class="size-number-input" id="height-number" max="200" min="70" oninput="syncCellSize('height', this.value)" type="number" value="100" /> px
+                </div>
+            </div>
+
+            <div class="section-group">
+                <button class="btn btn-download" onclick="downloadHTML()">HTML Export</button>
+                <button class="btn btn-csv" onclick="exportCSV()">CSV Export</button>
+            </div>
+        </div>
+
+        <!-- सेल फ़ॉर्मेटिंग टूलबार -->
+        <div class="formatting-toolbar">
+            <button class="btn btn-undo" id="btn-undo" onclick="undo()" title="Undo">↩️ Undo</button>
+            <button class="btn btn-redo" id="btn-redo" onclick="redo()" title="Redo">↪️ Redo</button>
+            
+            <button class="btn btn-track" onclick="openTrackModal()" title="डेटा एक्सप्लोर करें">🔍 Track Tree</button>
+            
+            <span id="toolbar-status" style="color: #475569; font-size: 13px; font-weight: 700; margin-left: 5px;">सेल चुनें...</span>
+            
+            <button class="btn btn-tool" id="btn-bold" onclick="toggleFormat('bold')">B</button>
+            <button class="btn btn-tool" id="btn-underline" onclick="toggleFormat('underline')">U</button>
+            
+            <div class="slider-group">
+                <label>साइज़:</label>
+                <input id="cell-text-size" max="32" min="8" oninput="applyTextSize(this.value)" style="padding: 4px; width: 45px;" type="number" value="14" /> px
+            </div>
+
+            <div class="slider-group">
+                <label>टेक्स्ट:</label>
+                <input id="cell-text-color" onchange="applyTextColor(this.value)" type="color" value="#ffffff" />
+            </div>
+
+            <div class="slider-group">
+                <label>सेल रंग:</label>
+                <input id="cell-bg-color" onchange="applyBgColor(this.value)" type="color" value="#2563eb" />
+            </div>
+
+            <button class="btn btn-tool" id="btn-wrap" onclick="toggleFormat('wrap')">Wrap Text</button>
+
+            <div class="slider-group">
+                <input class="link-input" id="cell-hyperlink" onchange="applyHyperlink(this.value)" placeholder="https://..." style="width: 120px;" type="text" />
+                <button class="btn btn-tool" onclick="clearHyperlink()" style="padding: 5px 8px;">Clear</button>
+            </div>
+        </div>
+
+        <h2 id="display-title">पेज 1</h2>
+
+        <!-- टेबल ग्रिड -->
+        <div class="table-container">
+            <table class="rhombus-table" id="main-table">
+                <tbody id="table-body"></tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <!-- डेटा ट्री मॉडेल -->
+    <div class="modal" id="trackModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 style="color: var(--primary-color); margin: 0;">🌳 Explore Data Hierarchy</h3>
+                <button onclick="closeTrackModal()" style="background: transparent; border: none; cursor: pointer; font-size: 20px; font-weight:bold;">×</button>
+            </div>
+            <div id="treeContainer"></div>
+        </div>
+    </div>
+
+<script>
+    // IndexedDB और ऑथेंटिकेशन ग्लोबल वैरिएबल्स
+    const dbName = "RhombusMultiPageAuthDB";
+    const storeName = "appStore";
+    let db, selectedRow = null, selectedCol = null;
+
+    let undoStack = [];
+    let redoStack = [];
+
+    // प्रोजेक्ट ऑथेंटिकेशन और पेजेज स्टेट
+    let appState = {
+        isLoggedIn: false,
+        activePageId: "page_1",
+        pagesList: ["page_1"],
+        pagesData: {
+            "page_1": {
+                id: "page_1",
+                title: "पेज 1",
+                rows: 3,
+                cols: 3,
+                cellWidth: 100,
+                cellHeight: 100,
+                matrix: [
+                    [{v:"Root", b:true, u:false, s:14, c:"#ffffff", w:false, l:"", bg:""}, {v:"Node_A", b:false, u:false, s:14, c:"#ffffff", w:false, l:"", bg:""}, {v:"Node_B", b:false, u:false, s:14, c:"#ffffff", w:false, l:"", bg:""}],
+                    [{v:"Child_1", b:false, u:false, s:14, c:"#ffffff", w:false, l:"", bg:""}, {v:"Data_1", b:false, u:false, s:14, c:"#ffffff", w:false, l:"", bg:""}, {v:"Data_2", b:false, u:false, s:14, c:"#ffffff", w:false, l:"", bg:""}],
+                    [{v:"Child_2", b:false, u:false, s:14, c:"#ffffff", w:false, l:"", bg:""}, {v:"Data_3", b:false, u:false, s:14, c:"#ffffff", w:false, l:"", bg:""}, {v:"Data_4", b:false, u:false, s:14, c:"#ffffff", w:false, l:"", bg:""}]
+                ]
+            }
+        }
+    };
+
+    // DB इनिशियलाइजेशन
+    const request = indexedDB.open(dbName, 1);
+    request.onupgradeneeded = (e) => {
+        db = e.target.result;
+        db.createObjectStore(storeName, { keyPath: "id" });
+    };
+    request.onsuccess = (e) => {
+        db = e.target.result;
+        loadAppData();
+    };
+
+    /* 🔒 ऑथेंटिकेशन लॉजिक */
+    function handleLogin() {
+        const u = document.getElementById('username').value;
+        const p = document.getElementById('password').value;
+        
+        if (u === "admin" && p === "1234") {
+            appState.isLoggedIn = true;
+            document.getElementById('loginError').style.display = 'none';
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('appContainer').style.display = 'flex';
+            saveAppData();
+            renderApp();
+        } else {
+            document.getElementById('loginError').style.display = 'block';
+        }
+    }
+
+    function handleLogout() {
+        appState.isLoggedIn = false;
+        saveAppData();
+        document.getElementById('loginOverlay').style.display = 'flex';
+        document.getElementById('appContainer').style.display = 'none';
+        document.getElementById('username').value = '';
+        document.getElementById('password').value = '';
+    }
+
+    /* 📑 पेज नेविगेशन लॉजिक */
+    function renderPageDropdown() {
+        const select = document.getElementById('pageSelect');
+        select.innerHTML = "";
+        appState.pagesList.forEach(pId => {
+            const page = appState.pagesData[pId];
+            const opt = document.createElement('option');
+            opt.value = pId;
+            opt.innerText = page ? page.title : pId;
+            if(pId === appState.activePageId) opt.selected = true;
+            select.appendChild(opt);
+        });
+    }
+
+    function switchPage(pageId) {
+        if(appState.pagesData[pageId]) {
+            appState.activePageId = pageId;
+            undoStack = [];
+            redoStack = [];
+            selectedRow = null;
+            selectedCol = null;
+            renderApp();
+            saveAppData();
+        }
+    }
+
+    function addNewPage() {
+        const newId = "page_" + Date.now();
+        const pageNum = appState.pagesList.length + 1;
+        appState.pagesList.push(newId);
+        appState.pagesData[newId] = {
+            id: newId,
+            title: `पेज ${pageNum}`,
+            rows: 3,
+            cols: 3,
+            cellWidth: 100,
+            cellHeight: 100,
+            matrix: [
+                [{v:"Head_1", b:true, u:false, s:14, c:"#ffffff", w:false, l:"", bg:""}, {v:"Data_A", b:false, u:false, s:14, c:"#ffffff", w:false, l:"", bg:""}, {v:"Data_B", b:false, u:false, s:14, c:"#ffffff", w:false, l:"", bg:""}],
+                [{v:"Item_1", b:false, u:false, s:14, c:"#ffffff", w:false, l:"", bg:""}, {v:"Val_1", b:false, u:false, s:14, c:"#ffffff", w:false, l:"", bg:""}, {v:"Val_2", b:false, u:false, s:14, c:"#ffffff", w:false, l:"", bg:""}],
+                [{v:"Item_2", b:false, u:false, s:14, c:"#ffffff", w:false, l:"", bg:""}, {v:"Val_3", b:false, u:false, s:14, c:"#ffffff", w:false, l:"", bg:""}, {v:"Val_4", b:false, u:false, s:14, c:"#ffffff", w:false, l:"", bg:""}]
+            ]
+        };
+        switchPage(newId);
+    }
+
+    function deleteCurrentPage() {
+        if(appState.pagesList.length <= 1) {
+            alert("कम से कम एक पेज होना आवश्यक है!");
+            return;
+        }
+        if(confirm("क्या आप वाकई इस पेज को डिलीट करना चाहते हैं?")) {
+            const currentId = appState.activePageId;
+            delete appState.pagesData[currentId];
+            appState.pagesList = appState.pagesList.filter(id => id !== currentId);
+            appState.activePageId = appState.pagesList[0];
+            renderApp();
+            saveAppData();
+        }
+    }
+
+    function getActivePage() {
+        return appState.pagesData[appState.activePageId];
+    }
+
+    /* 📊 टेबल रेंडरिंग & कोर फंक्शंस */
+    function createDefaultCell(val = "") {
+        return { v: val, b: false, u: false, s: 14, c: "#ffffff", w: false, l: "", bg: "" };
+    }
+
+    function cloneState(obj) { return JSON.parse(JSON.stringify(obj)); }
+
+    function saveHistory() {
+        undoStack.push(cloneState(getActivePage()));
+        redoStack = []; 
+        updateUndoRedoButtons();
+    }
+
+    function undo() {
+        if (undoStack.length > 0) {
+            redoStack.push(cloneState(getActivePage()));
+            appState.pagesData[appState.activePageId] = undoStack.pop();
+            renderTable();
+            saveAppData(); 
+            updateUndoRedoButtons();
+        }
+    }
+
+    function redo() {
+        if (redoStack.length > 0) {
+            undoStack.push(cloneState(getActivePage()));
+            appState.pagesData[appState.activePageId] = redoStack.pop();
+            renderTable();
+            saveAppData();
+            updateUndoRedoButtons();
+        }
+    }
+
+    function updateUndoRedoButtons() {
+        document.getElementById('btn-undo').disabled = undoStack.length === 0;
+        document.getElementById('btn-redo').disabled = redoStack.length === 0;
+    }
+
+    function renderApp() {
+        if(!appState.isLoggedIn) {
+            document.getElementById('loginOverlay').style.display = 'flex';
+            document.getElementById('appContainer').style.display = 'none';
+            return;
+        }
+        document.getElementById('loginOverlay').style.display = 'none';
+        document.getElementById('appContainer').style.display = 'flex';
+        renderPageDropdown();
+        renderTable();
+        updateUndoRedoButtons();
+    }
+
+    function syncCellSize(type, val) {
+        if(!val || val < 70 || val > 200) return;
+        saveHistory();
+        const page = getActivePage();
+        if(type === 'width') page.cellWidth = parseInt(val);
+        else page.cellHeight = parseInt(val);
+        
+        applyCSSVars();
+        renderTable();
+        saveAppData();
+    }
+
+    function applyCSSVars() {
+        const page = getActivePage();
+        document.documentElement.style.setProperty('--cell-width', page.cellWidth + 'px');
+        document.documentElement.style.setProperty('--cell-height', page.cellHeight + 'px');
+        document.getElementById('width-slider').value = page.cellWidth;
+        document.getElementById('width-number').value = page.cellWidth;
+        document.getElementById('height-slider').value = page.cellHeight;
+        document.getElementById('height-number').value = page.cellHeight;
+    }
+
+    function renderTable() {
+        const page = getActivePage();
+        document.getElementById('table-title').value = page.title;
+        document.getElementById('display-title').innerText = page.title;
+        document.getElementById('page-title-element').innerText = page.title;
+        
+        applyCSSVars();
+
+        const tbody = document.getElementById('table-body');
+        tbody.innerHTML = '';
+
+        for(let r = 0; r < page.rows; r++) {
+            const tr = document.createElement('tr');
+            for(let c = 0; c < page.cols; c++) {
+                const td = document.createElement('td');
+                const cellData = page.matrix[r][c] || createDefaultCell();
+                
+                td.style.backgroundColor = cellData.bg || ((r === 0 || c === 0) ? 'var(--primary-color)' : 'var(--accent-color)');
+                if(selectedRow === r && selectedCol === c) td.className = 'selected-cell';
+
+                td.onclick = (e) => {
+                    if(e.target.tagName !== 'INPUT' && e.target.tagName !== 'A') selectCell(r, c);
+                };
+
+                let styleStr = `color: ${cellData.c};`;
+                if(cellData.b) styleStr += 'font-weight: bold;';
+                if(cellData.u) styleStr += 'text-decoration: underline;';
+                
+                let inputStyle = cellData.w ? 'white-space: normal; word-break: break-word;' : 'white-space: nowrap;';
+
+                let textMarkup = `<input type="text" value="${cellData.v}" data-row="${r}" data-col="${c}" id="input-${r}-${c}" onfocus="saveHistory()" oninput="updateCellText(this)" onclick="selectCell(${r},${c})" style="${styleStr} ${inputStyle}">`;
+                let linkIndicator = cellData.l ? `<a href="${cellData.l}" target="_blank" class="link-indicator">🔗 Link</a>` : '';
+
+                td.innerHTML = `<div class="cell-content">${textMarkup}${linkIndicator}</div>`;
+                tr.appendChild(td);
+            }
+            tbody.appendChild(tr);
+        }
+    }
+
+    function updateCellText(input) {
+        const r = parseInt(input.getAttribute('data-row'));
+        const c = parseInt(input.getAttribute('data-col'));
+        getActivePage().matrix[r][c].v = input.value;
+        saveAppData();
+    }
+
+    function selectCell(r, c) {
+        selectedRow = r; selectedCol = c;
+        document.querySelectorAll('.rhombus-table td').forEach(el => el.classList.remove('selected-cell'));
+        const table = document.getElementById('main-table');
+        if(table.rows[r] && table.rows[r].cells[c]) table.rows[r].cells[c].classList.add('selected-cell');
+
+        const cell = getActivePage().matrix[r][c];
+        document.getElementById('toolbar-status').innerText = `R${r+1}C${c+1}:`;
+        
+        document.getElementById('btn-bold').classList.toggle('active', cell.b);
+        document.getElementById('btn-underline').classList.toggle('active', cell.u);
+        document.getElementById('btn-wrap').classList.toggle('active', cell.w);
+        document.getElementById('cell-text-size').value = cell.s;
+        document.getElementById('cell-text-color').value = cell.c;
+        document.getElementById('cell-bg-color').value = cell.bg || ((r === 0 || c === 0) ? '#1e293b' : '#2563eb');
+        document.getElementById('cell-hyperlink').value = cell.l || "";
+    }
+
+    function toggleFormat(type) {
+        if(selectedRow === null) return;
+        saveHistory();
+        const cell = getActivePage().matrix[selectedRow][selectedCol];
+        if(type === 'bold') cell.b = !cell.b;
+        if(type === 'underline') cell.u = !cell.u;
+        if(type === 'wrap') cell.w = !cell.w;
+        
+        renderTable();
+        saveAppData();
+        setTimeout(() => selectCell(selectedRow, selectedCol), 15);
+    }
+
+    function applyTextSize(val) {
+        if(selectedRow === null || !val) return;
+        saveHistory();
+        getActivePage().matrix[selectedRow][selectedCol].s = parseInt(val);
+        renderTable();
+        saveAppData();
+    }
+
+    function applyTextColor(val) {
+        if(selectedRow === null) return;
+        saveHistory();
+        getActivePage().matrix[selectedRow][selectedCol].c = val;
+        renderTable();
+        saveAppData();
+    }
+
+    function applyBgColor(val) {
+        if(selectedRow === null) return;
+        saveHistory();
+        getActivePage().matrix[selectedRow][selectedCol].bg = val;
+        renderTable();
+        saveAppData();
+    }
+
+    function applyHyperlink(val) {
+        if(selectedRow === null) return;
+        saveHistory();
+        if(val && !/^https?:\/\//i.test(val)) val = 'https://' + val;
+        getActivePage().matrix[selectedRow][selectedCol].l = val;
+        renderTable();
+        saveAppData();
+    }
+
+    function clearHyperlink() {
+        if(selectedRow === null) return;
+        saveHistory();
+        getActivePage().matrix[selectedRow][selectedCol].l = "";
+        renderTable();
+        saveAppData();
+        selectCell(selectedRow, selectedCol);
+    }
+
+    function updateTitle(newTitle) {
+        getActivePage().title = newTitle;
+        document.getElementById('display-title').innerText = newTitle;
+        document.getElementById('page-title-element').innerText = newTitle;
+        renderPageDropdown();
+        saveAppData();
+    }
+
+    function modifyGrid(action) {
+        saveHistory();
+        const page = getActivePage();
+        if(action === 'addRow') {
+            page.rows++;
+            let newRow = [];
+            for(let c=0; c<page.cols; c++) newRow.push(createDefaultCell());
+            page.matrix.push(newRow);
+        } else if(action === 'removeRow' && page.rows > 1) {
+            page.rows--;
+            page.matrix.pop();
+            selectedRow = null;
+        } else if(action === 'addCol') {
+            page.cols++;
+            for(let r=0; r<page.rows; r++) page.matrix[r].push(createDefaultCell());
+        } else if(action === 'removeCol' && page.cols > 1) {
+            page.cols--;
+            for(let r=0; r<page.rows; r++) page.matrix[r].pop();
+            selectedCol = null;
+        }
+        renderTable();
+        saveAppData();
+    }
+
+    /* ट्री ट्रैकर */
+    function openTrackModal() {
+        const container = document.getElementById('treeContainer');
+        container.innerHTML = "";
+        document.getElementById('trackModal').style.display = "flex";
+        const page = getActivePage();
+
+        for(let r = 0; r < page.rows; r++) {
+            const rowNode = document.createElement('div');
+            rowNode.className = "tree-node";
+            rowNode.innerHTML = `<strong style="color:var(--primary-color);">📁 Row ${r+1}</strong>`;
+            
+            for(let c = 0; c < page.cols; c++) {
+                const cell = page.matrix[r][c];
+                const leaf = document.createElement('div');
+                leaf.className = "tree-leaf";
+                let valText = cell.v.trim() ? `"${cell.v}"` : `<em style="color:#94a3b8;">[Empty]</em>`;
+                leaf.innerHTML = `🔹 <strong>Col ${c+1}:</strong> ${valText}`;
+                rowNode.appendChild(leaf);
+            }
+            container.appendChild(rowNode);
+        }
+    }
+
+    function closeTrackModal() { document.getElementById('trackModal').style.display = "none"; }
+
+    /* IndexedDB सेव/लोड */
+    function saveAppData() {
+        if (!db) return;
+        const transaction = db.transaction([storeName], "readwrite");
+        transaction.objectStore(storeName).put({ id: "app_root", data: appState });
+    }
+
+    function loadAppData() {
+        if (!db) return;
+        const request = db.transaction([storeName], "readonly").objectStore(storeName).get("app_root");
+        request.onsuccess = () => {
+            if(request.result && request.result.data) {
+                appState = request.result.data;
+            }
+            renderApp();
+        };
+    }
+
+    /* एक्सपोर्ट फंक्शंस */
+    function exportCSV() {
+        const page = getActivePage();
+        let csvContent = "data:text/csv;charset=utf-8,";
+        for(let r = 0; r < page.rows; r++) {
+            let rowData = [];
+            for(let c = 0; c < page.cols; c++) {
+                let cellValue = page.matrix[r][c].v.replace(/"/g, '""');
+                rowData.push(`"${cellValue}"`);
+            }
+            csvContent += rowData.join(",") + "\r\n";
+        }
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `${page.title.replace(/\s+/g, '_')}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function downloadHTML() {
+        const page = getActivePage();
+        let cleanHTML = `<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<title>${page.title}</title>\n`;
+        cleanHTML += `<style>
+            body { font-family: sans-serif; background: #f8fafc; text-align: center; padding: 40px; }
+            .table-container { padding: 140px 0; display: flex; justify-content: center; align-items: center; }
+            .rhombus-table { border-collapse: collapse; transform: rotate(45deg); box-shadow: 0 10px 30px rgba(0,0,0,0.15); background: #fff; }
+            .rhombus-table td { width: ${page.cellWidth}px; height: ${page.cellHeight}px; border: 2px solid #fff; padding: 0; text-align: center; vertical-align: middle; overflow:hidden;}
+            .cell-content { transform: rotate(-45deg); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 5px; box-sizing: border-box; }
+        </style>\n</head>\n<body>\n<h2>${page.title}</h2>\n<div class="table-container">\n<table class="rhombus-table"><tbody>`;
+        
+        for(let r=0; r<page.rows; r++) {
+            cleanHTML += "<tr>";
+            for(let c=0; c<page.cols; c++) {
+                const cell = page.matrix[r][c];
+                let currentBg = cell.bg || ((r === 0 || c === 0) ? '#1e293b' : '#2563eb');
+                let inlineStyle = `color: ${cell.c}; font-size: ${cell.s}px;`;
+                cleanHTML += `<td style="background-color: ${currentBg};"><div class="cell-content"><span style="${inlineStyle}">${cell.v}</span></div></td>`;
+            }
+            cleanHTML += "</tr>";
+        }
+        cleanHTML += `</tbody></table></div>\n</body>\n</html>`;
+
+        const blob = new Blob([cleanHTML], { type: "text/html" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = `${page.title.replace(/\s+/g, '_')}.html`;
+        a.click();
+    }
+</script>
+</body>
+</html>
