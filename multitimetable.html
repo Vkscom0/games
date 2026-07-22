@@ -1,0 +1,574 @@
+
+<html lang="hi">
+<head>
+    <meta charset="UTF-8"></meta>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"></meta>
+    <title>Weekly Schedule Tracker Pro</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #f4f6f9; margin: 0; }
+        h2 { text-align: center; color: #1e293b; margin-bottom: 15px; }
+        
+        #statusMsg {
+            position: fixed;
+            top: 15px;
+            right: 20px;
+            background: #10b981;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            display: none;
+            z-index: 1000;
+        }
+
+        /* Pages Header / Management */
+        .page-manager {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #ffffff;
+            padding: 12px 16px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .page-manager label { font-weight: bold; color: #334155; font-size: 14px; }
+        
+        select.page-select {
+            padding: 6px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #1e293b;
+            outline: none;
+            cursor: pointer;
+        }
+
+        /* Time-Box Summary Bar */
+        .timebox-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .timebox-card {
+            background: #ffffff;
+            border-left: 4px solid #cbd5e1;
+            padding: 12px;
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+
+        .timebox-card.past { border-left-color: #94a3b8; background: #f8fafc; }
+        .timebox-card.current { border-left-color: #2563eb; background: #eff6ff; }
+        .timebox-card.next { border-left-color: #10b981; background: #f0fdf4; }
+
+        .timebox-card .label {
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: bold;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+
+        .timebox-card .task-time {
+            font-size: 13px;
+            font-weight: bold;
+            color: #0f172a;
+        }
+
+        .timebox-card .task-title {
+            font-size: 14px;
+            color: #334155;
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Main Container & Grid */
+        .container {
+            display: flex;
+            overflow-x: auto;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border: 1px solid #e2e8f0;
+        }
+
+        .time-column {
+            min-width: 130px;
+            background: #f8fafc;
+            border-right: 2px solid #cbd5e1;
+            flex-shrink: 0;
+            z-index: 2;
+        }
+
+        .days-container {
+            display: flex;
+            flex-grow: 1;
+        }
+
+        .day-column {
+            min-width: 180px;
+            flex: 1;
+            border-right: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .day-column.today {
+            background-color: #f0fdf4;
+        }
+
+        .header {
+            padding: 12px;
+            font-weight: bold;
+            text-align: center;
+            background: #2563eb;
+            color: white;
+            font-size: 14px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .day-column.today .header {
+            background: #16a34a;
+        }
+
+        .time-column .header {
+            background: #0f172a;
+        }
+
+        .row-cell {
+            height: 48px;
+            padding: 6px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        input[type="time"] {
+            width: 85px;
+            padding: 4px;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            height: 100%;
+            padding: 6px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            font-size: 13px;
+            background: transparent;
+        }
+
+        input[type="text"]:focus {
+            border-color: #3b82f6;
+            background: #ffffff;
+            outline: none;
+        }
+
+        .controls {
+            padding: 15px 0;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            padding: 8px 12px;
+            font-size: 13px;
+            color: white;
+            font-weight: bold;
+            transition: opacity 0.2s;
+        }
+        .btn:hover { opacity: 0.9; }
+
+        .btn-page { background-color: #4f46e5; }
+        .btn-sort { background-color: #0284c7; }
+        .btn-add { background-color: #16a34a; }
+        .btn-reset { background-color: #64748b; }
+        .btn-delete-page { background-color: #dc2626; }
+        .btn-delete { background-color: #ef4444; padding: 4px 8px; font-size: 11px; }
+    </style>
+</head>
+<body>
+
+    <div id="statusMsg">Saved!</div>
+
+    <h2>Weekly Schedule Tracker</h2>
+
+    <!-- Multi-Page Section -->
+    <div class="page-manager">
+        <label for="pageSelect">📄 Active Schedule:</label>
+        <select class="page-select" id="pageSelect" onchange="switchPage(this.value)"></select>
+        
+        <button class="btn btn-page" onclick="addNewPage()">+ New Page</button>
+        <button class="btn btn-page" onclick="renamePage()">✏️ Rename</button>
+        <button class="btn btn-delete-page" onclick="deletePage()">🗑️ Delete Page</button>
+    </div>
+
+    <!-- Time-Box Quick View (Previous, Current, Next Tasks) -->
+    <div class="timebox-bar">
+        <div class="timebox-card past">
+            <div class="label">◀ Previous Task Today</div>
+            <div class="task-time" id="tbPastTime">--:--</div>
+            <div class="task-title" id="tbPastTitle">No recent task</div>
+        </div>
+        <div class="timebox-card current">
+            <div class="label">⏱️ Current / Immediate Task</div>
+            <div class="task-time" id="tbCurrTime">--:--</div>
+            <div class="task-title" id="tbCurrTitle">No active task</div>
+        </div>
+        <div class="timebox-card next">
+            <div class="label">▶ Next Upcoming Task</div>
+            <div class="task-time" id="tbNextTime">--:--</div>
+            <div class="task-title" id="tbNextTitle">No upcoming task</div>
+        </div>
+    </div>
+
+    <!-- Actions Control -->
+    <div class="controls">
+        <button class="btn btn-sort" onclick="sortRowsByNearestTime(true)">⏱️ Bring Nearby Time To Top</button>
+        <button class="btn btn-add" onclick="addNewRow()">+ Add New Row</button>
+        <button class="btn btn-reset" onclick="resetDatabase()">🔄 Reset Page Data</button>
+    </div>
+
+    <!-- Table Container -->
+    <div class="container">
+        <div class="time-column">
+            <div class="header">Time</div>
+            <div id="timeRows"></div>
+        </div>
+
+        <div class="days-container" id="daysContainer"></div>
+    </div>
+
+    <script>
+        const baseDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        
+        const todayIndex = new Date().getDay();
+        const todayName = baseDays[todayIndex];
+        const orderedDays = [];
+        for (let i = 0; i < 7; i++) {
+            orderedDays.push(baseDays[(todayIndex + i) % 7]);
+        }
+
+        let db;
+        let pages = {}; // Stores all pages data: { pageId: { name: "...", rows: [] } }
+        let activePageId = "default";
+
+        function getNowTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            return `${hours}:${minutes}`;
+        }
+
+        function timeToMinutes(timeStr) {
+            if (!timeStr) return 0;
+            const [h, m] = timeStr.split(':').map(Number);
+            return (h * 60) + m;
+        }
+
+        // Database Initialization
+        const request = indexedDB.open("WeeklyScheduleDB_v11", 1);
+
+        request.onupgradeneeded = function(e) {
+            db = e.target.result;
+            if (!db.objectStoreNames.contains("schedules_v2")) {
+                db.createObjectStore("schedules_v2", { keyPath: "id" });
+            }
+        };
+
+        request.onsuccess = function(e) {
+            db = e.target.result;
+            loadData();
+        };
+
+        function initUI() {
+            const daysContainer = document.getElementById('daysContainer');
+            daysContainer.innerHTML = '';
+            
+            orderedDays.forEach((day, index) => {
+                const dayCol = document.createElement('div');
+                const isToday = (index === 0);
+                dayCol.className = `day-column ${isToday ? 'today' : ''}`;
+                dayCol.innerHTML = `
+                    <div class="header">${day} ${isToday ? '(Today)' : ''}</div>
+                    <div id="dayRows-${day}"></div>
+                `;
+                daysContainer.appendChild(dayCol);
+            });
+        }
+
+        function loadData() {
+            initUI();
+            const tx = db.transaction("schedules_v2", "readonly");
+            const store = tx.objectStore("schedules_v2");
+            const getReq = store.get("appState");
+
+            getReq.onsuccess = function() {
+                if (getReq.result && getReq.result.pages) {
+                    pages = getReq.result.pages;
+                    activePageId = getReq.result.activePageId || Object.keys(pages)[0];
+                } else {
+                    // Default Initial State
+                    pages = {
+                        "default": {
+                            name: "Main Schedule",
+                            rows: [
+                                { time: "08:00", tasks: {} },
+                                { time: "14:00", tasks: {} },
+                                { time: "20:00", tasks: {} }
+                            ]
+                        }
+                    };
+                    activePageId = "default";
+                }
+                
+                populatePageSelect();
+                sortRowsByNearestTime(false);
+            };
+        }
+
+        function populatePageSelect() {
+            const select = document.getElementById("pageSelect");
+            select.innerHTML = "";
+            
+            Object.keys(pages).forEach(id => {
+                const opt = document.createElement("option");
+                opt.value = id;
+                opt.textContent = pages[id].name;
+                if (id === activePageId) opt.selected = true;
+                select.appendChild(opt);
+            });
+        }
+
+        /* Multi-Page Actions */
+        function switchPage(pageId) {
+            activePageId = pageId;
+            saveDataToDB(false);
+            renderGrid();
+        }
+
+        function addNewPage() {
+            const name = prompt("Naye Schedule (Page) ka naam likhein:", "Study Routine");
+            if (!name) return;
+
+            const newId = "page_" + Date.now();
+            pages[newId] = {
+                name: name,
+                rows: [
+                    { time: getNowTime(), tasks: {} }
+                ]
+            };
+            activePageId = newId;
+
+            populatePageSelect();
+            saveDataToDB(true);
+            renderGrid();
+        }
+
+        function renamePage() {
+            const currentName = pages[activePageId].name;
+            const newName = prompt("Is Page ka naya naam likhein:", currentName);
+            if (!newName || newName === currentName) return;
+
+            pages[activePageId].name = newName;
+            populatePageSelect();
+            saveDataToDB(true);
+        }
+
+        function deletePage() {
+            const pageKeys = Object.keys(pages);
+            if (pageKeys.length <= 1) {
+                alert("Aap aakhri page ko delete nahi kar sakte!");
+                return;
+            }
+
+            if (confirm(`Kya aap "${pages[activePageId].name}" ko delete karna chahte hain?`)) {
+                delete pages[activePageId];
+                activePageId = Object.keys(pages)[0];
+                populatePageSelect();
+                saveDataToDB(true);
+                renderGrid();
+            }
+        }
+
+        /* Sorting & Rendering */
+        function sortRowsByNearestTime(showNotice = true) {
+            const currentMin = timeToMinutes(getNowTime());
+            const currentRows = pages[activePageId].rows;
+
+            currentRows.sort((a, b) => {
+                const minA = timeToMinutes(a.time);
+                const minB = timeToMinutes(b.time);
+
+                const diffA = Math.abs(minA - currentMin);
+                const diffB = Math.abs(minB - currentMin);
+
+                return diffA - diffB;
+            });
+
+            saveDataToDB(showNotice);
+            renderGrid();
+        }
+
+        function renderGrid() {
+            const timeRows = document.getElementById('timeRows');
+            timeRows.innerHTML = '';
+
+            orderedDays.forEach((day) => {
+                const el = document.getElementById(`dayRows-${day}`);
+                if (el) el.innerHTML = '';
+            });
+
+            const currentRows = pages[activePageId].rows;
+
+            currentRows.forEach((row, rowIndex) => {
+                const timeCell = document.createElement('div');
+                timeCell.className = 'row-cell';
+                timeCell.innerHTML = `
+                    <input type="time" value="${row.time || '00:00'}" onchange="onTimeChange(${rowIndex}, this.value)">
+                    <button class="btn btn-delete" onclick="deleteRow(${rowIndex})">✕</button>
+                `;
+                timeRows.appendChild(timeCell);
+
+                orderedDays.forEach((day) => {
+                    const taskCell = document.createElement('div');
+                    taskCell.className = 'row-cell';
+                    const taskValue = (row.tasks && row.tasks[day]) ? row.tasks[day] : "";
+                    taskCell.innerHTML = `
+                        <input type="text" placeholder="Task..." value="${taskValue}" oninput="onTaskChange(${rowIndex}, '${day}', this.value)">
+                    `;
+                    document.getElementById(`dayRows-${day}`).appendChild(taskCell);
+                });
+            });
+
+            updateTimeBoxSummary();
+        }
+
+        /* Time-Box View Calculation (Before / Current / After Tasks) */
+        function updateTimeBoxSummary() {
+            const currentMin = timeToMinutes(getNowTime());
+            const currentRows = pages[activePageId].rows;
+
+            // Aaj ke tasks collect karein aur chronologically sort karein
+            let sortedTasks = currentRows
+                .map(r => ({ time: r.time, min: timeToMinutes(r.time), title: r.tasks ? (r.tasks[todayName] || "") : "" }))
+                .sort((a, b) => a.min - b.min);
+
+            let pastTask = null;
+            let currTask = null;
+            let nextTask = null;
+
+            for (let i = 0; i < sortedTasks.length; i++) {
+                if (sortedTasks[i].min <= currentMin) {
+                    pastTask = currTask;
+                    currTask = sortedTasks[i];
+                } else {
+                    if (!currTask && i === 0) {
+                        currTask = sortedTasks[i];
+                        nextTask = sortedTasks[i + 1] || null;
+                    } else {
+                        nextTask = sortedTasks[i];
+                    }
+                    break;
+                }
+            }
+
+            // UI Render
+            document.getElementById('tbPastTime').textContent = pastTask ? pastTask.time : "--:--";
+            document.getElementById('tbPastTitle').textContent = (pastTask && pastTask.title) ? pastTask.title : "No prior task";
+
+            document.getElementById('tbCurrTime').textContent = currTask ? currTask.time : "--:--";
+            document.getElementById('tbCurrTitle').textContent = (currTask && currTask.title) ? currTask.title : "No immediate task";
+
+            document.getElementById('tbNextTime').textContent = nextTask ? nextTask.time : "--:--";
+            document.getElementById('tbNextTitle').textContent = (nextTask && nextTask.title) ? nextTask.title : "No upcoming task";
+        }
+
+        /* Input Handlers */
+        function onTimeChange(rowIndex, newTime) {
+            pages[activePageId].rows[rowIndex].time = newTime;
+            saveDataToDB(true);
+            updateTimeBoxSummary();
+        }
+
+        function onTaskChange(rowIndex, day, value) {
+            if (!pages[activePageId].rows[rowIndex].tasks) {
+                pages[activePageId].rows[rowIndex].tasks = {};
+            }
+            pages[activePageId].rows[rowIndex].tasks[day] = value;
+            saveDataToDB(true);
+            updateTimeBoxSummary();
+        }
+
+        let saveTimeout;
+        function saveDataToDB(showNotification = true) {
+            const tx = db.transaction("schedules_v2", "readwrite");
+            const store = tx.objectStore("schedules_v2");
+            store.put({ id: "appState", pages: pages, activePageId: activePageId });
+
+            if (showNotification) {
+                clearTimeout(saveTimeout);
+                const msg = document.getElementById('statusMsg');
+                msg.style.display = 'block';
+                saveTimeout = setTimeout(() => {
+                    msg.style.display = 'none';
+                }, 1200);
+            }
+        }
+
+        function addNewRow() {
+            pages[activePageId].rows.push({
+                time: "12:00",
+                tasks: {}
+            });
+            saveDataToDB(true);
+            renderGrid();
+        }
+
+        function deleteRow(rowIndex) {
+            if (pages[activePageId].rows.length <= 1) {
+                alert("At least ek row honi zaroori hai!");
+                return;
+            }
+
+            if (confirm("Kya aap is time row ko delete karna chahte hain?")) {
+                pages[activePageId].rows.splice(rowIndex, 1);
+                saveDataToDB(true);
+                renderGrid();
+            }
+        }
+
+        function resetDatabase() {
+            if (confirm("Kya aap is page ka saara data reset karna chahte hain?")) {
+                pages[activePageId].rows = [
+                    { time: getNowTime(), tasks: {} }
+                ];
+                saveDataToDB(true);
+                renderGrid();
+            }
+        }
+    </script>
+</body>
+</html>
