@@ -1,0 +1,39 @@
+मोबाइल की होम स्क्रीन पर वेबसाइट का आइकॉन (App Icon) दिखाने के लिए अपने HTML के <head> टैग में **Apple Touch Icon** और **Favicon** जोड़ें:
+```html
+<link rel="apple-touch-icon" sizes="180x180" href="https://github.com/Vkscom0/water/blob/Vkscom0-images/timetable_logo.png">
+
+<link rel="icon" type="image/png" sizes="32x32" href="https://github.com/Vkscom0/water/blob/Vkscom0-images/timetable32_logo.png">
+
+```
+### मुख्य बातें:
+ * **Image Size:** इमेज का साइज कम से कम **180x180 px** रखें और फॉर्मेट **PNG** चुनें।
+ * **PWA (Manifest File):** अगर आप चाहते हैं कि यूजर को 'Add to Home Screen' का बैनर या ऐप जैसा अहसास मिले, तो अपने प्रोजेक्ट में manifest.json फाइल बनाकर उसमें अपने लोगो के लिंक्स जोड़ें।
+  
+chat2
+
+छोटा या परिवर्तित किया हुआ लिंक आपको अपने HTML पेज के **<head>** और **</head>** टैग के बीच में पेस्ट करना है।
+### उदाहरण कोड:
+```html
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>आपकी वेबसाइट का नाम</title>
+
+    <!-- 👇 अपना लिंक यहाँ पेस्ट करें 👇 -->
+    <link rel="apple-touch-icon" href="यहाँ_अपना_छोटा_लिंक_पेस्ट_करें">
+    <link rel="icon" type="image/png" href="यहाँ_अपना_छोटा_लिंक_पेस्ट_करें">
+
+</head>
+<body>
+
+    <h1>आपकी वेबसाइट का कंटेंट</h1>
+
+</body>
+</html>
+
+```
+### ध्यान रखने योग्य बातें:
+ * **href="" के अंदर:** href="..." में जो डबल-कोटेशन मार्क्स "" बने हैं, उनके बीच में ही अपना लिंक पेस्ट करें।
+ * **<body> से पहले:** यह कोड हमेशा </head> बंद होने से पहले और <body> शुरू होने से पहले आना चाहिए।
