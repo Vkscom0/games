@@ -266,7 +266,7 @@
             <input type="text" id="username" placeholder="Username">
             <input type="password" id="password" placeholder="Password">
             <button onclick="handleLogin()">Login</button>
-            <div class="error-msg" id="loginError">गलत यूज़रनेम या पासवर्ड!</div>
+            <div class="error-msg" id="loginError">गलत यूज़रनेम या पासवर्ड!</div>
         </div>
     </div>
 
@@ -373,7 +373,6 @@
     </div>
 
 <script>
-    // IndexedDB और ऑथेंटिकेशन ग्लोबल वैरिएबल्स
     const dbName = "RhombusMultiPageAuthDB";
     const storeName = "appStore";
     let db, selectedRow = null, selectedCol = null;
@@ -381,7 +380,6 @@
     let undoStack = [];
     let redoStack = [];
 
-    // प्रोजेक्ट ऑथेंटिकेशन और पेजेज स्टेट
     let appState = {
         isLoggedIn: false,
         activePageId: "page_1",
@@ -403,7 +401,6 @@
         }
     };
 
-    // DB इनिशियलाइजेशन
     const request = indexedDB.open(dbName, 1);
     request.onupgradeneeded = (e) => {
         db = e.target.result;
@@ -414,7 +411,6 @@
         loadAppData();
     };
 
-    /* 🔒 ऑथेंटिकेशन लॉजिक */
     function handleLogin() {
         const u = document.getElementById('username').value;
         const p = document.getElementById('password').value;
@@ -440,7 +436,6 @@
         document.getElementById('password').value = '';
     }
 
-    /* 📑 पेज नेविगेशन लॉजिक */
     function renderPageDropdown() {
         const select = document.getElementById('pageSelect');
         select.innerHTML = "";
@@ -505,7 +500,6 @@
         return appState.pagesData[appState.activePageId];
     }
 
-    /* 📊 टेबल रेंडरिंग & कोर फंक्शंस */
     function createDefaultCell(val = "") {
         return { v: val, b: false, u: false, s: 14, c: "#ffffff", w: false, l: "", bg: "" };
     }
@@ -602,9 +596,9 @@
                     if(e.target.tagName !== 'INPUT' && e.target.tagName !== 'A') selectCell(r, c);
                 };
 
-                let styleStr = `color: ${cellData.c};`;
-                if(cellData.b) styleStr += 'font-weight: bold;';
-                if(cellData.u) styleStr += 'text-decoration: underline;';
+                let styleStr = `color: ${cellData.c}; font-size: ${cellData.s}px;`;
+                if(cellData.b) styleStr += ' font-weight: bold;';
+                if(cellData.u) styleStr += ' text-decoration: underline;';
                 
                 let inputStyle = cellData.w ? 'white-space: normal; word-break: break-word;' : 'white-space: nowrap;';
 
@@ -730,7 +724,6 @@
         saveAppData();
     }
 
-    /* ट्री ट्रैकर */
     function openTrackModal() {
         const container = document.getElementById('treeContainer');
         container.innerHTML = "";
@@ -747,7 +740,8 @@
                 const leaf = document.createElement('div');
                 leaf.className = "tree-leaf";
                 let valText = cell.v.trim() ? `"${cell.v}"` : `<em style="color:#94a3b8;">[Empty]</em>`;
-                leaf.innerHTML = `🔹 <strong>Col ${c+1}:</strong> ${valText}`;
+                let linkText = cell.l ? ` | <a href="${cell.l}" target="_blank" style="color:#f59e0b;">🔗 ${cell.l}</a>` : '';
+                leaf.innerHTML = `🔹 <strong>Col ${c+1}:</strong> ${valText}${linkText}`;
                 rowNode.appendChild(leaf);
             }
             container.appendChild(rowNode);
@@ -756,7 +750,6 @@
 
     function closeTrackModal() { document.getElementById('trackModal').style.display = "none"; }
 
-    /* IndexedDB सेव/लोड */
     function saveAppData() {
         if (!db) return;
         const transaction = db.transaction([storeName], "readwrite");
@@ -774,7 +767,6 @@
         };
     }
 
-    /* एक्सपोर्ट फंक्शंस */
     function exportCSV() {
         const page = getActivePage();
         let csvContent = "data:text/csv;charset=utf-8,";
@@ -797,32 +789,47 @@
 
     function downloadHTML() {
         const page = getActivePage();
-        let cleanHTML = `<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<title>${page.title}</title>\n`;
+        let cleanHTML = `<!DOCTYPE html>\n<html lang="hi">\n<head>\n<meta charset="UTF-8">\n<title>${page.title}</title>\n`;
         cleanHTML += `<style>
-            body { font-family: sans-serif; background: #f8fafc; text-align: center; padding: 40px; }
+            body { font-family: system-ui, sans-serif; background: #f8fafc; text-align: center; padding: 40px; color: #334155; }
             .table-container { padding: 140px 0; display: flex; justify-content: center; align-items: center; }
             .rhombus-table { border-collapse: collapse; transform: rotate(45deg); box-shadow: 0 10px 30px rgba(0,0,0,0.15); background: #fff; }
-            .rhombus-table td { width: ${page.cellWidth}px; height: ${page.cellHeight}px; border: 2px solid #fff; padding: 0; text-align: center; vertical-align: middle; overflow:hidden;}
-            .cell-content { transform: rotate(-45deg); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 5px; box-sizing: border-box; }
-        </style>\n</head>\n<body>\n<h2>${page.title}</h2>\n<div class="table-container">\n<table class="rhombus-table"><tbody>`;
+            .rhombus-table td { width: ${page.cellWidth}px; height: ${page.cellHeight}px; border: 2px solid #fff; padding: 0; text-align: center; vertical-align: middle; position: relative; }
+            .cell-content { width: 141.4%; height: 141.4%; margin-left: -20.7%; margin-top: -20.7%; transform: rotate(-45deg); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; box-sizing: border-box; }
+            .cell-text { display: block; font-size: inherit; text-decoration: inherit; color: inherit; }
+            .cell-link { font-size: 11px; color: #f59e0b; font-weight: bold; text-decoration: underline; margin-top: 4px; display: block; }
+            .cell-link:hover { color: #d97706; }
+        </style>\n</head>\n<body>\n<h2>${page.title}</h2>\n<div class="table-container">\n<table class="rhombus-table">\n<tbody>\n`;
         
-        for(let r=0; r<page.rows; r++) {
-            cleanHTML += "<tr>";
-            for(let c=0; c<page.cols; c++) {
-                const cell = page.matrix[r][c];
-                let currentBg = cell.bg || ((r === 0 || c === 0) ? '#1e293b' : '#2563eb');
-                let inlineStyle = `color: ${cell.c}; font-size: ${cell.s}px;`;
-                cleanHTML += `<td style="background-color: ${currentBg};"><div class="cell-content"><span style="${inlineStyle}">${cell.v}</span></div></td>`;
-            }
-            cleanHTML += "</tr>";
-        }
-        cleanHTML += `</tbody></table></div>\n</body>\n</html>`;
+        for(let r = 0; r < page.rows; r++) {
+            cleanHTML += "  <tr>\n";
+            for(let c = 0; c < page.cols; c++) {
+                const cell = page.matrix[r][c] || createDefaultCell();
+                const bgColor = cell.bg || ((r === 0 || c === 0) ? '#1e293b' : '#2563eb');
+                
+                let styleStr = `color: ${cell.c}; font-size: ${cell.s}px;`;
+                if(cell.b) styleStr += ' font-weight: bold;';
+                if(cell.u) styleStr += ' text-decoration: underline;';
+                if(cell.w) styleStr += ' white-space: normal; word-break: break-word;';
+                else styleStr += ' white-space: nowrap;';
 
-        const blob = new Blob([cleanHTML], { type: "text/html" });
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = `${page.title.replace(/\s+/g, '_')}.html`;
-        a.click();
+                let textContent = cell.v ? `<span class="cell-text" style="${styleStr}">${cell.v}</span>` : '';
+                let linkContent = cell.l ? `<a href="${cell.l}" target="_blank" class="cell-link">🔗 Link</a>` : '';
+
+                cleanHTML += `    <td style="background-color: ${bgColor};"><div class="cell-content">${textContent}${linkContent}</div></td>\n`;
+            }
+            cleanHTML += "  </tr>\n";
+        }
+        
+        cleanHTML += `</tbody>\n</table>\n</div>\n</body>\n</html>`;
+
+        const blob = new Blob([cleanHTML], { type: "text/html;charset=utf-8" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `${page.title.replace(/\s+/g, '_')}.html`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 </script>
 </body>
