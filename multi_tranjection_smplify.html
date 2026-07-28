@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Voice & Image Ledger with Multi-Page</title>
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --primary: #4f46e5;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --text: #0f172a;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            margin: 0;
+            padding: 15px;
+        }
+
+        .container {
+            max-width: 750px;
+            margin: 0 auto;
+        }
+
+        /* --- PAGE MANAGEMENT STYLES --- */
+        .page-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--card-bg);
+            padding: 10px 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            overflow-x: auto;
+        }
+
+        .page-bar label {
+            white-space: nowrap;
+            font-weight: 600;
+        }
+
+        .page-bar select {
+            flex: 1;
+            min-width: 140px;
+            background: #fff;
+        }
+
+        .btn-sm {
+            padding: 8px 12px;
+            font-size: 0.82rem;
+            min-width: auto;
+            flex: none;
+        }
+
+        /* Header customization */
+        .header-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .logo-container {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            border: 2px dashed #cbd5e1;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            cursor: pointer;
+            background: #f1f5f9;
+        }
+
+        .logo-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .logo-placeholder {
+            font-size: 0.75rem;
+            color: #64748b;
+            text-align: center;
+            padding: 5px;
+        }
+
+        .editable-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+            border: 1px transparent dashed;
+            padding: 2px 8px;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        .editable-title:hover, .editable-title:focus {
+            border-color: var(--primary);
+            background: #f0fdf4;
+        }
+
+        .balance-box {
+            text-align: center;
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-bottom: 25px;
+            padding: 12px;
+            background: #e0e7ff;
+            border-radius: 8px;
+            color: var(--primary);
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        h3 { margin-top: 0; margin-bottom: 15px; font-size: 1.1rem; color: #334155; }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #475569;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 0.95rem;
+            background: #f8fafc;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: #fff;
+        }
+
+        /* Textarea separation format */
+        .separation-textarea {
+            font-family: monospace;
+            background: #1e293b;
+            color: #38bdf8;
+            font-size: 0.9rem;
+            resize: vertical;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        button, .file-label {
+            flex: 1;
+            min-width: 100px;
+            padding: 10px 14px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            box-sizing: border-box;
+            transition: background 0.2s;
+        }
+
+        .btn-voice { background-color: var(--primary); color: white; }
+        .btn-save { background-color: var(--success); color: white; }
+        .btn-clear { background-color: #64748b; color: white; }
+        .btn-file { background-color: #0284c7; color: white; display: inline-block; }
+        .btn-utility { background-color: #475569; color: white; }
+        .btn-danger { background-color: var(--danger); color: white; }
+
+        .listening {
+            animation: pulse 1.5s infinite;
+            background-color: var(--danger) !important;
+        }
+
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+        /* Table Area */
+        .table-wrapper {
+            overflow-x: auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+        }
+
+        th, td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+        }
+
+        th { background-color: #f1f5f9; font-weight: 600; color: #475569; }
+
+        .c-credit { color: var(--success); font-weight: bold; }
+        .c-debit { color: var(--danger); font-weight: bold; }
+
+        .td-img {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 1px solid var(--border);
+        }
+
+        .actions-btn {
+            padding: 4px 8px;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            margin-right: 4px;
+            border: none;
+            cursor: pointer;
+        }
+        .edit-btn { background: #f59e0b; color: white; }
+        .del-btn { background: #ef4444; color: white; }
+
+        .hidden-input { display: none; }
+
+        /* Print Media Styles */
+        @media print {
+            body { background: white; color: black; padding: 0; }
+            .card, .btn-group, .actions-btn, th:last-child, td:last-child, .logo-placeholder, .hidden-print, .page-bar {
+                display: none !important;
+            }
+            .container { max-width: 100%; }
+            .table-wrapper { box-shadow: none; overflow: visible; }
+            th { background-color: #e2e8f0 !important; -webkit-print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- Page Management Bar -->
+    <div class="page-bar hidden-print">
+        <label for="pageSelect">📄 Page:</label>
+        <select id="pageSelect"></select>
+        <button class="btn-save btn-sm" id="addPageBtn">➕ New</button>
+        <button class="btn-utility btn-sm" id="renamePageBtn">✏️ Rename</button>
+        <button class="btn-danger btn-sm" id="deletePageBtn">🗑️ Delete</button>
+    </div>
+    
+    <!-- Custom Header Zone -->
+    <div class="header-section">
+        <div class="logo-container" onclick="document.getElementById('logoInput').click()">
+            <input type="file" id="logoInput" class="hidden-input" accept="image/*">
+            <img id="logoImg" src="" style="display:none;">
+            <div id="logoText" class="logo-placeholder">Click to set Logo / Icon</div>
+        </div>
+        <div class="editable-title" id="pageTitle" contenteditable="true">My Digital Ledger</div>
+    </div>
+
+    <div class="balance-box">
+        Total Balance: ₹<span id="totalBalance">0</span>
+    </div>
+
+    <!-- Data Form -->
+    <div class="card">
+        <h3>Transaction Entry</h3>
+        <div class="grid-2">
+            <div class="form-group">
+                <label>Date</label>
+                <input type="date" id="txDate">
+            </div>
+            <div class="form-group">
+                <label>Transaction Type</label>
+                <select id="txType">
+                    <option value="Credit">Credit (+)</option>
+                    <option value="Debit">Debit (-)</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="grid-2">
+            <div class="form-group">
+                <label>Description</label>
+                <input type="text" id="txDesc" placeholder="e.g., Salary, Grocery">
+            </div>
+            <div class="form-group">
+                <label>Amount (₹)</label>
+                <input type="number" id="txAmount" placeholder="0.00">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Attach Image (Camera / Folder)</label>
+            <label for="cameraInput" class="btn-file" style="width:100px;">📷 Capture/Pick</label>
+            <input type="file" id="cameraInput" class="hidden-input" accept="image/*">
+            <span id="fileStatus" style="font-size:0.8rem; margin-left:10px; color:#64748b;">No image attached</span>
+        </div>
+
+        <!-- Real-time Synchronization Textbox -->
+        <div class="form-group">
+            <label>Separation Format String (Live Sync)</label>
+            <textarea id="separationTxt" class="separation-textarea" rows="2" placeholder="Format: Date | Description | Type | Amount"></textarea>
+        </div>
+
+        <input type="hidden" id="editKey">
+        <input type="hidden" id="imageBase64">
+
+        <div class="btn-group">
+            <button class="btn-voice" id="voiceBtn">🎤 Voice Input</button>
+            <button class="btn-save" id="saveBtn">Save Entry</button>
+            <button class="btn-clear" id="clearBtn">Clear</button>
+        </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="table-wrapper">
+        <table id="ledgerTable">
+            <thead>
+                <tr>
+                    <th>Img</th>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Total</th>
+                    <th class="hidden-print">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="ledgerBody">
+                <!-- Records injected here -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Backup & Print Controls -->
+    <div class="card hidden-print">
+        <h3>Utilities</h3>
+        <div class="btn-group">
+            <button class="btn-utility" id="exportCsvBtn">📥 Download CSV</button>
+            <label for="importCsvInput" class="btn-utility" style="display:inline-block;">📤 Upload CSV</label>
+            <input type="file" id="importCsvInput" class="hidden-input" accept=".csv">
+            <button class="btn-utility" onclick="window.print()">🖨️ Print / Save PDF</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- DATABASE CONFIGURATION ---
+    let db;
+    const dbName = "AdvancedLedgerDB";
+    const storeName = "ledger_entries";
+    const settingsStore = "app_settings";
+    const pagesStore = "ledger_pages";
+
+    let currentPageId = 1;
+
+    const request = indexedDB.open(dbName, 3);
+    request.onupgradeneeded = (e) => {
+        db = e.target.result;
+        
+        if (!db.objectStoreNames.contains(pagesStore)) {
+            db.createObjectStore(pagesStore, { keyPath: "id", autoIncrement: true });
+        }
+        if (!db.objectStoreNames.contains(storeName)) {
+            const store = db.createObjectStore(storeName, { keyPath: "id", autoIncrement: true });
+            store.createIndex("pageId", "pageId", { unique: false });
+        } else {
+            const tx = e.target.transaction;
+            const store = tx.objectStore(storeName);
+            if (!store.indexNames.contains("pageId")) {
+                store.createIndex("pageId", "pageId", { unique: false });
+            }
+        }
+        if (!db.objectStoreNames.contains(settingsStore)) {
+            db.createObjectStore(settingsStore, { keyPath: "key" });
+        }
+    };
+
+    request.onsuccess = (e) => {
+        db = e.target.result;
+        initPagesSystem();
+    };
+
+    // --- PAGE MANAGEMENT SYSTEM ---
+    function initPagesSystem() {
+        const tx = db.transaction([pagesStore, settingsStore], "readwrite");
+        const pStore = tx.objectStore(pagesStore);
+        const sStore = tx.objectStore(settingsStore);
+
+        pStore.getAll().onsuccess = (evt) => {
+            let pages = evt.target.result;
+            if (pages.length === 0) {
+                const defaultPage = { name: "Default Ledger", created: new Date().toISOString() };
+                const addReq = pStore.add(defaultPage);
+                addReq.onsuccess = (res) => {
+                    currentPageId = res.target.result;
+                    sStore.put({ key: "activePageId", value: currentPageId });
+                    loadPagesDropdown();
+                };
+            } else {
+                sStore.get("activePageId").onsuccess = (sEvt) => {
+                    if (sEvt.target.result) {
+                        currentPageId = sEvt.target.result.value;
+                    } else {
+                        currentPageId = pages[0].id;
+                    }
+                    loadPagesDropdown();
+                };
+            }
+        };
+    }
+
+    function loadPagesDropdown() {
+        const tx = db.transaction(pagesStore, "readonly");
+        tx.objectStore(pagesStore).getAll().onsuccess = (e) => {
+            const pages = e.target.result;
+            const pageSelect = document.getElementById('pageSelect');
+            pageSelect.innerHTML = "";
+
+            let foundActive = false;
+            pages.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.id;
+                opt.textContent = p.name;
+                if (p.id === currentPageId) {
+                    opt.selected = true;
+                    foundActive = true;
+                }
+                pageSelect.appendChild(opt);
+            });
+
+            if (!foundActive && pages.length > 0) {
+                currentPageId = pages[0].id;
+                pageSelect.value = currentPageId;
+            }
+
+            switchPage(currentPageId);
+        };
+    }
+
+    document.getElementById('pageSelect').addEventListener('change', function() {
+        currentPageId = parseInt(this.value);
+        saveSetting('activePageId', currentPageId);
+        switchPage(currentPageId);
+    });
+
+    document.getElementById('addPageBtn').addEventListener('click', () => {
+        const pageName = prompt("Enter new Page/Ledger Name:", "New Ledger");
+        if (!pageName || !pageName.trim()) return;
+
+        const tx = db.transaction(pagesStore, "readwrite");
+        const req = tx.objectStore(pagesStore).add({ name: pageName.trim(), created: new Date().toISOString() });
+        req.onsuccess = (e) => {
+            currentPageId = e.target.result;
+            saveSetting('activePageId', currentPageId);
+            loadPagesDropdown();
+        };
+    });
+
+    document.getElementById('renamePageBtn').addEventListener('click', () => {
+        const select = document.getElementById('pageSelect');
+        const currentName = select.options[select.selectedIndex]?.text || "";
+        const newName = prompt("Rename current page:", currentName);
+        if (!newName || !newName.trim()) return;
+
+        const tx = db.transaction(pagesStore, "readwrite");
+        const store = tx.objectStore(pagesStore);
+        store.get(currentPageId).onsuccess = (e) => {
+            const pageData = e.target.result;
+            if (pageData) {
+                pageData.name = newName.trim();
+                store.put(pageData).onsuccess = () => {
+                    loadPagesDropdown();
+                };
+            }
+        };
+    });
+
+    document.getElementById('deletePageBtn').addEventListener('click', () => {
+        const txCheck = db.transaction(pagesStore, "readonly");
+        txCheck.objectStore(pagesStore).getAll().onsuccess = (e) => {
+            const pages = e.target.result;
+            if (pages.length <= 1) {
+                alert("At least one page must exist. You cannot delete the only page.");
+                return;
+            }
+
+            if (!confirm("Are you sure you want to delete this entire page and all its records?")) return;
+
+            const tx = db.transaction([pagesStore, storeName, settingsStore], "readwrite");
+            
+            // Delete page metadata
+            tx.objectStore(pagesStore).delete(currentPageId);
+            
+            // Delete page Settings (title & logo)
+            tx.objectStore(settingsStore).delete(`title_${currentPageId}`);
+            tx.objectStore(settingsStore).delete(`logo_${currentPageId}`);
+
+            // Delete associated entries
+            const entryStore = tx.objectStore(storeName);
+            const index = entryStore.index("pageId");
+            const req = index.openKeyCursor(IDBKeyRange.only(currentPageId));
+            req.onsuccess = (evt) => {
+                const cursor = evt.target.result;
+                if (cursor) {
+                    entryStore.delete(cursor.primaryKey);
+                    cursor.continue();
+                }
+            };
+
+            tx.oncomplete = () => {
+                currentPageId = pages.find(p => p.id !== currentPageId).id;
+                saveSetting('activePageId', currentPageId);
+                loadPagesDropdown();
+            };
+        };
+    });
+
+    function switchPage(pageId) {
+        clearForm();
+        loadSettings();
+        loadLedgerData();
+    }
+
+    // Set Default Date
+    document.getElementById('txDate').value = new Date().toISOString().substring(0, 10);
+
+    // --- TWO-WAY SYNC SYSTEM ---
+    const inputs = ['txDate', 'txDesc', 'txType', 'txAmount'];
+    const sepTxt = document.getElementById('separationTxt');
+
+    function updateSeparationString() {
+        const date = document.getElementById('txDate').value;
+        const desc = document.getElementById('txDesc').value || 'Empty';
+        const type = document.getElementById('txType').value;
+        const amount = document.getElementById('txAmount').value || '0';
+        sepTxt.value = `${date} | ${desc} | ${type} | ${amount}`;
+    }
+
+    inputs.forEach(id => {
+        document.getElementById(id).addEventListener('input', updateSeparationString);
+        document.getElementById(id).addEventListener('change', updateSeparationString);
+    });
+
+    sepTxt.addEventListener('input', () => {
+        const parts = sepTxt.value.split('|');
+        if (parts.length === 4) {
+            document.getElementById('txDate').value = parts[0].trim();
+            document.getElementById('txDesc').value = parts[1].trim();
+            document.getElementById('txType').value = parts[2].trim();
+            document.getElementById('txAmount').value = parts[3].trim();
+        }
+    });
+
+    // --- CAMERA & FILE MANAGEMENT ---
+    document.getElementById('cameraInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            document.getElementById('fileStatus').textContent = file.name;
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                document.getElementById('imageBase64').value = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // --- LOGO & TITLE CONFIGURATION ---
+    document.getElementById('logoInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                saveSetting(`logo_${currentPageId}`, event.target.result);
+                displayLogo(event.target.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    document.getElementById('pageTitle').addEventListener('blur', function() {
+        saveSetting(`title_${currentPageId}`, this.textContent);
+    });
+
+    function saveSetting(key, val) {
+        const tx = db.transaction(settingsStore, "readwrite");
+        tx.objectStore(settingsStore).put({ key: key, value: val });
+    }
+
+    function loadSettings() {
+        const tx = db.transaction(settingsStore, "readonly");
+        const sStore = tx.objectStore(settingsStore);
+        
+        sStore.get(`title_${currentPageId}`).onsuccess = (e) => {
+            if(e.target.result) {
+                document.getElementById('pageTitle').textContent = e.target.result.value;
+            } else {
+                const select = document.getElementById('pageSelect');
+                const pageName = select.options[select.selectedIndex]?.text || "My Digital Ledger";
+                document.getElementById('pageTitle').textContent = pageName;
+            }
+        };
+
+        sStore.get(`logo_${currentPageId}`).onsuccess = (e) => {
+            if(e.target.result && e.target.result.value) {
+                displayLogo(e.target.result.value);
+            } else {
+                resetLogoDisplay();
+            }
+        };
+    }
+
+    function displayLogo(base64) {
+        const img = document.getElementById('logoImg');
+        const txt = document.getElementById('logoText');
+        img.src = base64;
+        img.style.display = 'block';
+        txt.style.display = 'none';
+    }
+
+    function resetLogoDisplay() {
+        const img = document.getElementById('logoImg');
+        const txt = document.getElementById('logoText');
+        img.src = "";
+        img.style.display = 'none';
+        txt.style.display = 'block';
+    }
+
+    // --- VOICE TO TEXT CAPABILITIES ---
+    const voiceBtn = document.getElementById('voiceBtn');
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (SpeechRecognition) {
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'en-US'; 
+        recognition.interimResults = false;
+
+        voiceBtn.addEventListener('click', () => {
+            if (voiceBtn.classList.contains('listening')) recognition.stop();
+            else recognition.start();
+        });
+
+        recognition.onstart = () => {
+            voiceBtn.textContent = "🛑 Listening...";
+            voiceBtn.classList.add('listening');
+        };
+        recognition.onend = () => {
+            voiceBtn.textContent = "🎤 Voice Input";
+            voiceBtn.classList.remove('listening');
+        };
+        recognition.onresult = (event) => {
+            const text = event.results[0][0].transcript;
+            parseVoice(text);
+        };
+    } else {
+        voiceBtn.disabled = true;
+        voiceBtn.textContent = "Mic Not Supported";
+    }
+
+    function parseVoice(text) {
+        let parts = text.split(/comma|,/i);
+        if (parts.length >= 2) {
+            document.getElementById('txDesc').value = parts[0].trim();
+            if(text.toLowerCase().includes('credit')) document.getElementById('txType').value = 'Credit';
+            if(text.toLowerCase().includes('debit')) document.getElementById('txType').value = 'Debit';
+            let match = text.match(/\d+/);
+            if (match) document.getElementById('txAmount').value = match[0];
+        } else {
+            document.getElementById('txDesc').value = text;
+        }
+        updateSeparationString();
+    }
+
+    // --- CORE CRUD FUNCTIONALITY ---
+    const saveBtn = document.getElementById('saveBtn');
+    saveBtn.addEventListener('click', () => {
+        const date = document.getElementById('txDate').value;
+        const desc = document.getElementById('txDesc').value;
+        const type = document.getElementById('txType').value;
+        const amount = parseFloat(document.getElementById('txAmount').value) || 0;
+        const image = document.getElementById('imageBase64').value;
+        const editKey = document.getElementById('editKey').value;
+
+        if (!desc || amount <= 0) {
+            alert("Fill basic description and valid positive amount.");
+            return;
+        }
+
+        const dataPayload = { pageId: currentPageId, date, desc, type, amount, image };
+        const tx = db.transaction(storeName, "readwrite");
+        const store = tx.objectStore(storeName);
+
+        if (editKey) {
+            dataPayload.id = parseInt(editKey);
+            store.put(dataPayload);
+        } else {
+            store.add(dataPayload);
+        }
+
+        tx.oncomplete = () => {
+            clearForm();
+            loadLedgerData();
+        };
+    });
+
+    function loadLedgerData() {
+        const tx = db.transaction(storeName, "readonly");
+        const store = tx.objectStore(storeName);
+        const index = store.index("pageId");
+
+        index.getAll(IDBKeyRange.only(currentPageId)).onsuccess = (e) => {
+            const list = e.target.result || [];
+            list.sort((a,b) => new Date(a.date) - new Date(b.date));
+
+            const tbody = document.getElementById('ledgerBody');
+            tbody.innerHTML = "";
+            let runningTotal = 0;
+
+            list.forEach(item => {
+                runningTotal += (item.type === "Credit") ? item.amount : -item.amount;
+                
+                let imgEl = item.image ? `<img src="${item.image}" class="td-img" onclick="viewFullImage('${item.image}')">` : `❌`;
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${imgEl}</td>
+                    <td>${item.date}</td>
+                    <td>${item.desc}</td>
+                    <td class="${item.type === 'Credit' ? 'c-credit' : 'c-debit'}">${item.type}</td>
+                    <td>₹${item.amount}</td>
+                    <td style="font-weight:bold;">₹${runningTotal}</td>
+                    <td class="hidden-print">
+                        <button class="actions-btn edit-btn" onclick="editEntry(${item.id})">Edit</button>
+                        <button class="actions-btn del-btn" onclick="deleteEntry(${item.id})">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            document.getElementById('totalBalance').textContent = runningTotal;
+        };
+    }
+
+    window.editEntry = function(id) {
+        const tx = db.transaction(storeName, "readonly");
+        tx.objectStore(storeName).get(id).onsuccess = (e) => {
+            const item = e.target.result;
+            document.getElementById('txDate').value = item.date;
+            document.getElementById('txDesc').value = item.desc;
+            document.getElementById('txType').value = item.type;
+            document.getElementById('txAmount').value = item.amount;
+            document.getElementById('imageBase64').value = item.image || "";
+            document.getElementById('editKey').value = item.id;
+            document.getElementById('fileStatus').textContent = item.image ? "Saved image loaded" : "No image";
+            document.getElementById('saveBtn').textContent = "Update Entry";
+            updateSeparationString();
+        };
+    };
+
+    window.deleteEntry = function(id) {
+        if (confirm("Delete this entry forever?")) {
+            const tx = db.transaction(storeName, "readwrite");
+            tx.objectStore(storeName).delete(id).onsuccess = () => loadLedgerData();
+        }
+    };
+
+    window.viewFullImage = function(base64) {
+        const w = window.open();
+        w.document.write(`<img src="${base64}" style="max-width:100%; height:auto;">`);
+    };
+
+    function clearForm() {
+        document.getElementById('txDesc').value = "";
+        document.getElementById('txAmount').value = "";
+        document.getElementById('editKey').value = "";
+        document.getElementById('imageBase64').value = "";
+        document.getElementById('fileStatus').textContent = "No image attached";
+        document.getElementById('txDate').value = new Date().toISOString().substring(0, 10);
+        document.getElementById('saveBtn').textContent = "Save Entry";
+        updateSeparationString();
+    }
+    document.getElementById('clearBtn').addEventListener('click', clearForm);
+
+    // --- CSV IMPLEMENTATION (EXPORT/IMPORT) ---
+    document.getElementById('exportCsvBtn').addEventListener('click', () => {
+        const tx = db.transaction(storeName, "readonly");
+        const store = tx.objectStore(storeName);
+        const index = store.index("pageId");
+
+        index.getAll(IDBKeyRange.only(currentPageId)).onsuccess = (e) => {
+            const records = e.target.result || [];
+            let csvContent = "data:text/csv;charset=utf-8,Date,Description,Type,Amount\n";
+            records.forEach(r => {
+                csvContent += `${r.date},"${r.desc.replace(/"/g, '""')}",${r.type},${r.amount}\n`;
+            });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `ledger_page_${currentPageId}_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+    });
+
+    document.getElementById('importCsvInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            const lines = evt.target.result.split("\n");
+            const tx = db.transaction(storeName, "readwrite");
+            const store = tx.objectStore(storeName);
+            
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i].trim()) continue;
+                const columns = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                if(columns.length >= 4) {
+                    store.add({
+                        pageId: currentPageId,
+                        date: columns[0].trim(),
+                        desc: columns[1].replace(/^"|"$/g, '').trim(),
+                        type: columns[2].trim(),
+                        amount: parseFloat(columns[3]) || 0,
+                        image: ""
+                    });
+                }
+            }
+            tx.oncomplete = () => {
+                alert("CSV Data Imported successfully into current page!");
+                loadLedgerData();
+            };
+        };
+        reader.readAsText(file);
+    });
+
+    // Run startup parsing
+    updateSeparationString();
+</script>
+
+<h2 data-path-to-node="7">यूज़र्स के लिए गाइड (User Guide &amp; Manual)</h2>
+<p data-path-to-node="8"><i data-index-in-node="0" data-path-to-node="8"></i></p>
+<h3 data-path-to-node="9">🌟 Advanced Voice &amp; Image Ledger क्या है?</h3>
+<p data-path-to-node="10">यह एक आधुनिक और सुरक्षित डिजिटल खाता बुक है जो आपके पैसों के लेन-देन (उधारी, जमा, खर्च, कमाई) का हिसाब रखती है। टाइप करने के झंझट से बचने के लिए इसमें <b data-index-in-node="151" data-path-to-node="10">वॉइस इनपुट (बोलकर लिखने)</b> और <b data-index-in-node="179" data-path-to-node="10">बिल/रसीद की फोटो अटैच करने</b> की एडवांस सुविधा दी गई है।</p>
+<h3 data-path-to-node="12">🛠️ ऐप को इस्तेमाल करने के आसान स्टेप्स:</h3>
+<h4 data-path-to-node="13"><b data-index-in-node="0" data-path-to-node="13">स्टेप 1: मल्टी-पेज (Multi-Page System) का उपयोग करें</b></h4>
+<ul>
+    <li><b>➕ New:</b> नया खाता/पेज बनाने के लिए इस बटन पर क्लिक करें।</li>
+    <li><b>✏️ Rename:</b> चालू पेज का नाम बदलने के लिए इसका उपयोग करें।</li>
+    <li><b>🗑️ Delete:</b> अगर किसी पेज की ज़रूरत न हो, तो उसे सभी डेटा सहित हटाने के लिए इस पर क्लिक करें।</li>
+    <li><b>Drop-down Selector:</b> अलग-अलग खातों के बीच आसानी से स्विच करने के लिए ड्रॉपडाउन का इस्तेमाल करें।</li>
+</ul>
+<h4 data-path-to-node="13"><b data-index-in-node="0" data-path-to-node="13">स्टेप 2: ऐप को अपने अनुसार कस्टमाइज़ करें (Customization)</b></h4>
+<ul data-path-to-node="14">
+    <li><p data-path-to-node="14,0,0"><b data-index-in-node="0" data-path-to-node="14,0,0">अपना लोगो लगाएं:</b> सबसे ऊपर दिख रहे <b data-index-in-node="34" data-path-to-node="14,0,0">"Click to set Logo / Icon"</b> पर क्लिक करके आप अपनी दुकान, बिज़नेस या अपनी खुद की फोटो सेट कर सकते हैं।</p></li>
+    <li><p data-path-to-node="14,1,0"><b data-index-in-node="0" data-path-to-node="14,1,0">नाम बदलें:</b> जहाँ "My Digital Ledger" लिखा है, वहां क्लिक करके आप अपने खाते का नाम बदल सकते हैं। यह आपके बदलते ही अपने आप सेव हो जाता है।</p></li>
+</ul>
+<h4 data-path-to-node="15"><b data-index-in-node="0" data-path-to-node="15">स्टेप 3: लेन-देन की एंट्री करें (3 तरीके - टाइपिंग, वॉइस या लाइव स्ट्रिंग)</b></h4>
+<ul data-path-to-node="16">
+    <li><p data-path-to-node="16,0,0"><b data-index-in-node="0" data-path-to-node="16,0,0">तरीका A (मैन्युअल टाइपिंग):</b> तारीख चुनें, टाइप (Credit यानी पैसा आना, Debit यानी पैसा जाना) सिलेक्ट करें, विवरण (Description) और अमाउंट (Amount) भरें।</p></li>
+    <li><p data-path-to-node="16,1,0"><b data-index-in-node="0" data-path-to-node="16,1,0">तरीका B (🎤 वॉइस इनपुट - सबसे आसान):</b> <b data-index-in-node="37" data-path-to-node="16,1,0">"Voice Input"</b> बटन पर क्लिक करें। माइक ऑन होने पर बोलें।</p>
+        <ul data-path-to-node="16,1,1">
+            <li><p data-path-to-node="16,1,1,0,0"><i data-index-in-node="0" data-path-to-node="16,1,1,0,0">उदाहरण के लिए बोलें:</i> <code data-index-in-node="21" data-path-to-node="16,1,1,0,0">"Salary, credit 15000"</code> या <code data-index-in-node="47" data-path-to-node="16,1,1,0,0">"Grocery, debit 500"</code>। ऐप अपने आप नाम, टाइप और अमाउंट को अलग-अलग बॉक्स में भर देगी।</p></li>
+        </ul>
+    </li>
+    <li><p data-path-to-node="16,2,0"><b data-index-in-node="0" data-path-to-node="16,2,0">तरीका C (Live Sync Textarea):</b> ऐप में बीच में एक ब्लैक बॉक्स (Separation Format) है। अगर आप चाहें तो सीधे वहां भी <code data-index-in-node="113" data-path-to-node="16,2,0">तारीख | विवरण | टाइप | राशि</code> के फॉर्मेट में लिख सकते हैं, ऊपर के बॉक्स अपने आप भर जाएंगे।</p></li>
+</ul>
+<h4 data-path-to-node="17"><b data-index-in-node="0" data-path-to-node="17">स्टेप 4: बिल या रसीद की फोटो जोड़ें (📷 Capture/Pick)</b></h4>
+<ul data-path-to-node="18">
+    <li><p data-path-to-node="18,0,0">लेन-देन के पक्के सबूत के लिए <b data-index-in-node="29" data-path-to-node="18,0,0">"📷 Capture/Pick"</b> बटन पर क्लिक करें। आप सीधे अपने मोबाइल के कैमरा से बिल की फोटो खींच सकते हैं या गैलरी से अपलोड कर सकते हैं।</p></li>
+</ul>
+<h4 data-path-to-node="19"><b data-index-in-node="0" data-path-to-node="19">स्टेप 5: एंट्री सुरक्षित करें (Save &amp; Auto-Calculate)</b></h4>
+<ul data-path-to-node="20">
+    <li><p data-path-to-node="20,0,0">सभी जानकारी भरने के बाद <b data-index-in-node="24" data-path-to-node="20,0,0">"Save Entry"</b> पर क्लिक करें। क्लिक करते ही नीचे दी गई टेबल में एंट्री जुड़ जाएगी और ऐप का <b data-index-in-node="113" data-path-to-node="20,0,0">Total Balance (₹)</b> अपने आप अपडेट हो जाएगा।</p></li>
+    <li><p data-path-to-node="20,1,0">अगर किसी पुरानी एंट्री में सुधार करना है, तो टेबल में उस एंट्री के आगे <b data-index-in-node="71" data-path-to-node="20,1,0">Edit</b> बटन दबाएं और सुधार करके अपडेट कर दें।</p></li>
+</ul>
+<h4 data-path-to-node="21"><b data-index-in-node="0" data-path-to-node="21">स्टेप 6: बैकअप और प्रिंट (Utilities Section)</b></h4>
+<ul data-path-to-node="22">
+    <li><p data-path-to-node="22,0,0"><b data-index-in-node="0" data-path-to-node="22,0,0">📥 Download CSV:</b> एक क्लिक में अपने चालू खाते का बैकअप एक्सेल (Excel/CSV) फाइल के रूप में डाउनलोड करें।</p></li>
+    <li><p data-path-to-node="22,1,0"><b data-index-in-node="0" data-path-to-node="22,1,0">📤 Upload CSV:</b> अगर आपने पहले कभी बैकअप लिया था, तो उस फाइल को अपलोड करके अपना पुराना पूरा डेटा वापस ला सकते हैं।</p></li>
+    <li><p data-path-to-node="22,2,0"><b data-index-in-node="0" data-path-to-node="22,2,0">🖨️ Print / Save PDF:</b> इस बटन पर क्लिक करके आप अपने चालू खाते की एक सुंदर पीडीएफ (PDF) रिपोर्ट बना सकते हैं या सीधे प्रिंट निकाल सकते हैं।</p></li>
+</ul>
+<h3 data-path-to-node="24">🔒 आपकी प्राइवेसी और सुरक्षा (100% Secure)</h3>
+<p data-path-to-node="25">यह ऐप <b data-index-in-node="6" data-path-to-node="25">IndexedDB</b> तकनीक पर काम करती है। इसका मतलब है कि आपका कोई भी डेटा, फोटो या पैसों का हिसाब किसी ऑनलाइन सर्वर या किसी दूसरे व्यक्ति के पास नहीं जाता। आपका पूरा डेटा <b data-index-in-node="168" data-path-to-node="25">पूरी तरह से आपके ही मोबाइल या कंप्यूटर के अंदर सुरक्षित रहता है</b> और इंटरनेट बंद होने पर भी यह ऐप काम करती है।</p>
+</body>
+</html>
