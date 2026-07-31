@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Voice & Image Ledger</title>
+    <title>Advanced Multi-Page Ledger</title>
     <style>
         :root {
             --bg-color: #f8fafc;
@@ -24,11 +24,10 @@
         }
 
         .container {
-            max-width: 750px;
+            max-width: 850px;
             margin: 0 auto;
         }
 
-        /* Header customization */
         .header-section {
             display: flex;
             flex-direction: column;
@@ -62,7 +61,7 @@
         }
 
         .logo-placeholder {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: #64748b;
             text-align: center;
             padding: 5px;
@@ -83,14 +82,13 @@
             background: #f0fdf4;
         }
 
-        /* Page Management Controls */
         .page-control-bar {
             display: flex;
             gap: 8px;
             align-items: center;
             justify-content: center;
             width: 100%;
-            max-width: 500px;
+            max-width: 550px;
             margin-top: 5px;
             background: #f1f5f9;
             padding: 8px;
@@ -165,11 +163,22 @@
             background: #fff;
         }
 
+        .link-builder-box {
+            display: flex;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .link-builder-box input {
+            padding: 6px 8px;
+            font-size: 0.8rem;
+        }
+
         .separation-textarea {
             font-family: monospace;
             background: #1e293b;
             color: #38bdf8;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             resize: vertical;
         }
 
@@ -182,11 +191,11 @@
 
         button, .file-label {
             flex: 1;
-            min-width: 100px;
-            padding: 10px 14px;
+            min-width: 110px;
+            padding: 10px 12px;
             border: none;
             border-radius: 6px;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-weight: 600;
             cursor: pointer;
             text-align: center;
@@ -195,10 +204,12 @@
         }
 
         .btn-voice { background-color: var(--primary); color: white; }
+        .btn-voice-hi { background-color: #7c3aed; color: white; }
         .btn-save { background-color: var(--success); color: white; }
         .btn-clear { background-color: #64748b; color: white; }
         .btn-file { background-color: #0284c7; color: white; display: inline-block; }
         .btn-utility { background-color: #475569; color: white; }
+        .btn-sm { padding: 6px 10px; min-width: auto; font-size: 0.8rem; }
 
         .listening {
             animation: pulse 1.5s infinite;
@@ -207,6 +218,7 @@
 
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 
+        /* Table & Resizable Columns Styling */
         .table-wrapper {
             overflow-x: auto;
             background: white;
@@ -219,15 +231,40 @@
             width: 100%;
             border-collapse: collapse;
             font-size: 0.88rem;
+            table-layout: fixed;
         }
 
         th, td {
             padding: 10px 12px;
             border-bottom: 1px solid var(--border);
             text-align: left;
+            word-wrap: break-word;
+            position: relative;
         }
 
-        th { background-color: #f1f5f9; font-weight: 600; color: #475569; }
+        th { 
+            background-color: #f1f5f9; 
+            font-weight: 600; 
+            color: #475569; 
+            user-select: none;
+        }
+
+        /* Resizer Handle */
+        .resizer {
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            width: 5px;
+            background: rgba(0,0,0,0.1);
+            cursor: col-resize;
+            user-select: none;
+        }
+
+        .resizer:hover, .resizing {
+            background: var(--primary);
+            width: 6px;
+        }
 
         .c-credit { color: var(--success); font-weight: bold; }
         .c-debit { color: var(--danger); font-weight: bold; }
@@ -256,11 +293,12 @@
 
         @media print {
             body { background: white; color: black; padding: 0; }
-            .card, .btn-group, .actions-btn, th:last-child, td:last-child, .logo-placeholder, .hidden-print, .page-control-bar {
+            .card, .btn-group, .actions-btn, th:last-child, td:last-child, .logo-placeholder, .hidden-print, .page-control-bar, .resizer {
                 display: none !important;
             }
             .container { max-width: 100%; }
             .table-wrapper { box-shadow: none; overflow: visible; }
+            table { table-layout: auto; }
             th { background-color: #e2e8f0 !important; -webkit-print-color-adjust: exact; }
         }
     </style>
@@ -271,14 +309,14 @@
     
     <!-- Custom Header Zone -->
     <div class="header-section">
-        <div class="logo-container" onclick="document.getElementById('logoInput').click()">
+        <div class="logo-container" onclick="document.getElementById('logoInput').click()" title="Change Image/Logo for active page">
             <input type="file" id="logoInput" class="hidden-input" accept="image/*">
             <img id="logoImg" src="" style="display:none;">
-            <div id="logoText" class="logo-placeholder">Click to set Logo / Icon</div>
+            <div id="logoText" class="logo-placeholder">Click to set Page Title Image</div>
         </div>
         <div class="editable-title" id="pageTitle" contenteditable="true">My Digital Ledger</div>
 
-        <!-- Page Management Options -->
+        <!-- Page Management Controls -->
         <div class="page-control-bar hidden-print">
             <select id="pageSelect"></select>
             <button class="btn-page btn-save" id="addPageBtn" title="Add Page">➕</button>
@@ -312,6 +350,12 @@
             <div class="form-group">
                 <label>Description</label>
                 <input type="text" id="txDesc" placeholder="e.g., Salary, Grocery">
+                <!-- Hyperlink Embed Tool -->
+                <div class="link-builder-box">
+                    <input type="text" id="linkText" placeholder="Link Text (e.g. Bill)">
+                    <input type="text" id="linkUrl" placeholder="URL (https://...)">
+                    <button class="btn-sm btn-utility" id="addLinkBtn" type="button">🔗 Add Link</button>
+                </div>
             </div>
             <div class="form-group">
                 <label>Amount (₹)</label>
@@ -319,11 +363,20 @@
             </div>
         </div>
 
+        <!-- Camera & Gallery Attachment -->
         <div class="form-group">
-            <label>Attach Image (Camera / Folder)</label>
-            <label for="cameraInput" class="btn-file" style="width:100px;">📷 Capture/Pick</label>
-            <input type="file" id="cameraInput" class="hidden-input" accept="image/*">
-            <span id="fileStatus" style="font-size:0.8rem; margin-left:10px; color:#64748b;">No image attached</span>
+            <label>Attach Image</label>
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                <!-- Dedicated Camera capture input -->
+                <label for="cameraDirectInput" class="btn-file btn-sm">📷 Open Camera</label>
+                <input type="file" id="cameraDirectInput" class="hidden-input" accept="image/*" capture="environment">
+
+                <!-- File picker input -->
+                <label for="fileGalleryInput" class="btn-file btn-sm" style="background:#475569;">📁 Pick File</label>
+                <input type="file" id="fileGalleryInput" class="hidden-input" accept="image/*">
+
+                <span id="fileStatus" style="font-size:0.8rem; color:#64748b;">No image attached</span>
+            </div>
         </div>
 
         <!-- Real-time Synchronization Textbox -->
@@ -336,24 +389,25 @@
         <input type="hidden" id="imageBase64">
 
         <div class="btn-group">
-            <button class="btn-voice" id="voiceBtn">🎤 Voice Input</button>
+            <button class="btn-voice-hi" id="voiceHiBtn">🎤 Speech (Hindi/Hinglish)</button>
+            <button class="btn-voice" id="voiceEnBtn">🎤 Speech (English)</button>
             <button class="btn-save" id="saveBtn">Save Entry</button>
             <button class="btn-clear" id="clearBtn">Clear</button>
         </div>
     </div>
 
-    <!-- Data Table -->
+    <!-- Resizable Data Table -->
     <div class="table-wrapper">
         <table id="ledgerTable">
             <thead>
                 <tr>
-                    <th>Img</th>
-                    <th>Date</th>
-                    <th>Description</th>
-                    <th>Type</th>
-                    <th>Amount</th>
-                    <th>Total</th>
-                    <th class="hidden-print">Actions</th>
+                    <th style="width: 50px;">Img<div class="resizer"></div></th>
+                    <th style="width: 100px;">Date<div class="resizer"></div></th>
+                    <th style="width: 220px;">Description<div class="resizer"></div></th>
+                    <th style="width: 80px;">Type<div class="resizer"></div></th>
+                    <th style="width: 90px;">Amount<div class="resizer"></div></th>
+                    <th style="width: 100px;">Total<div class="resizer"></div></th>
+                    <th class="hidden-print" style="width: 110px;">Actions</th>
                 </tr>
             </thead>
             <tbody id="ledgerBody">
@@ -377,7 +431,7 @@
 <script>
     // --- DATABASE CONFIGURATION ---
     let db;
-    const dbName = "AdvancedLedgerDB";
+    const dbName = "AdvancedLedgerDB_v4";
     const storeName = "ledger_entries";
     const settingsStore = "app_settings";
     const pagesStore = "ledger_pages";
@@ -385,23 +439,16 @@
     let activePageId = 1;
     let pageList = [];
 
-    const request = indexedDB.open(dbName, 3);
+    const request = indexedDB.open(dbName, 1);
     request.onupgradeneeded = (e) => {
         db = e.target.result;
         if (!db.objectStoreNames.contains(storeName)) {
             const ledgerStore = db.createObjectStore(storeName, { keyPath: "id", autoIncrement: true });
             ledgerStore.createIndex("pageId", "pageId", { unique: false });
-        } else {
-            const txStore = e.target.transaction.objectStore(storeName);
-            if(!txStore.indexNames.contains("pageId")) {
-                txStore.createIndex("pageId", "pageId", { unique: false });
-            }
         }
-        
         if (!db.objectStoreNames.contains(settingsStore)) {
             db.createObjectStore(settingsStore, { keyPath: "key" });
         }
-
         if (!db.objectStoreNames.contains(pagesStore)) {
             db.createObjectStore(pagesStore, { keyPath: "id", autoIncrement: true });
         }
@@ -409,14 +456,13 @@
 
     request.onsuccess = (e) => {
         db = e.target.result;
-        loadSettings();
         initPages();
     };
 
     // Set Default Date
     document.getElementById('txDate').value = new Date().toISOString().substring(0, 10);
 
-    // --- PAGE MANAGEMENT SYSTEM ---
+    // --- PAGE & URL HASH MANAGEMENT ---
     function initPages() {
         const tx = db.transaction(pagesStore, "readwrite");
         const store = tx.objectStore(pagesStore);
@@ -428,17 +474,43 @@
                 addReq.onsuccess = (evt) => {
                     defaultPage.id = evt.target.result;
                     pageList = [defaultPage];
-                    activePageId = defaultPage.id;
-                    renderPagesDropdown();
-                    loadLedgerData();
+                    checkHashAndSetPage();
                 };
             } else {
-                activePageId = pageList[0].id;
-                renderPagesDropdown();
-                loadLedgerData();
+                checkHashAndSetPage();
             }
         };
     }
+
+    function checkHashAndSetPage() {
+        const hash = window.location.hash.replace('#page-', '');
+        const pageFromHash = pageList.find(p => p.id === parseInt(hash));
+        if (pageFromHash) {
+            activePageId = pageFromHash.id;
+        } else {
+            activePageId = pageList[0].id;
+        }
+        updateUrlHash();
+        renderPagesDropdown();
+        loadPageSettings();
+        loadLedgerData();
+    }
+
+    function updateUrlHash() {
+        window.location.hash = `page-${activePageId}`;
+    }
+
+    window.addEventListener('hashchange', () => {
+        const hash = window.location.hash.replace('#page-', '');
+        const targetId = parseInt(hash);
+        if(targetId && targetId !== activePageId && pageList.some(p => p.id === targetId)) {
+            activePageId = targetId;
+            renderPagesDropdown();
+            loadPageSettings();
+            clearForm();
+            loadLedgerData();
+        }
+    });
 
     function renderPagesDropdown() {
         const select = document.getElementById('pageSelect');
@@ -454,6 +526,8 @@
 
     document.getElementById('pageSelect').addEventListener('change', function() {
         activePageId = parseInt(this.value);
+        updateUrlHash();
+        loadPageSettings();
         clearForm();
         loadLedgerData();
     });
@@ -468,7 +542,9 @@
                 const newId = e.target.result;
                 pageList.push({ id: newId, name: pageName.trim() });
                 activePageId = newId;
+                updateUrlHash();
                 renderPagesDropdown();
+                loadPageSettings();
                 clearForm();
                 loadLedgerData();
             };
@@ -495,30 +571,110 @@
         }
         const currPage = pageList.find(p => p.id === activePageId);
         if (confirm(`Delete page "${currPage.name}" and ALL its transaction entries permanently?`)) {
-            // Delete entries for this page
-            const tx = db.transaction([pagesStore, storeName], "readwrite");
+            const tx = db.transaction([pagesStore, storeName, settingsStore], "readwrite");
             tx.objectStore(pagesStore).delete(activePageId);
             
+            // Delete entries for this page
             const store = tx.objectStore(storeName);
             const index = store.index("pageId");
             const req = index.openCursor(IDBKeyRange.only(activePageId));
             req.onsuccess = (e) => {
                 const cursor = e.target.result;
-                if(cursor) {
-                    cursor.delete();
-                    cursor.continue();
-                }
+                if(cursor) { cursor.delete(); cursor.continue(); }
             };
+
+            // Remove page-specific settings
+            tx.objectStore(settingsStore).delete(`title_${activePageId}`);
+            tx.objectStore(settingsStore).delete(`logo_${activePageId}`);
 
             tx.oncomplete = () => {
                 pageList = pageList.filter(p => p.id !== activePageId);
                 activePageId = pageList[0].id;
+                updateUrlHash();
                 renderPagesDropdown();
+                loadPageSettings();
                 clearForm();
                 loadLedgerData();
             };
         }
     });
+
+    // --- HYPERLINK TEXT CHANGE FEATURE ---
+    document.getElementById('addLinkBtn').addEventListener('click', () => {
+        const text = document.getElementById('linkText').value.trim();
+        let url = document.getElementById('linkUrl').value.trim();
+        
+        if(!text || !url) {
+            alert("Enter both Link Text and URL");
+            return;
+        }
+        if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+
+        const markdownLink = `[${text}](${url})`;
+        const descInput = document.getElementById('txDesc');
+        descInput.value = descInput.value ? `${descInput.value} ${markdownLink}` : markdownLink;
+        
+        document.getElementById('linkText').value = "";
+        document.getElementById('linkUrl').value = "";
+        updateSeparationString();
+    });
+
+    // Helper to render markdown links as clickable HTML elements
+    function formatDescriptionWithLinks(text) {
+        if (!text) return "";
+        const escaped = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        return escaped.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" style="color:var(--primary); font-weight:bold;">$1</a>');
+    }
+
+    // --- PAGE-SPECIFIC LOGO & TITLE CONFIGURATION ---
+    document.getElementById('logoInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            compressAndConvertImage(file, (base64) => {
+                saveSetting(`logo_${activePageId}`, base64);
+                displayLogo(base64);
+            });
+        }
+    });
+
+    document.getElementById('pageTitle').addEventListener('blur', function() {
+        saveSetting(`title_${activePageId}`, this.textContent);
+    });
+
+    function saveSetting(key, val) {
+        const tx = db.transaction(settingsStore, "readwrite");
+        tx.objectStore(settingsStore).put({ key: key, value: val });
+    }
+
+    function loadPageSettings() {
+        const tx = db.transaction(settingsStore, "readonly");
+        const store = tx.objectStore(settingsStore);
+        
+        // Reset defaults
+        document.getElementById('pageTitle').textContent = pageList.find(p => p.id === activePageId)?.name || "My Digital Ledger";
+        displayLogo(null);
+
+        store.get(`title_${activePageId}`).onsuccess = (e) => {
+            if(e.target.result) document.getElementById('pageTitle').textContent = e.target.result.value;
+        };
+        store.get(`logo_${activePageId}`).onsuccess = (e) => {
+            if(e.target.result) displayLogo(e.target.result.value);
+        };
+    }
+
+    function displayLogo(base64) {
+        const img = document.getElementById('logoImg');
+        const txt = document.getElementById('logoText');
+        if(base64) {
+            img.src = base64;
+            img.style.display = 'block';
+            txt.style.display = 'none';
+        } else {
+            img.src = "";
+            img.style.display = 'none';
+            txt.style.display = 'block';
+        }
+    }
 
     // --- TWO-WAY SYNC SYSTEM ---
     const inputs = ['txDate', 'txDesc', 'txType', 'txAmount'];
@@ -547,96 +703,97 @@
         }
     });
 
-    // --- CAMERA & FILE MANAGEMENT ---
-    document.getElementById('cameraInput').addEventListener('change', function(e) {
-        const file = e.target.files[0];
+    // --- CAMERA & FILE IMAGE COMPRESSION & HANDLER ---
+    function compressAndConvertImage(file, callback) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                const maxDim = 800; // Resize max dimension to 800px for speed & storage efficiency
+                
+                if (width > height && width > maxDim) {
+                    height *= maxDim / width;
+                    width = maxDim;
+                } else if (height > maxDim) {
+                    width *= maxDim / height;
+                    height = maxDim;
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                callback(canvas.toDataURL('image/jpeg', 0.7)); // Compressed JPEG
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function handleImageAttachment(fileInput) {
+        const file = fileInput.files[0];
         if (file) {
             document.getElementById('fileStatus').textContent = file.name;
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                document.getElementById('imageBase64').value = event.target.result;
-            };
-            reader.readAsDataURL(file);
+            compressAndConvertImage(file, (base64) => {
+                document.getElementById('imageBase64').value = base64;
+            });
         }
-    });
-
-    // --- LOGO & TITLE CONFIGURATION ---
-    document.getElementById('logoInput').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                saveSetting('logo', event.target.result);
-                displayLogo(event.target.result);
-            };
-            reader.readAsDataURL(file);
-        }
-    });
-
-    document.getElementById('pageTitle').addEventListener('blur', function() {
-        saveSetting('title', this.textContent);
-    });
-
-    function saveSetting(key, val) {
-        const tx = db.transaction(settingsStore, "readwrite");
-        tx.objectStore(settingsStore).put({ key: key, value: val });
     }
 
-    function loadSettings() {
-        const tx = db.transaction(settingsStore, "readonly");
-        tx.objectStore(settingsStore).get('title').onsuccess = (e) => {
-            if(e.target.result) document.getElementById('pageTitle').textContent = e.target.result.value;
-        };
-        tx.objectStore(settingsStore).get('logo').onsuccess = (e) => {
-            if(e.target.result) displayLogo(e.target.result.value);
-        };
-    }
+    document.getElementById('cameraDirectInput').addEventListener('change', function() { handleImageAttachment(this); });
+    document.getElementById('fileGalleryInput').addEventListener('change', function() { handleImageAttachment(this); });
 
-    function displayLogo(base64) {
-        const img = document.getElementById('logoImg');
-        const txt = document.getElementById('logoText');
-        img.src = base64;
-        img.style.display = 'block';
-        txt.style.display = 'none';
-    }
-
-    // --- VOICE TO TEXT CAPABILITIES ---
-    const voiceBtn = document.getElementById('voiceBtn');
+    // --- GOOGLE VOICE TO TEXT (DEDICATED HINDI & ENGLISH) ---
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-    if (SpeechRecognition) {
+    function initVoiceRecognition(langCode, btnElement) {
+        if (!SpeechRecognition) {
+            alert("Speech recognition is not supported in this browser.");
+            return;
+        }
         const recognition = new SpeechRecognition();
-        recognition.lang = 'en-US'; 
+        recognition.lang = langCode;
         recognition.interimResults = false;
 
-        voiceBtn.addEventListener('click', () => {
-            if (voiceBtn.classList.contains('listening')) recognition.stop();
-            else recognition.start();
-        });
+        if (btnElement.classList.contains('listening')) {
+            recognition.stop();
+            return;
+        }
+
+        recognition.start();
 
         recognition.onstart = () => {
-            voiceBtn.textContent = "🛑 Listening...";
-            voiceBtn.classList.add('listening');
+            btnElement.dataset.oldText = btnElement.textContent;
+            btnElement.textContent = "🛑 Listening...";
+            btnElement.classList.add('listening');
         };
         recognition.onend = () => {
-            voiceBtn.textContent = "🎤 Voice Input";
-            voiceBtn.classList.remove('listening');
+            btnElement.textContent = btnElement.dataset.oldText || "🎤 Speech";
+            btnElement.classList.remove('listening');
         };
         recognition.onresult = (event) => {
             const text = event.results[0][0].transcript;
-            parseVoice(text);
+            parseVoiceText(text);
         };
-    } else {
-        voiceBtn.disabled = true;
-        voiceBtn.textContent = "Mic Not Supported";
     }
 
-    function parseVoice(text) {
-        let parts = text.split(/comma|,/i);
+    document.getElementById('voiceHiBtn').addEventListener('click', function() {
+        initVoiceRecognition('hi-IN', this);
+    });
+
+    document.getElementById('voiceEnBtn').addEventListener('click', function() {
+        initVoiceRecognition('en-US', this);
+    });
+
+    function parseVoiceText(text) {
+        let parts = text.split(/comma|,|और/i);
         if (parts.length >= 2) {
             document.getElementById('txDesc').value = parts[0].trim();
-            if(text.toLowerCase().includes('credit')) document.getElementById('txType').value = 'Credit';
-            if(text.toLowerCase().includes('debit')) document.getElementById('txType').value = 'Debit';
+            if (/credit|जमा|गया/i.test(text)) document.getElementById('txType').value = 'Credit';
+            if (/debit|काटा|दिया/i.test(text)) document.getElementById('txType').value = 'Debit';
             let match = text.match(/\d+/);
             if (match) document.getElementById('txAmount').value = match[0];
         } else {
@@ -645,9 +802,8 @@
         updateSeparationString();
     }
 
-    // --- CORE CRUD FUNCTIONALITY ---
-    const saveBtn = document.getElementById('saveBtn');
-    saveBtn.addEventListener('click', () => {
+    // --- CORE CRUD OPERATIONS ---
+    document.getElementById('saveBtn').addEventListener('click', () => {
         const date = document.getElementById('txDate').value;
         const desc = document.getElementById('txDesc').value;
         const type = document.getElementById('txType').value;
@@ -680,18 +836,10 @@
     function loadLedgerData() {
         const tx = db.transaction(storeName, "readonly");
         const store = tx.objectStore(storeName);
-        
-        let req;
-        if(store.indexNames.contains("pageId")) {
-            req = store.index("pageId").getAll(IDBKeyRange.only(activePageId));
-        } else {
-            req = store.getAll();
-        }
+        const req = store.index("pageId").getAll(IDBKeyRange.only(activePageId));
 
         req.onsuccess = (e) => {
             let list = e.target.result;
-            // Fallback for older items without pageId
-            list = list.filter(item => !item.pageId || item.pageId === activePageId);
             list.sort((a,b) => new Date(a.date) - new Date(b.date));
 
             const tbody = document.getElementById('ledgerBody');
@@ -707,7 +855,7 @@
                 row.innerHTML = `
                     <td>${imgEl}</td>
                     <td>${item.date}</td>
-                    <td>${item.desc}</td>
+                    <td>${formatDescriptionWithLinks(item.desc)}</td>
                     <td class="${item.type === 'Credit' ? 'c-credit' : 'c-debit'}">${item.type}</td>
                     <td>₹${item.amount}</td>
                     <td style="font-weight:bold;">₹${runningTotal}</td>
@@ -747,7 +895,7 @@
 
     window.viewFullImage = function(base64) {
         const w = window.open();
-        w.document.write(`<img src="${base64}" style="max-width:100%; height:auto;">`);
+        w.document.write(`<body style="margin:0; background:#0f172a; display:flex; align-items:center; justify-content:center; min-height:100vh;"><img src="${base64}" style="max-width:100%; max-height:100vh; object-fit:contain;"></body>`);
     };
 
     function clearForm() {
@@ -755,6 +903,8 @@
         document.getElementById('txAmount').value = "";
         document.getElementById('editKey').value = "";
         document.getElementById('imageBase64').value = "";
+        document.getElementById('cameraDirectInput').value = "";
+        document.getElementById('fileGalleryInput').value = "";
         document.getElementById('fileStatus').textContent = "No image attached";
         document.getElementById('txDate').value = new Date().toISOString().substring(0, 10);
         document.getElementById('saveBtn').textContent = "Save Entry";
@@ -762,7 +912,7 @@
     }
     document.getElementById('clearBtn').addEventListener('click', clearForm);
 
-    // --- CSV IMPLEMENTATION (EXPORT/IMPORT FOR ACTIVE PAGE) ---
+    // --- CSV EXPORT & IMPORT ---
     document.getElementById('exportCsvBtn').addEventListener('click', () => {
         const tx = db.transaction(storeName, "readonly");
         const store = tx.objectStore(storeName);
@@ -811,16 +961,46 @@
                 }
             }
             tx.oncomplete = () => {
-                alert("CSV Data imported successfully into active page!");
+                alert("CSV Data imported successfully!");
                 loadLedgerData();
             };
         };
         reader.readAsText(file);
     });
 
-    // Run startup parsing
+    // --- ADJUSTABLE TABLE COLUMN RESIZING SCRIPT ---
+    document.querySelectorAll('th').forEach(th => {
+        const resizer = th.querySelector('.resizer');
+        if (!resizer) return;
+
+        let startX, startWidth;
+
+        resizer.addEventListener('mousedown', (e) => {
+            startX = e.pageX;
+            startWidth = th.offsetWidth;
+            resizer.classList.add('resizing');
+
+            const onMouseMove = (e) => {
+                const newWidth = startWidth + (e.pageX - startX);
+                if (newWidth > 40) {
+                    th.style.width = `${newWidth}px`;
+                }
+            };
+
+            const onMouseUp = () => {
+                resizer.classList.remove('resizing');
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+            };
+
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+        });
+    });
+
+    // Run startup sync
     updateSeparationString();
 </script>
- 
+
 </body>
 </html>
