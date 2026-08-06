@@ -423,5 +423,209 @@
             }
         };
     </script>
+    <!-- start advertise-->
+  <div id="bottom-ad-container">
+    <button id="close-ad-btn" onclick="closeAd()" aria-label="Close Ad">✕</button>
+    
+    <a id="ad-link" href="#" target="_blank" rel="noopener noreferrer">
+        <img id="ad-image" src="" alt="Advertisement">
+        <span id="ad-text"></span>
+    </a>
+</div>
+
+<style>
+/* Ad Banner CSS */
+#bottom-ad-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #fff9f2; /* विज्ञापन का बैकग्राउंड कलर */
+    border-top: 3px solid #e67e22; /* Primary Theme Color */
+    box-shadow: 0 -3px 15px rgba(0,0,0,0.2);
+    z-index: 99999;
+    display: none; /* शुरुआत में छुपा रहेगा, JS से लाइव होगा */
+    box-sizing: border-box;
+}
+
+/* पूरे विज्ञापन लिंक को ब्लॉक बनाना ताकि कहीं भी क्लिक हो सके */
+#ad-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px; /* इमेज और टेक्स्ट के बीच की दूरी */
+    padding: 10px 40px 10px 20px; /* क्लोज बटन के लिए राइट में जगह छोड़ी */
+    text-decoration: none; /* टेक्स्ट के नीचे से अंडरलाइन हटाने के लिए */
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#ad-image {
+    max-height: 50px;
+    max-width: 100px;
+    object-fit: contain;
+}
+
+/* विज्ञापन टेक्स्ट का स्टाइल */
+#ad-text {
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    font-weight: bold;
+    color: #2c3e50; /* टेक्स्ट का रंग */
+}
+
+#close-ad-btn {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%); /* बटन को वर्टिकली सेंटर करने के लिए */
+    background: #c0392b;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 24px;
+    padding: 0;
+    z-index: 100000; /* ताकि यह लिंक के ऊपर रहे और क्लिक हो सके */
+}
+
+/* मुख्य बॉडी की पैडिंग बढ़ाएं ताकि कंटेंट विज्ञापन के पीछे न छुपे */
+body { padding-bottom: 160px !important; }   
+</style>
+
+<script>
+    // 🔗 Google Sheet CSV URL (Isse aap change bhi kar sakte hain)
+    const sheetCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTyBbzCSmhFRRf3XeTPSKeXTyTxG1xqqXMbg6egp-4c41x527lUtLjAFwTjb_JQlQlT3lsfy-0CEtxm/pub?output=csv'; 
+    const rotationInterval = 10000; 
+
+    let adsData = [];
+    let currentAdIndex = 0;
+    let rotationTimer = null;
+
+    const dbName = "AdRotationDB";
+    const storeName = "adsStore";
+
+    function openDB() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(dbName, 1);
+            request.onupgradeneeded = (e) => {
+                const db = e.target.result;
+                if (!db.objectStoreNames.contains(storeName)) {
+                    db.createObjectStore(storeName, { keyPath: "id" });
+                }
+            };
+            request.onsuccess = (e) => resolve(e.target.result);
+            request.onerror = (e) => reject(e.target.error);
+        });
+    }
+
+    async function saveAdsToLocal(ads) {
+        try {
+            const db = await openDB();
+            const tx = db.transaction(storeName, "readwrite");
+            const store = tx.objectStore(storeName);
+            store.put({ id: "cachedAds", data: ads, timestamp: Date.now() });
+        } catch(e) { console.error(e); }
+    }
+
+    async function getAdsFromLocal() {
+        try {
+            const db = await openDB();
+            return new Promise((resolve) => {
+                const tx = db.transaction(storeName, "readonly");
+                const store = tx.objectStore(storeName);
+                const request = store.get("cachedAds");
+                request.onsuccess = () => resolve(request.result ? request.result.data : null);
+                request.onerror = () => resolve(null);
+            });
+        } catch(e) { return null; }
+    }
+
+    function parseAdsCSV(csvText) {
+        const lines = csvText.split(/\r?\n/);
+        const result = [];
+        if(lines.length < 2) return result;
+        const headers = lines[0].split(',');
+
+        for (let i = 1; i < lines.length; i++) {
+            if (!lines[i]) continue;
+            const currentLine = lines[i].split(',');
+            if (currentLine.length >= 3) {
+                result.push({
+                    image: currentLine[0].trim(),
+                    url: currentLine[1].trim(),
+                    alt: currentLine[2].trim()
+                });
+            }
+        }
+        return result;
+    }
+
+    async function initAdsRotation() {
+        adsData = await getAdsFromLocal() || [];
+        if(adsData.length > 0) {
+            showAd();
+            startRotation();
+        }
+        
+        try {
+            const response = await fetch(sheetCsvUrl);
+            if(response.ok) {
+                const text = await response.text();
+                const freshAds = parseAdsCSV(text);
+                if(freshAds.length > 0) {
+                    adsData = freshAds;
+                    saveAdsToLocal(freshAds);
+                    if(!rotationTimer) {
+                        showAd();
+                        startRotation();
+                    }
+                }
+            }
+        } catch(e) {
+            console.log("Offline or Ads fetch failed, using local backup.");
+        }
+    }
+
+    function showAd() {
+        if(adsData.length === 0) return;
+        const ad = adsData[currentAdIndex];
+        const container = document.getElementById("bottom-ad-container");
+        const img = document.getElementById("ad-image");
+        const link = document.getElementById("ad-link");
+        const txt = document.getElementById("ad-text");
+
+        if(container && img && link && txt) {
+            img.src = ad.image;
+            img.alt = ad.alt;
+            link.href = ad.url;
+            txt.innerText = ad.alt; 
+            container.style.display = "block";
+        }
+    }
+
+    function startRotation() {
+        if(adsData.length <= 1) return;
+        rotationTimer = setInterval(() => {
+            currentAdIndex = (currentAdIndex + 1) % adsData.length;
+            showAd();
+        }, rotationInterval);
+    }
+
+    function closeAd() {
+        clearInterval(rotationTimer);
+        const container = document.getElementById("bottom-ad-container");
+        if(container) container.style.display = "none";
+    }
+
+    // Is script block ko agar dusre page par call kar rahe hain toh window onload par 'initAdsRotation()' run karein.
+    if (window.attachEvent) {window.attachEvent('onload', initAdsRotation);}
+    else if (window.addEventListener) {window.addEventListener('load', initAdsRotation, false);}
+    else {document.addEventListener("DOMContentLoaded", initAdsRotation);}
+</script>
+  <!--end advertise-->
 </body>
 </html>
