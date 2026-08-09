@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Logo Changer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f4f7f6;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* हेडर और नेविगेशन */
+        header {
+            background-color: #ffffff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* लोगो की स्टाइलिंग */
+        #site-logo {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #007bff;
+        }
+
+        .upload-btn-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .btn-upload {
+            border: 1px solid #007bff;
+            color: #007bff;
+            background-color: transparent;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-upload:hover {
+            background-color: #007bff;
+            color: #fff;
+        }
+
+        /* हिडन फ़ाइल इनपुट */
+        .upload-btn-wrapper input[type=file] {
+            font-size: 100px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 20px;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #555;
+            font-weight: 500;
+        }
+
+        /* मुख्य कंटेंट */
+        main {
+            flex: 1;
+            padding: 40px 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .card {
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        h1 {
+            margin-bottom: 15px;
+            color: #222;
+        }
+
+        p {
+            color: #666;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-container">
+            <!-- लोगो इमेज -->
+            <img id="site-logo" src="https://via.placeholder.com/60/007bff/ffffff?text=Logo" alt="Website Logo">
+            
+            <!-- लोगो बदलने का बटन -->
+            <div class="upload-btn-wrapper">
+                <button class="btn-upload">Change Logo</button>
+                <input type="file" id="logo-input" accept="image/*">
+            </div>
+        </div>
+
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Services</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <div class="card">
+            <h1>डायनेमिक लोगो चेंजर</h1>
+            <p>ऊपर हेडर में दिए गए <strong>"Change Logo"</strong> बटन पर क्लिक करके आप अपनी पसंद की कोई भी इमेज चुन सकते हैं। चुनने के तुरंत बाद लोगो बदल जाएगा।</p>
+        </div>
+    </main>
+
+    <script>
+        const logoInput = document.getElementById('logo-input');
+        const siteLogo = document.getElementById('site-logo');
+
+        logoInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                // चुना गया फाइल इमेज है या नहीं यह चेक करें
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+
+                    reader.onload = function(e) {
+                        // लोगो के src को नई इमेज डेटा से बदलें
+                        siteLogo.src = e.target.result;
+                    };
+
+                    reader.readAsDataURL(file);
+                } else {
+                    alert('कृपया केवल एक इमेज फ़ाइल (JPG, PNG, GIF) चुनें।');
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>
