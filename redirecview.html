@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Referral Link Manager & Redirector</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --danger: #ef4444;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --border: #e2e8f0;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); padding: 20px; line-height: 1.5; }
+
+    .container { max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+    .card { background: var(--card-bg); border-radius: 8px; padding: 20px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    h2 { margin-bottom: 15px; font-size: 1.25rem; color: #0f172a; }
+
+    .form-group { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 10px; margin-bottom: 10px; }
+    @media (max-width: 768px) { .form-group { grid-template-columns: 1fr; } }
+
+    input { padding: 10px; border: 1px solid var(--border); border-radius: 6px; outline: none; font-size: 14px; }
+    input:focus { border-color: var(--primary); }
+
+    button { padding: 10px 16px; border: none; border-radius: 6px; background: var(--primary); color: white; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    button:hover { background: var(--primary-hover); }
+    button.btn-danger { background: var(--danger); }
+    button.btn-danger:hover { background: #dc2626; }
+    button.btn-secondary { background: #64748b; }
+    button.btn-secondary:hover { background: #475569; }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { text-align: left; padding: 12px; border-bottom: 1px solid var(--border); font-size: 14px; }
+    th { background-color: #f1f5f9; }
+
+    .action-btns { display: flex; gap: 8px; }
+    .link-btn { color: var(--primary); text-decoration: underline; cursor: pointer; background: none; border: none; padding: 0; font-weight: normal; }
+
+    .frame-header { display: flex; justify-content: space-between; align-align: center; margin-bottom: 10px; }
+    .url-display { font-size: 12px; color: #64748b; word-break: break-all; }
+    iframe { width: 100%; height: 500px; border: 1px solid var(--border); border-radius: 6px; background: #fff; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Form Section -->
+  <div class="card">
+    <h2 id="form-title">Add / Edit Refer Code</h2>
+    <form id="refer-form">
+      <input type="hidden" id="item-id">
+      <div class="form-group">
+        <input type="text" id="platform-name" placeholder="Platform Name (e.g. Binance)" required>
+        <input type="url" id="base-url" placeholder="Real Page URL (https://site.com)" required>
+        <input type="text" id="refer-code" placeholder="Refer Code / Param (e.g. ?code=123 ya /ref123)" required>
+        <button type="submit" id="save-btn">Save Link</button>
+      </div>
+      <button type="button" id="cancel-btn" class="btn-secondary" style="display:none;" onclick="resetForm()">Cancel Edit</button>
+    </form>
+  </div>
+
+  <!-- Tag List / Links Table -->
+  <div class="card">
+    <h2>Saved Refer Links</h2>
+    <div style="overflow-x: auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Platform</th>
+            <th>Full Generated URL</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="links-list">
+          <!-- Dynamic Items -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Real Page + Refer Display Frame -->
+  <div class="card" id="display-card" style="display: none;">
+    <div class="frame-header">
+      <div>
+        <h2>Active Preview Page</h2>
+        <span class="url-display" id="active-url"></span>
+      </div>
+      <button class="btn-secondary" onclick="closeFrame()">Close View</button>
+    </div>
+    <iframe id="preview-frame" src="about:blank"></iframe>
+  </div>
+
+</div>
+
+<script>
+  let db;
+  const dbName = "ReferLinksDB";
+  const storeName = "referLinks";
+
+  const request = indexedDB.open(dbName, 1);
+
+  request.onupgradeneeded = (e) => {
+    db = e.target.result;
+    if (!db.objectStoreNames.contains(storeName)) {
+      db.createObjectStore(storeName, { keyPath: "id", autoIncrement: true });
+    }
+  };
+
+  request.onsuccess = (e) => {
+    db = e.target.result;
+    loadLinks();
+  };
+
+  request.onerror = (e) => console.error("IndexedDB Error:", e.target.error);
+
+  // Updated function: Completely removes 'ref=' logic
+  function buildFullUrl(baseUrl, referCode) {
+    let cleanBase = baseUrl.trim();
+    let cleanCode = referCode.trim();
+
+    // Agar Base URL ke end me / ho aur referCode start / se ho raha ho to handle karega
+    if (cleanBase.endsWith('/') && cleanCode.startsWith('/')) {
+      cleanCode = cleanCode.substring(1);
+    } 
+    // Agar query parameters ho aur URL path format me concatenate karna ho
+    else if (!cleanBase.endsWith('/') && !cleanCode.startsWith('?') && !cleanCode.startsWith('&') && !cleanCode.startsWith('/')) {
+      // Direct Query string check
+      if (cleanBase.includes('?')) {
+        cleanCode = '&' + cleanCode;
+      }
+    }
+
+    return `${cleanBase}${cleanCode}`;
+  }
+
+  function loadLinks() {
+    const tx = db.transaction(storeName, "readonly");
+    const store = tx.objectStore(storeName);
+    const getAll = store.getAll();
+
+    getAll.onsuccess = () => {
+      const listEl = document.getElementById("links-list");
+      listEl.innerHTML = "";
+
+      if (getAll.result.length === 0) {
+        listEl.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#94a3b8;">No referral links added yet.</td></tr>`;
+        return;
+      }
+
+      getAll.result.forEach((item) => {
+        const fullUrl = buildFullUrl(item.baseUrl, item.referCode);
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+          <td><strong>${escapeHtml(item.platform)}</strong></td>
+          <td>
+            <button class="link-btn" onclick="openPage('${escapeHtml(fullUrl)}')">${escapeHtml(fullUrl)}</button>
+          </td>
+          <td class="action-btns">
+            <button onclick="editItem(${item.id})">Edit</button>
+            <button class="btn-danger" onclick="deleteItem(${item.id})">Delete</button>
+          </td>
+        `;
+        listEl.appendChild(tr);
+      });
+    };
+  }
+
+  document.getElementById("refer-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const id = document.getElementById("item-id").value;
+    const platform = document.getElementById("platform-name").value.trim();
+    const baseUrl = document.getElementById("base-url").value.trim();
+    const referCode = document.getElementById("refer-code").value.trim();
+
+    const tx = db.transaction(storeName, "readwrite");
+    const store = tx.objectStore(storeName);
+
+    const data = { platform, baseUrl, referCode };
+    if (id) data.id = Number(id);
+
+    store.put(data);
+
+    tx.oncomplete = () => {
+      resetForm();
+      loadLinks();
+    };
+  });
+
+  function editItem(id) {
+    const tx = db.transaction(storeName, "readonly");
+    const store = tx.objectStore(storeName);
+    const getReq = store.get(id);
+
+    getReq.onsuccess = () => {
+      const item = getReq.result;
+      document.getElementById("item-id").value = item.id;
+      document.getElementById("platform-name").value = item.platform;
+      document.getElementById("base-url").value = item.baseUrl;
+      document.getElementById("refer-code").value = item.referCode;
+
+      document.getElementById("form-title").innerText = "Edit Refer Code";
+      document.getElementById("save-btn").innerText = "Update Link";
+      document.getElementById("cancel-btn").style.display = "inline-block";
+    };
+  }
+
+  function deleteItem(id) {
+    if (!confirm("Kya aap is link ko delete karna chahte hain?")) return;
+
+    const tx = db.transaction(storeName, "readwrite");
+    const store = tx.objectStore(storeName);
+    store.delete(id);
+
+    tx.oncomplete = () => loadLinks();
+  }
+
+  function resetForm() {
+    document.getElementById("item-id").value = "";
+    document.getElementById("refer-form").reset();
+    document.getElementById("form-title").innerText = "Add / Edit Refer Code";
+    document.getElementById("save-btn").innerText = "Save Link";
+    document.getElementById("cancel-btn").style.display = "none";
+  }
+
+  function openPage(fullUrl) {
+    const displayCard = document.getElementById("display-card");
+    const frame = document.getElementById("preview-frame");
+    const activeUrlText = document.getElementById("active-url");
+
+    activeUrlText.innerText = fullUrl;
+    frame.src = fullUrl;
+    displayCard.style.display = "block";
+
+    displayCard.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function closeFrame() {
+    const displayCard = document.getElementById("display-card");
+    const frame = document.getElementById("preview-frame");
+    frame.src = "about:blank";
+    displayCard.style.display = "none";
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+  }
+</script>
+
+</body>
+</html>
