@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Audio Router</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f4f4f9;
+        }
+        .card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 450px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        select, input, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button:hover { background-color: #0056b3; }
+    </style>
+</head>
+<body>
+const audio = document.getElementById('myAudio');
+
+// कॉल या ऑडियो लॉस के समय जबरदस्ती दोबारा प्ले करने का प्रयास
+audio.addEventListener('pause', () => {
+    // यदि यूज़र ने खुद पॉज नहीं किया है, तो री-प्ले करें
+    setTimeout(() => {
+        audio.play().catch(e => console.log("System blocked playback"));
+    }, 500);
+});
+<div class="card">
+    <h2>Audio Router</h2>
+    
+    <!-- 1. MP3 File Select -->
+    <label><b>1. Select MP3 File:</b></label>
+    <input type="file" id="audioFile" accept="audio/*">
+
+    <!-- 2. Select Output Device -->
+    <label><b>2. Select Output Device (Route to):</b></label>
+    <select id="audioOutput"></select>
+
+    <!-- 3. Controls -->
+    <button id="playBtn">Play Audio</button>
+    
+    <audio id="audioPlayer" controls style="display:none;"></audio>
+</div>
+
+<script>
+    const audioFile = document.getElementById('audioFile');
+    const audioOutput = document.getElementById('audioOutput');
+    const playBtn = document.getElementById('playBtn');
+    const audioPlayer = document.getElementById('audioPlayer');
+
+    // 1. Get available Audio Output Devices
+    async function getAudioDevices() {
+        try {
+            // Permission request to read device labels
+            await navigator.mediaDevices.getUserMedia({ audio: true });
+            
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const audioOutputs = devices.filter(device => device.kind === 'audiooutput');
+
+            audioOutput.innerHTML = '';
+            audioOutputs.forEach(device => {
+                const option = document.createElement('option');
+                option.value = device.deviceId;
+                option.text = device.label || `Speaker ${audioOutput.length + 1}`;
+                audioOutput.appendChild(option);
+            });
+        } catch (err) {
+            alert("Audio devices access error: " + err.message);
+        }
+    }
+
+    // Load devices on start
+    getAudioDevices();
+
+    // 2. Set Selected Output Device (setSinkId)
+    audioOutput.addEventListener('change', async () => {
+        const deviceId = audioOutput.value;
+        if (typeof audioPlayer.setSinkId !== 'undefined') {
+            try {
+                await audioPlayer.setSinkId(deviceId);
+                console.log(`Audio routed to device: ${deviceId}`);
+            } catch (err) {
+                console.error("Error routing audio:", err);
+            }
+        } else {
+            alert("Your browser does not support setSinkId() audio routing.");
+        }
+    });
+
+    // 3. Handle File Upload & Play
+    playBtn.addEventListener('click', () => {
+        const file = audioFile.files[0];
+        if (!file) {
+            alert("Please select an MP3 file first!");
+            return;
+        }
+
+        const fileURL = URL.createObjectURL(file);
+        audioPlayer.src = fileURL;
+        audioPlayer.play();
+    });
+</script>
+
+</body>
+</html>
