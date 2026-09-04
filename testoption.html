@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delta Exchange - Live IV & ATM Tracker</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; background-color: #0f172a; color: #f8fafc; }
+        h2 { color: #38bdf8; margin-bottom: 15px; }
+        .nav-box { background: #1e293b; border: 1px solid #334155; padding: 12px 20px; border-radius: 8px; font-size: 16px; font-weight: bold; margin-bottom: 20px; display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .nav-price { color: #4ade80; font-size: 18px; }
+        .controls { margin-bottom: 20px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
+        select, button, input { padding: 9px 12px; font-size: 14px; border-radius: 6px; border: 1px solid #475569; background-color: #1e293b; color: #f8fafc; outline: none; }
+        select:focus, input:focus { border-color: #38bdf8; }
+        button { background-color: #0284c7; color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        button:hover { background-color: #0369a1; }
+        .table-container { max-height: 550px; overflow-y: auto; border-radius: 8px; border: 1px solid #334155; }
+        table { width: 100%; border-collapse: collapse; background: #1e293b; }
+        th, td { padding: 12px; text-align: center; border-bottom: 1px solid #334155; }
+        th { background-color: #0f172a; color: #94a3b8; font-size: 14px; text-transform: uppercase; position: sticky; top: 0; z-index: 10; }
+        .call-iv { color: #4ade80; font-weight: bold; }
+        .put-iv { color: #f87171; font-weight: bold; }
+        .strike { color: #f8fafc; font-weight: bold; background-color: #0f172a; }
+        
+        /* ATM Strike Highlight */
+        .atm-row { background-color: #334155 !important; }
+        .atm-strike { background-color: #f59e0b !important; color: #000 !important; font-weight: 800; border-radius: 4px; padding: 4px 8px; }
+        .loading { font-weight: bold; color: #f59e0b; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+    <h2>Delta Exchange - Live Options IV & ATM Tracker</h2>
+
+    <div class="nav-box">
+        <span><span id="assetName">BTC</span> Spot / NAV:</span>
+        <span id="navPrice" class="nav-price">Loading...</span> USD
+        <span style="font-size: 12px; color: #94a3b8;">(Manual Price Override:</span>
+        <input type="number" id="manualNav" placeholder="e.g. 65000" style="width: 100px; padding: 4px 8px;" oninput="updateManualNAV()">
+        <span style="font-size: 12px; color: #94a3b8;">)</span>
+    </div>
+
+    <div class="controls">
+        <label for="asset">Asset:</label>
+        <select id="asset" onchange="initData()">
+            <option value="BTC">BTC</option>
+            <option value="ETH">ETH</option>
+        </select>
+
+        <label for="expiry">Expiry Date:</label>
+        <select id="expiry">
+            <option value="">Expiries Fetch Ho Rahi Hain...</option>
+        </select>
+
+        <button onclick="loadIVData()">Fetch Live IV</button>
+    </div>
+
+    <div id="status"></div>
+
+    <div class="table-container" id="tableContainer">
+        <table>
+            <thead>
+                <tr>
+                    <th>Call IV (%)</th>
+                    <th>Strike Price</th>
+                    <th>Put IV (%)</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <tr>
+                    <td colspan="3">Expiry select karke 'Fetch Live IV' dabayein.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const baseUrl = 'https://api.delta.exchange/v2';
+        const proxyUrl = 'https://corsproxy.io/?';
+        let cachedTickers = [];
+        let currentSpotPrice = 0;
+
+        async function apiFetch(endpoint) {
+            const url = `${baseUrl}${endpoint}`;
+            try {
+                let res = await fetch(url);
+                if (res.ok) return await res.json();
+            } catch (e) {
+                let res = await fetch(proxyUrl + encodeURIComponent(url));
+                if (res.ok) return await res.json();
+            }
+            throw new Error('API fetch failed');
+        }
+
+        async function initData() {
+            const asset = document.getElementById('asset').value;
+            document.getElementById('assetName').innerText = asset;
+            document.getElementById('navPrice').innerText = 'Loading...';
+            document.getElementById('manualNav').value = '';
+            document.getElementById('status').innerText = 'Data Sync ho raha hai...';
+            currentSpotPrice = 0;
+
+            try {
+                // 1. Fetch Tickers Data
+                const tickerRes = await apiFetch('/tickers');
+                if (tickerRes && tickerRes.result) {
+                    cachedTickers = tickerRes.result;
+                }
+
+                // 2. Fetch Spot Price / NAV (Primary Method)
+                let spotFound = false;
+                try {
+                    const indexRes = await apiFetch('/indices');
+                    if (indexRes && indexRes.result) {
+                        const spot = indexRes.result.find(i => i.symbol === `.D${asset}USD`);
+                        if (spot && parseFloat(spot.price) > 0) {
+                            currentSpotPrice = parseFloat(spot.price);
+                            spotFound = true;
+                        }
+                    }
+                } catch(e) { console.warn('Indices API fail, trying fallback...'); }
+
+                // 3. Fallback Spot Price extraction from Tickers
+                if (!spotFound && cachedTickers.length > 0) {
+                    const spotTicker = cachedTickers.find(t => t.symbol === `${asset}USD` || t.symbol === `MARK-${asset}-USDT`);
+                    if (spotTicker && spotTicker.mark_price) {
+                        currentSpotPrice = parseFloat(spotTicker.mark_price);
+                        spotFound = true;
+                    }
+                }
+
+                if (currentSpotPrice > 0) {
+                    document.getElementById('navPrice').innerText = currentSpotPrice.toLocaleString('en-US', { minimumFractionDigits: 2 });
+                } else {
+                    document.getElementById('navPrice').innerText = 'NAV Auto-fetch Fail (Enter Manually)';
+                }
+
+                populateExpiries(asset);
+                document.getElementById('status').innerText = '';
+            } catch (err) {
+                console.error(err);
+                document.getElementById('status').innerText = 'Error: Delta API se connect nahi ho saka.';
+            }
+        }
+
+        function updateManualNAV() {
+            const val = parseFloat(document.getElementById('manualNav').value);
+            if (!isNaN(val) && val > 0) {
+                currentSpotPrice = val;
+                document.getElementById('navPrice').innerText = val.toLocaleString('en-US', { minimumFractionDigits: 2 }) + ' (Manual)';
+            }
+        }
+
+        function populateExpiries(asset) {
+            const expirySelect = document.getElementById('expiry');
+            const expiries = new Set();
+
+            cachedTickers.forEach(item => {
+                if ((item.contract_type === 'call_options' || item.contract_type === 'put_options') && item.symbol.includes(`-${asset}-`)) {
+                    const parts = item.symbol.split('-');
+                    if (parts.length >= 4) {
+                        const dateStr = parts[3];
+                        if (dateStr && dateStr.length === 6) {
+                            const formatted = `20${dateStr.slice(4,6)}-${dateStr.slice(2,4)}-${dateStr.slice(0,2)}`;
+                            expiries.add(formatted);
+                        }
+                    }
+                }
+            });
+
+            const sortedExpiries = Array.from(expiries).sort();
+            expirySelect.innerHTML = '';
+
+            if (sortedExpiries.length === 0) {
+                expirySelect.innerHTML = '<option value="">No Active Expiries</option>';
+                return;
+            }
+
+            sortedExpiries.forEach(exp => {
+                const opt = document.createElement('option');
+                opt.value = exp;
+                opt.innerText = exp;
+                expirySelect.appendChild(opt);
+            });
+        }
+
+        function loadIVData() {
+            const asset = document.getElementById('asset').value;
+            const selectedExpiry = document.getElementById('expiry').value;
+            const tableBody = document.getElementById('tableBody');
+
+            if (!selectedExpiry) {
+                alert('Kripya expiry date select karein');
+                return;
+            }
+
+            const parts = selectedExpiry.split('-');
+            const searchDateStr = `${parts[2]}${parts[1]}${parts[0].slice(2,4)}`;
+            const strikesMap = {};
+
+            cachedTickers.forEach(item => {
+                if (item.symbol.includes(`-${asset}-`) && item.symbol.endsWith(`-${searchDateStr}`)) {
+                    const strike = parseFloat(item.strike_price);
+                    if (!strikesMap[strike]) {
+                        strikesMap[strike] = { strike: strike, callIV: '-', putIV: '-' };
+                    }
+
+                    let rawIv = item.mark_vol || (item.quotes && item.quotes.greeks && item.quotes.greeks.iv);
+
+                    if (rawIv !== null && rawIv !== undefined && rawIv > 0) {
+                        const formattedIV = (parseFloat(rawIv) * 100).toFixed(2) + '%';
+                        if (item.contract_type === 'call_options') {
+                            strikesMap[strike].callIV = formattedIV;
+                        } else if (item.contract_type === 'put_options') {
+                            strikesMap[strike].putIV = formattedIV;
+                        }
+                    }
+                }
+            });
+
+            const sortedStrikes = Object.values(strikesMap).sort((a, b) => a.strike - b.strike);
+            tableBody.innerHTML = '';
+
+            if (sortedStrikes.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="3">Is expiry ke liye data nahi mil saka.</td></tr>';
+                return;
+            }
+
+            // Closest ATM Strike Detection Logic
+            let closestStrike = null;
+            if (currentSpotPrice > 0) {
+                closestStrike = sortedStrikes[0].strike;
+                let minDiff = Math.abs(currentSpotPrice - closestStrike);
+
+                sortedStrikes.forEach(s => {
+                    const diff = Math.abs(currentSpotPrice - s.strike);
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        closestStrike = s.strike;
+                    }
+                });
+            }
+
+            // Render Rows
+            sortedStrikes.forEach(row => {
+                const tr = document.createElement('tr');
+                const isATM = (closestStrike !== null && row.strike === closestStrike);
+
+                if (isATM) {
+                    tr.className = 'atm-row';
+                    tr.id = 'atmRow';
+                }
+
+                tr.innerHTML = `
+                    <td class="call-iv">${row.callIV}</td>
+                    <td class="strike ${isATM ? 'atm-strike' : ''}">${row.strike} ${isATM ? '(ATM)' : ''}</td>
+                    <td class="put-iv">${row.putIV}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+
+            // Scroll to ATM
+            if (closestStrike !== null) {
+                setTimeout(() => {
+                    const atmElem = document.getElementById('atmRow');
+                    if (atmElem) {
+                        atmElem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }, 100);
+            }
+        }
+
+        window.onload = initData;
+    </script>
+</body>
+</html>
