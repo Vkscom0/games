@@ -1,0 +1,378 @@
+<div><br /></div><a href="https://9356116628.blogspot.com/2026/08/any-2-any-with-report.html?m=1" target="_blank">ANY2 ANY WITH DOWNLIAD/UPDATE</a><html lang="hi">
+<head>
+    <meta charset="UTF-8"></meta>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"></meta>
+    <title>Social Share & Log Manager</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #0f172a;
+            --border: #e2e8f0;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        body { background: var(--bg); color: var(--text); padding: 16px; line-height: 1.5; }
+        .container { max-width: 900px; margin: 0 auto; display: grid; gap: 20px; }
+
+        .card { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        h2 { font-size: 1.25rem; margin-bottom: 12px; color: #1e293b; }
+
+        .form-group { margin-bottom: 14px; }
+        label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem; }
+        input[type="text"], textarea { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.95rem; outline: none; }
+        textarea { height: 90px; resize: vertical; }
+
+        .img-preview { max-width: 150px; max-height: 150px; margin-top: 10px; border-radius: 6px; display: none; object-fit: cover; }
+
+        .btn-group { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+        button { padding: 8px 14px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: opacity 0.2s; }
+        button:hover { opacity: 0.9; }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-wa { background: #25D366; color: white; }
+        .btn-fb { background: #1877F2; color: white; }
+        .btn-insta { background: #E4405F; color: white; }
+        .btn-share { background: #8b5cf6; color: white; }
+        .btn-cancel { background: #64748b; color: white; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.88rem; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { background: #f1f5f9; font-weight: 600; }
+        .editable-cell { cursor: pointer; }
+        .editable-cell:focus { background: #fef08a; outline: 1px solid #eab308; }
+
+        .actions { display: flex; gap: 6px; }
+        .btn-sm { padding: 4px 8px; font-size: 0.75rem; }
+        .btn-danger { background: #ef4444; color: white; }
+
+        @media (max-width: 600px) {
+            .btn-group { flex-direction: column; }
+            button { width: 100%; }
+            table, thead, tbody, th, td, tr { display: block; }
+            tr { border-bottom: 2px solid var(--border); margin-bottom: 10px; }
+            td { text-align: right; padding-left: 50%; position: relative; }
+            td::before { content: attr(data-label); position: absolute; left: 10px; font-weight: 600; text-align: left; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Message Form -->
+    <div class="card">
+        <h2 id="form-title">Naya Message Save Karein</h2>
+        <input id="msg-id" type="hidden" />
+        <div class="form-group">
+            <label>Title / Identifier</label>
+            <input id="msg-title" placeholder="e.g. Promo Offer 1" type="text" />
+        </div>
+        <div class="form-group">
+            <label>Message Content</label>
+            <textarea id="msg-text" placeholder="Apna message yahan likhein..."></textarea>
+        </div>
+        <div class="form-group">
+            <label>Image Choose Karein (Optional)</label>
+            <input accept="image/*" id="msg-image" type="file" />
+            <img alt="Preview" class="img-preview" id="img-preview" />
+        </div>
+        <div class="btn-group">
+            <button class="btn-primary" onclick="saveMessage()">Save Message</button>
+            <button class="btn-cancel" id="cancel-btn" onclick="resetForm()" style="display: none;">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Saved Messages List -->
+    <div class="card">
+        <h2>Saved Messages &amp; Share</h2>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Message</th>
+                        <th>Image</th>
+                        <th>Actions / Share</th>
+                    </tr>
+                </thead>
+                <tbody id="msg-list"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Editable Action Logs -->
+    <div class="card">
+        <h2>Action Logs (Click to Edit)</h2>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Platform</th>
+                        <th>Message Title</th>
+                        <th>Status / Notes</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="log-list"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    let db;
+    let currentBase64Image = "";
+
+    // 1. Initialize IndexedDB
+    const request = indexedDB.open("SocialShareDB", 1);
+
+    request.onupgradeneeded = (e) => {
+        db = e.target.result;
+        if (!db.objectStoreNames.contains("messages")) {
+            db.createObjectStore("messages", { keyPath: "id", autoIncrement: true });
+        }
+        if (!db.objectStoreNames.contains("logs")) {
+            db.createObjectStore("logs", { keyPath: "id", autoIncrement: true });
+        }
+    };
+
+    request.onsuccess = (e) => {
+        db = e.target.result;
+        loadMessages();
+        loadLogs();
+    };
+
+    // Convert Image to Base64
+    document.getElementById('msg-image').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                currentBase64Image = evt.target.result;
+                const preview = document.getElementById('img-preview');
+                preview.src = currentBase64Image;
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Save or Update Message
+    function saveMessage() {
+        const id = document.getElementById('msg-id').value;
+        const title = document.getElementById('msg-title').value.trim();
+        const text = document.getElementById('msg-text').value.trim();
+
+        if (!title || !text) {
+            alert("Kripya Title aur Message dono bharein!");
+            return;
+        }
+
+        const tx = db.transaction("messages", "readwrite");
+        const store = tx.objectStore("messages");
+
+        const messageData = {
+            title: title,
+            text: text,
+            image: currentBase64Image,
+            updatedAt: new Date().toLocaleString()
+        };
+
+        if (id) {
+            messageData.id = Number(id);
+            store.put(messageData);
+        } else {
+            store.add(messageData);
+        }
+
+        tx.oncomplete = () => {
+            resetForm();
+            loadMessages();
+        };
+    }
+
+    // Load Saved Messages
+    function loadMessages() {
+        const tx = db.transaction("messages", "readonly");
+        const store = tx.objectStore("messages");
+        const request = store.getAll();
+
+        request.onsuccess = () => {
+            const list = document.getElementById('msg-list');
+            list.innerHTML = "";
+            request.result.forEach(msg => {
+                const imgHtml = msg.image ? `<img src="${msg.image}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;">` : 'No Image';
+                list.innerHTML += `
+                    <tr>
+                        <td data-label="Title"><b>${escapeHtml(msg.title)}</b></td>
+                        <td data-label="Message">${escapeHtml(msg.text)}</td>
+                        <td data-label="Image">${imgHtml}</td>
+                        <td data-label="Actions">
+                            <div class="actions" style="flex-wrap:wrap;">
+                                <button class="btn-sm btn-wa" onclick="shareToPlatform(${msg.id}, 'WhatsApp')">WA</button>
+                                <button class="btn-sm btn-fb" onclick="shareToPlatform(${msg.id}, 'Facebook')">FB</button>
+                                <button class="btn-sm btn-insta" onclick="shareToPlatform(${msg.id}, 'Instagram')">Insta</button>
+                                <button class="btn-sm btn-share" onclick="shareNative(${msg.id})">Web Share</button>
+                                <button class="btn-sm btn-primary" onclick="editMessage(${msg.id})">Edit</button>
+                                <button class="btn-sm btn-danger" onclick="deleteMessage(${msg.id})">Del</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+        };
+    }
+
+    // Edit Message
+    function editMessage(id) {
+        const tx = db.transaction("messages", "readonly");
+        const store = tx.objectStore("messages");
+        store.get(id).onsuccess = (e) => {
+            const msg = e.target.result;
+            document.getElementById('msg-id').value = msg.id;
+            document.getElementById('msg-title').value = msg.title;
+            document.getElementById('msg-text').value = msg.text;
+            currentBase64Image = msg.image || "";
+            
+            const preview = document.getElementById('img-preview');
+            if (currentBase64Image) {
+                preview.src = currentBase64Image;
+                preview.style.display = 'block';
+            } else {
+                preview.style.display = 'none';
+            }
+
+            document.getElementById('form-title').innerText = "Edit Message";
+            document.getElementById('cancel-btn').style.display = "inline-block";
+        };
+    }
+
+    function resetForm() {
+        document.getElementById('msg-id').value = "";
+        document.getElementById('msg-title').value = "";
+        document.getElementById('msg-text').value = "";
+        document.getElementById('msg-image').value = "";
+        document.getElementById('img-preview').style.display = 'none';
+        currentBase64Image = "";
+        document.getElementById('form-title').innerText = "Naya Message Save Karein";
+        document.getElementById('cancel-btn').style.display = "none";
+    }
+
+    function deleteMessage(id) {
+        if (confirm("Kya aap is message ko delete karna chahte hain?")) {
+            const tx = db.transaction("messages", "readwrite");
+            tx.objectStore("messages").delete(id);
+            tx.oncomplete = () => loadMessages();
+        }
+    }
+
+    // Web Share API (native share with image support)
+    async function shareNative(id) {
+        const tx = db.transaction("messages", "readonly");
+        tx.objectStore("messages").get(id).onsuccess = async (e) => {
+            const msg = e.target.result;
+            let shareData = { title: msg.title, text: msg.text };
+
+            if (msg.image) {
+                try {
+                    const blob = await (await fetch(msg.image)).blob();
+                    const file = new File([blob], 'share.png', { type: blob.type });
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        shareData.files = [file];
+                    }
+                } catch (err) { console.log("File prepare failed", err); }
+            }
+
+            if (navigator.share) {
+                try {
+                    await navigator.share(shareData);
+                    addLog("Native Share", msg.title, "Successfully shared via Web Share API");
+                } catch (err) {
+                    addLog("Native Share", msg.title, "Cancelled / Failed");
+                }
+            } else {
+                alert("Aapka browser Direct Web Share support nahi karta. Niche diye button se link copy/share karein.");
+            }
+        };
+    }
+
+    // Direct Platform Specific Sharing
+    function shareToPlatform(id, platform) {
+        const tx = db.transaction("messages", "readonly");
+        tx.objectStore("messages").get(id).onsuccess = (e) => {
+            const msg = e.target.result;
+            const encodedText = encodeURIComponent(msg.text);
+
+            if (platform === 'WhatsApp') {
+                window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
+            } else if (platform === 'Facebook') {
+                window.open(`https://www.facebook.com/sharer/sharer.php?quote=${encodedText}`, '_blank');
+            } else if (platform === 'Instagram') {
+                navigator.clipboard.writeText(msg.text);
+                alert("Message text copy ho gaya hai! Instagram open ho raha hai, wahan paste kar dein.");
+                window.open(`https://www.instagram.com/`, '_blank');
+            }
+
+            addLog(platform, msg.title, "Shared/Opened Link");
+        };
+    }
+
+    // 2. Action Logs Functionality
+    function addLog(platform, msgTitle, note) {
+        const tx = db.transaction("logs", "readwrite");
+        const log = {
+            timestamp: new Date().toLocaleString(),
+            platform: platform,
+            msgTitle: msgTitle,
+            note: note
+        };
+        tx.objectStore("logs").add(log);
+        tx.oncomplete = () => loadLogs();
+    }
+
+    function loadLogs() {
+        const tx = db.transaction("logs", "readonly");
+        const store = tx.objectStore("logs");
+        const request = store.getAll();
+
+        request.onsuccess = () => {
+            const list = document.getElementById('log-list');
+            list.innerHTML = "";
+            request.result.reverse().forEach(log => {
+                list.innerHTML += `
+                    <tr>
+                        <td data-label="Timestamp">${log.timestamp}</td>
+                        <td data-label="Platform"><span class="editable-cell" contenteditable="true" onblur="updateLog(${log.id}, 'platform', this.innerText)">${escapeHtml(log.platform)}</span></td>
+                        <td data-label="Title"><span class="editable-cell" contenteditable="true" onblur="updateLog(${log.id}, 'msgTitle', this.innerText)">${escapeHtml(log.msgTitle)}</span></td>
+                        <td data-label="Note"><span class="editable-cell" contenteditable="true" onblur="updateLog(${log.id}, 'note', this.innerText)">${escapeHtml(log.note)}</span></td>
+                        <td data-label="Action"><button class="btn-sm btn-danger" onclick="deleteLog(${log.id})">Del</button></td>
+                    </tr>
+                `;
+            });
+        };
+    }
+
+    function updateLog(id, field, value) {
+        const tx = db.transaction("logs", "readwrite");
+        const store = tx.objectStore("logs");
+        store.get(id).onsuccess = (e) => {
+            const log = e.target.result;
+            log[field] = value.trim();
+            store.put(log);
+        };
+    }
+
+    function deleteLog(id) {
+        const tx = db.transaction("logs", "readwrite");
+        tx.objectStore("logs").delete(id);
+        tx.oncomplete = () => loadLogs();
+    }
+
+    function escapeHtml(text) {
+        return text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;") : "";
+    }
+</script>
+</body>
+</html>
