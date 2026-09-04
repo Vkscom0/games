@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <title>Crypto ATM Option Tracker</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f4f6f8; }
+    .card { background: #fff; padding: 20px; border-radius: 8px; max-width: 450px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    .val { font-weight: bold; color: #2c3e50; }
+    button { background: #3498db; color: #fff; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h2>BTC ATM Option Price (Deribit)</h2>
+  <button onclick="fetchATMOption()">डेटा अपडेट करें</button>
+  <hr>
+  <p>BTC Current Price: <span id="spot" class="val">Loading...</span></p>
+  <p>ATM Strike Price: <span id="strike" class="val">-</span></p>
+  <p>ATM Call (CE) Price: <span id="ce-price" class="val">-</span></p>
+  <p>ATM Put (PE) Price: <span id="pe-price" class="val">-</span></p>
+</div>
+
+<script>
+async function fetchATMOption() {
+  try {
+    // 1. BTC Current Index Price निकालें
+    const indexRes = await fetch("https://www.deribit.com/api/v2/public/get_index_price?index_name=btc_usd");
+    const indexData = await indexRes.json();
+    const spotPrice = indexData.result.index_price;
+    document.getElementById("spot").innerText = "$" + spotPrice.toFixed(2);
+
+    // 2. 500 Strike Interval के हिसाब से सबसे नजदीकी ATM Strike राउंड करें
+    const atmStrike = Math.round(spotPrice / 500) * 500;
+    document.getElementById("strike").innerText = "$" + atmStrike;
+
+    // 3. आज की डेट कोड में फ़ॉर्मेट करें (उदाहरण: 17AUG26)
+    const today = new Date();
+    const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+    const day = String(today.getDate()).padStart(2, '0');
+    const month = months[today.getMonth()];
+    const year = String(today.getFullYear()).slice(-2);
+    const dateStr = `${day}${month}${year}`;
+
+    // Instrument Symbol तैयार करें (उदा: BTC-17AUG26-95000-C)
+    const callSymbol = `BTC-${dateStr}-${atmStrike}-C`;
+    const putSymbol = `BTC-${dateStr}-${atmStrike}-P`;
+
+    // 4. Orderbook API से प्रीमियम डेटा प्राप्त करें
+    const callRes = await fetch(`https://www.deribit.com/api/v2/public/get_order_book?instrument_name=${callSymbol}`);
+    const callData = await callRes.json();
+
+    const putRes = await fetch(`https://www.deribit.com/api/v2/public/get_order_book?instrument_name=${putSymbol}`);
+    const putData = await putRes.json();
+
+    // परिणाम डिस्प्ले करें
+    document.getElementById("ce-price").innerText = callData.result ? `$${(callData.result.mark_price * spotPrice).toFixed(2)}` : "उपलब्ध नहीं";
+    document.getElementById("pe-price").innerText = putData.result ? `$${(putData.result.mark_price * spotPrice).toFixed(2)}` : "उपलब्ध नहीं";
+
+  } catch (err) {
+    console.error("Error fetching data:", err);
+  }
+}
+
+// पेज लोड होते ही रन करें
+fetchATMOption();
+</script>
+
+</body>
+</html>
