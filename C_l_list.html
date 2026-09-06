@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <title>Combination Lock List</title>
+  <style>
+    body {
+      background-color: #1a1a1a;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      font-family: sans-serif;
+    }
+
+    /* लॉक का बाहरी ढांचा */
+    .lock-container {
+      display: flex;
+      background: linear-gradient(145deg, #2d2d2d, #1b1b1b);
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.7), inset 0 0 10px rgba(255,255,255,0.1);
+      border: 4px solid #444;
+    }
+
+    /* नंबरों का पहिया (Wheel) */
+    .wheel {
+      width: 60px;
+      height: 180px;
+      margin: 0 10px;
+      overflow-y: scroll;
+      scrollbar-width: none; /* Firefox */
+      background: #000;
+      border-radius: 8px;
+      border: 2px solid #555;
+      box-shadow: inset 0 15px 15px rgba(0,0,0,0.9), inset 0 -15px 15px rgba(0,0,0,0.9);
+      scroll-snap-type: y mandatory;
+    }
+
+    .wheel::-webkit-scrollbar {
+      display: none; /* Chrome, Safari */
+    }
+
+    /* लिस्ट के आइटम्स */
+    .wheel ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .wheel li {
+      height: 60px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 2rem;
+      font-weight: bold;
+      color: #e0e0e0;
+      scroll-snap-align: center;
+      user-select: none;
+    }
+
+    /* ऊपर और नीचे खाली जगह ताकि नंबर बीच में आ सकें */
+    .spacer {
+      height: 60px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="lock-container">
+  <div class="wheel">
+    <ul>
+      <li class="spacer"></li>
+      <li>0</li><li>1</li><li>2</li><li>3</li><li>4</li>
+      <li>5</li><li>6</li><li>7</li><li>8</li><li>9</li>
+      <li class="spacer"></li>
+    </ul>
+  </div>
+
+  <div class="wheel">
+    <ul>
+      <li class="spacer"></li>
+      <li>0</li><li>1</li><li>2</li><li>3</li><li>4</li>
+      <li>5</li><li>6</li><li>7</li><li>8</li><li>9</li>
+      <li class="spacer"></li>
+    </ul>
+  </div>
+
+  <div class="wheel">
+    <ul>
+      <li class="spacer"></li>
+      <li>0</li><li>1</li><li>2</li><li>3</li><li>4</li>
+      <li>5</li><li>6</li><li>7</li><li>8</li><li>9</li>
+      <li class="spacer"></li>
+    </ul>
+  </div>
+</div>
+
+</body>
+</html>
