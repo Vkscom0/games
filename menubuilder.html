@@ -1,8 +1,8 @@
-
+<!DOCTYPE html>
 <html lang="hi">
 <head>
-    <meta charset="UTF-8"></meta>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"></meta>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sell and Earn Menu</title>
     <style>
         :root {
@@ -310,7 +310,7 @@
             <button class="btn btn-success" onclick="exportCSV()">📤 Export CSV</button>
             <button class="btn btn-warning" onclick="triggerCSVImport()">📥 Import CSV</button>
             <button class="btn btn-outline" onclick="downloadStandaloneHTML()">💾 Export HTML</button>
-            <input accept=".csv" id="csvFileInput" onchange="importCSV(event)" type="file" />
+            <input type="file" id="csvFileInput" accept=".csv" onchange="importCSV(event)" />
         </div>
 
         <div class="menu-content" id="menuContent"></div>
@@ -323,38 +323,39 @@
                 <button class="close-btn" onclick="closeModal()">✕</button>
             </div>
             <form id="itemForm" onsubmit="handleFormSubmit(event)">
-                <input id="itemId" type="hidden" />
+                <input type="hidden" id="itemId" />
                 <div class="form-group">
                     <label for="categoryInput">Category Name</label>
-                    <input class="form-control" id="categoryInput" list="categorySuggestions" placeholder="Motor, Health &amp; Life etc." required="" type="text" />
+                    <input type="text" id="categoryInput" class="form-control" placeholder="Motor, Health & Life etc." required list="categorySuggestions">
                     <datalist id="categorySuggestions"></datalist>
                 </div>
                 <div class="form-group">
                     <label for="titleInput">Item Title</label>
-                    <input class="form-control" id="titleInput" placeholder="Bike Insurance" required="" type="text" />
+                    <input type="text" id="titleInput" class="form-control" placeholder="Bike Insurance" required>
                 </div>
                 <div class="form-group">
                     <label for="iconInput">Icon (Emoji ya Image URL)</label>
-                    <input class="form-control" id="iconInput" placeholder="🛵 ya https://example.com/icon.png" required="" type="text" />
+                    <input type="text" id="iconInput" class="form-control" placeholder="🛵 ya https://example.com/icon.png" required>
                 </div>
                 <div class="form-group">
                     <label for="urlInput">Target Link (URL)</label>
-                    <input class="form-control" id="urlInput" placeholder="https://example.com" type="text" value="#" />
+                    <input type="text" id="urlInput" class="form-control" placeholder="https://example.com" value="#">
                 </div>
                 <div class="form-group">
                     <label for="badgeInput">Badge Text (Optional)</label>
-                    <input class="form-control" id="badgeInput" placeholder="NEW, 50% OFF" type="text" />
+                    <input type="text" id="badgeInput" class="form-control" placeholder="NEW, 50% OFF">
                 </div>
                 <div class="form-actions">
-                    <button class="btn btn-outline" onclick="closeModal()" type="button">Cancel</button>
-                    <button class="btn btn-primary" type="submit">Save Item</button>
+                    <button type="button" class="btn btn-outline" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Item</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <script>
-        const defaultMenuItems = [
+    <script id="mainScript">
+        // Export time par is array mei updated data inject hoga
+        let defaultMenuItems = [
             { id: 1, category: "Motor", title: "Bike Insurance", icon: "🛵", url: "#bike", badge: "" },
             { id: 2, category: "Motor", title: "Car Insurance", icon: "🚗", url: "#car", badge: "" },
             { id: 3, category: "Motor", title: "Comm. Vehicle", icon: "🚚", url: "#comm-vehicle", badge: "" },
@@ -381,17 +382,21 @@
         function initDB() {
             return new Promise((resolve, reject) => {
                 const request = indexedDB.open("SellAndEarnDB", 1);
+                
                 request.onupgradeneeded = (e) => {
                     const dbInstance = e.target.result;
                     if (!dbInstance.objectStoreNames.contains("items")) {
-                        const store = dbInstance.createObjectStore("items", { keyPath: "id", autoIncrement: true });
-                        defaultMenuItems.forEach(item => store.add(item));
+                        dbInstance.createObjectStore("items", { keyPath: "id", autoIncrement: true });
                     }
                 };
+
                 request.onsuccess = (e) => {
                     db = e.target.result;
-                    loadItemsFromDB().then(resolve);
+                    
+                    // Always overwrite database with the embedded defaultMenuItems array
+                    clearAndBulkInsert(defaultMenuItems).then(resolve);
                 };
+
                 request.onerror = (e) => reject(e);
             });
         }
@@ -403,23 +408,11 @@
                 const request = store.getAll();
                 request.onsuccess = () => {
                     menuItems = request.result;
-                    if (menuItems.length === 0) {
-                        seedDefaultData().then(() => resolve());
-                    } else {
-                        renderMenu();
-                        updateCategorySuggestions();
-                        resolve();
-                    }
+                    renderMenu();
+                    updateCategorySuggestions();
+                    resolve();
                 };
             });
-        }
-
-        async function seedDefaultData() {
-            const tx = db.transaction("items", "readwrite");
-            const store = tx.objectStore("items");
-            defaultMenuItems.forEach(item => store.add(item));
-            await new Promise(r => tx.oncomplete = r);
-            return loadItemsFromDB();
         }
 
         function saveItemToDB(item) {
@@ -456,11 +449,7 @@
                 const tx = db.transaction("items", "readwrite");
                 const store = tx.objectStore("items");
                 store.clear().onsuccess = () => {
-                    items.forEach(item => {
-                        const cleanItem = { ...item };
-                        if (typeof cleanItem.id === 'string') cleanItem.id = Number(cleanItem.id) || Date.now();
-                        store.add(cleanItem);
-                    });
+                    items.forEach(item => store.add(item));
                 };
                 tx.oncomplete = () => {
                     loadItemsFromDB();
@@ -629,7 +618,7 @@
             const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
             const link = document.createElement("a");
             link.href = encodeURI(csvContent);
-            link.download = "menu_data.csv";
+            link.download = "sell_and_earn_menu.csv";
             link.click();
         }
 
@@ -671,12 +660,32 @@
             e.target.value = '';
         }
 
+        // --- FULLY REWRITTEN WORKING EXPORT FUNCTION ---
         function downloadStandaloneHTML() {
-            const blob = new Blob(["<!DOCTYPE html>\n" + document.documentElement.outerHTML], { type: "text/html;charset=utf-8" });
-            const a = document.createElement("a");
-            a.href = URL.createObjectURL(blob);
-            a.download = "menu_app.html";
-            a.click();
+            const tx = db.transaction("items", "readonly");
+            const store = tx.objectStore("items");
+            const req = store.getAll();
+
+            req.onsuccess = function() {
+                const latestData = req.result;
+
+                // Take full source code of current page
+                let docString = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+
+                // Replace defaultMenuItems array inside HTML string with formatted latest data
+                const updatedDoc = docString.replace(
+                    /let defaultMenuItems = \[[\s\S]*?\];/,
+                    `let defaultMenuItems = ${JSON.stringify(latestData, null, 4)};`
+                );
+
+                const blob = new Blob([updatedDoc], { type: "text/html;charset=utf-8" });
+                const a = document.createElement("a");
+                a.href = URL.createObjectURL(blob);
+                a.download = "sell_and_earn_updated.html";
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            };
         }
 
         window.addEventListener("DOMContentLoaded", () => {
