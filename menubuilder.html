@@ -339,7 +339,7 @@
                 </div>
                 <div class="form-group">
                     <label for="urlInput">Target Link (URL)</label>
-                    <input type="text" id="urlInput" class="form-control" placeholder="https://example.com" value="#">
+                    <input type="text" id="urlInput" class="form-control" placeholder="https://google.com ya #bike" value="#">
                 </div>
                 <div class="form-group">
                     <label for="badgeInput">Badge Text (Optional)</label>
@@ -484,17 +484,20 @@
                     const card = document.createElement("a");
                     card.className = "menu-item-card";
                     card.href = item.url || "#";
-                    
-                    if (item.url && item.url !== "#") {
-                        card.onclick = (e) => { if (isAdmin) e.preventDefault(); };
-                    } else {
-                        card.onclick = (e) => {
-                            if (!isAdmin) {
-                                e.preventDefault();
-                                alert(`Aapne "${item.title}" par click kiya!`);
-                            }
-                        };
+
+                    // Fixed URL Handling
+                    if (item.url && item.url.startsWith("http")) {
+                        card.target = "_blank"; // Opens external website in new tab
                     }
+
+                    card.onclick = (e) => {
+                        if (isAdmin) {
+                            e.preventDefault();
+                        } else if (!item.url || item.url === "#" || item.url.startsWith("#")) {
+                            e.preventDefault();
+                            alert(`Aapne "${item.title}" par click kiya! Target link: ${item.url || 'None'}`);
+                        }
+                    };
 
                     let iconHTML = item.icon.startsWith("http") || item.icon.startsWith("data:image")
                         ? `<img src="${item.icon}" alt="${item.title}">`
@@ -657,8 +660,11 @@
             e.target.value = '';
         }
 
-        // --- CLEAN EXPORT HTML METHOD ---
+        // --- EXPORT WITH CLEAN ADMIN MODE STATE ---
         function downloadStandaloneHTML() {
+            const wasAdmin = isAdmin;
+            if (isAdmin) toggleAdminMode(); // Temporarily exit admin mode for clean clean DOM export
+
             const tx = db.transaction("items", "readonly");
             const store = tx.objectStore("items");
             const req = store.getAll();
@@ -666,85 +672,22 @@
             req.onsuccess = function() {
                 const latestData = req.result;
 
-                // Build full clean source string directly
-                const fullHTML = `<!DOCTYPE html>
-<html lang="hi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sell and Earn Menu</title>
-    ${document.head.querySelector("style").outerHTML}
-</head>
-<body>
-    <div class="app-container" id="appContainer">
-        <div class="app-header">
-            <h1>Sell and Earn</h1>
-            <button class="admin-toggle-btn" id="adminToggleBtn" onclick="toggleAdminMode()">⚙️ Admin</button>
-        </div>
+                let docString = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
 
-        <div class="toolbar" id="toolbar" style="display: none;">
-            <button class="btn btn-primary" onclick="openModal('add')">➕ Item Add Karein</button>
-            <button class="btn btn-success" onclick="exportCSV()">📤 Export CSV</button>
-            <button class="btn btn-warning" onclick="triggerCSVImport()">📥 Import CSV</button>
-            <button class="btn btn-outline" onclick="downloadStandaloneHTML()">💾 Export HTML</button>
-            <input type="file" id="csvFileInput" accept=".csv" onchange="importCSV(event)" />
-        </div>
+                const updatedDoc = docString.replace(
+                    /let defaultMenuItems = \[[\s\S]*?\];/,
+                    `let defaultMenuItems = ${JSON.stringify(latestData, null, 4)};`
+                );
 
-        <div class="menu-content" id="menuContent"></div>
-    </div>
-
-    <div class="modal-overlay" id="itemModal">
-        <div class="modal-card">
-            <div class="modal-header">
-                <h3 id="modalTitle">Item Details</h3>
-                <button class="close-btn" onclick="closeModal()">✕</button>
-            </div>
-            <form id="itemForm" onsubmit="handleFormSubmit(event)">
-                <input type="hidden" id="itemId" />
-                <div class="form-group">
-                    <label for="categoryInput">Category Name</label>
-                    <input type="text" id="categoryInput" class="form-control" placeholder="Motor, Health & Life etc." required list="categorySuggestions">
-                    <datalist id="categorySuggestions"></datalist>
-                </div>
-                <div class="form-group">
-                    <label for="titleInput">Item Title</label>
-                    <input type="text" id="titleInput" class="form-control" placeholder="Bike Insurance" required>
-                </div>
-                <div class="form-group">
-                    <label for="iconInput">Icon (Emoji ya Image URL)</label>
-                    <input type="text" id="iconInput" class="form-control" placeholder="🛵 ya https://example.com/icon.png" required>
-                </div>
-                <div class="form-group">
-                    <label for="urlInput">Target Link (URL)</label>
-                    <input type="text" id="urlInput" class="form-control" placeholder="https://example.com" value="#">
-                </div>
-                <div class="form-group">
-                    <label for="badgeInput">Badge Text (Optional)</label>
-                    <input type="text" id="badgeInput" class="form-control" placeholder="NEW, 50% OFF">
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-outline" onclick="closeModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Item</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <script id="mainScript">
-        let defaultMenuItems = ${JSON.stringify(latestData, null, 4)};
-
-        ${document.getElementById("mainScript").innerHTML.replace(/let defaultMenuItems = \[[\s\S]*?\];\n/, '')}
-    <\/script>
-</body>
-</html>`;
-
-                const blob = new Blob([fullHTML], { type: "text/html;charset=utf-8" });
+                const blob = new Blob([updatedDoc], { type: "text/html;charset=utf-8" });
                 const a = document.createElement("a");
                 a.href = URL.createObjectURL(blob);
                 a.download = "sell_and_earn_updated.html";
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
+
+                if (wasAdmin) toggleAdminMode(); // Restore admin mode if it was active
             };
         }
 
