@@ -354,6 +354,7 @@
     </div>
 
     <script id="mainScript">
+        // Export time par is array mei updated data inject hoga
         let defaultMenuItems = [
             { id: 1, category: "Motor", title: "Bike Insurance", icon: "🛵", url: "#bike", badge: "" },
             { id: 2, category: "Motor", title: "Car Insurance", icon: "🚗", url: "#car", badge: "" },
@@ -381,17 +382,21 @@
         function initDB() {
             return new Promise((resolve, reject) => {
                 const request = indexedDB.open("SellAndEarnDB", 1);
+                
                 request.onupgradeneeded = (e) => {
                     const dbInstance = e.target.result;
                     if (!dbInstance.objectStoreNames.contains("items")) {
-                        const store = dbInstance.createObjectStore("items", { keyPath: "id", autoIncrement: true });
-                        defaultMenuItems.forEach(item => store.add(item));
+                        dbInstance.createObjectStore("items", { keyPath: "id", autoIncrement: true });
                     }
                 };
+
                 request.onsuccess = (e) => {
                     db = e.target.result;
-                    loadItemsFromDB().then(resolve);
+                    
+                    // Always overwrite database with the embedded defaultMenuItems array
+                    clearAndBulkInsert(defaultMenuItems).then(resolve);
                 };
+
                 request.onerror = (e) => reject(e);
             });
         }
@@ -403,23 +408,11 @@
                 const request = store.getAll();
                 request.onsuccess = () => {
                     menuItems = request.result;
-                    if (menuItems.length === 0) {
-                        seedDefaultData().then(() => resolve());
-                    } else {
-                        renderMenu();
-                        updateCategorySuggestions();
-                        resolve();
-                    }
+                    renderMenu();
+                    updateCategorySuggestions();
+                    resolve();
                 };
             });
-        }
-
-        async function seedDefaultData() {
-            const tx = db.transaction("items", "readwrite");
-            const store = tx.objectStore("items");
-            defaultMenuItems.forEach(item => store.add(item));
-            await new Promise(r => tx.oncomplete = r);
-            return loadItemsFromDB();
         }
 
         function saveItemToDB(item) {
@@ -456,11 +449,7 @@
                 const tx = db.transaction("items", "readwrite");
                 const store = tx.objectStore("items");
                 store.clear().onsuccess = () => {
-                    items.forEach(item => {
-                        const cleanItem = { ...item };
-                        if (typeof cleanItem.id === 'string') cleanItem.id = Number(cleanItem.id) || Date.now();
-                        store.add(cleanItem);
-                    });
+                    items.forEach(item => store.add(item));
                 };
                 tx.oncomplete = () => {
                     loadItemsFromDB();
@@ -671,46 +660,25 @@
             e.target.value = '';
         }
 
-        // --- FIXED EXPORT HTML FUNCTION ---
+        // --- FULLY REWRITTEN WORKING EXPORT FUNCTION ---
         function downloadStandaloneHTML() {
-            // Read latest IndexedDB data
             const tx = db.transaction("items", "readonly");
             const store = tx.objectStore("items");
             const req = store.getAll();
 
             req.onsuccess = function() {
                 const latestData = req.result;
-                let scriptContent = document.getElementById("mainScript").innerHTML;
-                
-                // Replace defaultMenuItems array in script with updated IndexedDB data
-                const updatedScript = scriptContent.replace(
+
+                // Take full source code of current page
+                let docString = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+
+                // Replace defaultMenuItems array inside HTML string with formatted latest data
+                const updatedDoc = docString.replace(
                     /let defaultMenuItems = \[[\s\S]*?\];/,
                     `let defaultMenuItems = ${JSON.stringify(latestData, null, 4)};`
                 );
 
-                // Clone full HTML DOM structure
-                const htmlCopy = document.documentElement.cloneNode(true);
-                
-                // Reset admin mode visuals in exported HTML
-                const toolbar = htmlCopy.querySelector("#toolbar");
-                if (toolbar) toolbar.style.display = "none";
-                const adminBtn = htmlCopy.querySelector("#adminToggleBtn");
-                if (adminBtn) {
-                    adminBtn.textContent = "⚙️ Admin";
-                    adminBtn.style.background = "#f1f5f9";
-                    adminBtn.style.color = "var(--primary)";
-                }
-                const menuContent = htmlCopy.querySelector("#menuContent");
-                if (menuContent) menuContent.innerHTML = "";
-
-                // Inject updated script into cloned HTML
-                const scriptTag = htmlCopy.querySelector("#mainScript");
-                if (scriptTag) scriptTag.innerHTML = updatedScript;
-
-                const finalHTML = "<!DOCTYPE html>\n" + htmlCopy.outerHTML;
-
-                // Create download blob
-                const blob = new Blob([finalHTML], { type: "text/html;charset=utf-8" });
+                const blob = new Blob([updatedDoc], { type: "text/html;charset=utf-8" });
                 const a = document.createElement("a");
                 a.href = URL.createObjectURL(blob);
                 a.download = "sell_and_earn_updated.html";
