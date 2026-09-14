@@ -57,12 +57,28 @@
             z-index: 10;
         }
 
+        .header-title-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-grow: 1;
+            justify-content: center;
+        }
+
+        .header-title-container img {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+        }
+
+        .header-title-container span.header-emoji {
+            font-size: 24px;
+        }
+
         .app-header h1 {
             font-size: 20px;
             font-weight: 700;
             color: #111827;
-            text-align: center;
-            flex-grow: 1;
         }
 
         .admin-toggle-btn {
@@ -301,12 +317,16 @@
 
     <div class="app-container" id="appContainer">
         <div class="app-header">
-            <h1>Sell and Earn</h1>
+            <div class="header-title-container">
+                <div id="headerIconWrapper"></div>
+                <h1 id="headerTitle">Sell and Earn</h1>
+            </div>
             <button class="admin-toggle-btn" id="adminToggleBtn" onclick="toggleAdminMode()">⚙️ Admin</button>
         </div>
 
         <div class="toolbar" id="toolbar" style="display: none;">
-            <button class="btn btn-primary" onclick="openModal('add')">➕ Item Add Karein</button>
+            <button class="btn btn-outline" onclick="openTitleModal()">✏️ Title Edit</button>
+            <button class="btn btn-primary" onclick="openModal('add')">➕ Item Add</button>
             <button class="btn btn-success" onclick="exportCSV()">📤 Export CSV</button>
             <button class="btn btn-warning" onclick="triggerCSVImport()">📥 Import CSV</button>
             <button class="btn btn-outline" onclick="downloadStandaloneHTML()">💾 Export HTML</button>
@@ -316,11 +336,12 @@
         <div class="menu-content" id="menuContent"></div>
     </div>
 
+    <!-- Item Modal -->
     <div class="modal-overlay" id="itemModal">
         <div class="modal-card">
             <div class="modal-header">
                 <h3 id="modalTitle">Item Details</h3>
-                <button class="close-btn" onclick="closeModal()">✕</button>
+                <button class="close-btn" onclick="closeModal('itemModal')">✕</button>
             </div>
             <form id="itemForm" onsubmit="handleFormSubmit(event)">
                 <input type="hidden" id="itemId" />
@@ -339,22 +360,50 @@
                 </div>
                 <div class="form-group">
                     <label for="urlInput">Target Link (URL)</label>
-                    <input type="text" id="urlInput" class="form-control" placeholder="https://example.com" value="#">
+                    <input type="text" id="urlInput" class="form-control" placeholder="https://google.com ya #bike" value="#">
                 </div>
                 <div class="form-group">
                     <label for="badgeInput">Badge Text (Optional)</label>
                     <input type="text" id="badgeInput" class="form-control" placeholder="NEW, 50% OFF">
                 </div>
                 <div class="form-actions">
-                    <button type="button" class="btn btn-outline" onclick="closeModal()">Cancel</button>
+                    <button type="button" class="btn btn-outline" onclick="closeModal('itemModal')">Cancel</button>
                     <button type="submit" class="btn btn-primary">Save Item</button>
                 </div>
             </form>
         </div>
     </div>
 
+    <!-- Header Title & Image Modal -->
+    <div class="modal-overlay" id="titleModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Header Title & Image Edit</h3>
+                <button class="close-btn" onclick="closeModal('titleModal')">✕</button>
+            </div>
+            <form onsubmit="handleTitleSubmit(event)">
+                <div class="form-group">
+                    <label for="headerTitleInput">Page Title Text</label>
+                    <input type="text" id="headerTitleInput" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="headerIconInput">Title Icon / Logo (Emoji ya Image URL)</label>
+                    <input type="text" id="headerIconInput" class="form-control" placeholder="🛍️ ya https://example.com/logo.png">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('titleModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script id="mainScript">
-        // Export time par is array mei updated data inject hoga
+        let pageSettings = {
+            title: "Sell and Earn",
+            icon: "🛍️"
+        };
+
         let defaultMenuItems = [
             { id: 1, category: "Motor", title: "Bike Insurance", icon: "🛵", url: "#bike", badge: "" },
             { id: 2, category: "Motor", title: "Car Insurance", icon: "🚗", url: "#car", badge: "" },
@@ -392,8 +441,6 @@
 
                 request.onsuccess = (e) => {
                     db = e.target.result;
-                    
-                    // Always overwrite database with the embedded defaultMenuItems array
                     clearAndBulkInsert(defaultMenuItems).then(resolve);
                 };
 
@@ -408,11 +455,27 @@
                 const request = store.getAll();
                 request.onsuccess = () => {
                     menuItems = request.result;
+                    renderHeader();
                     renderMenu();
                     updateCategorySuggestions();
                     resolve();
                 };
             });
+        }
+
+        function renderHeader() {
+            document.getElementById("headerTitle").textContent = pageSettings.title;
+            document.title = pageSettings.title;
+            const iconWrapper = document.getElementById("headerIconWrapper");
+            iconWrapper.innerHTML = "";
+            
+            if (pageSettings.icon) {
+                if (pageSettings.icon.startsWith("http") || pageSettings.icon.startsWith("data:image")) {
+                    iconWrapper.innerHTML = `<img src="${pageSettings.icon}" alt="Logo">`;
+                } else {
+                    iconWrapper.innerHTML = `<span class="header-emoji">${pageSettings.icon}</span>`;
+                }
+            }
         }
 
         function saveItemToDB(item) {
@@ -487,17 +550,19 @@
                     const card = document.createElement("a");
                     card.className = "menu-item-card";
                     card.href = item.url || "#";
-                    
-                    if (item.url && item.url !== "#") {
-                        card.onclick = (e) => { if (isAdmin) e.preventDefault(); };
-                    } else {
-                        card.onclick = (e) => {
-                            if (!isAdmin) {
-                                e.preventDefault();
-                                alert(`Aapne "${item.title}" par click kiya!`);
-                            }
-                        };
+
+                    if (item.url && item.url.startsWith("http")) {
+                        card.target = "_blank";
                     }
+
+                    card.onclick = (e) => {
+                        if (isAdmin) {
+                            e.preventDefault();
+                        } else if (!item.url || item.url === "#" || item.url.startsWith("#")) {
+                            e.preventDefault();
+                            alert(`Aapne "${item.title}" par click kiya! Target link: ${item.url || 'None'}`);
+                        }
+                    };
 
                     let iconHTML = item.icon.startsWith("http") || item.icon.startsWith("data:image")
                         ? `<img src="${item.icon}" alt="${item.title}">`
@@ -571,8 +636,22 @@
             modal.classList.add("active");
         }
 
-        function closeModal() {
-            document.getElementById("itemModal").classList.remove("active");
+        function openTitleModal() {
+            document.getElementById("headerTitleInput").value = pageSettings.title;
+            document.getElementById("headerIconInput").value = pageSettings.icon;
+            document.getElementById("titleModal").classList.add("active");
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove("active");
+        }
+
+        function handleTitleSubmit(e) {
+            e.preventDefault();
+            pageSettings.title = document.getElementById("headerTitleInput").value.trim();
+            pageSettings.icon = document.getElementById("headerIconInput").value.trim();
+            renderHeader();
+            closeModal("titleModal");
         }
 
         function editItem(id) {
@@ -599,7 +678,7 @@
 
             if (idVal) itemData.id = Number(idVal);
 
-            saveItemToDB(itemData).then(() => closeModal());
+            saveItemToDB(itemData).then(() => closeModal("itemModal"));
         }
 
         function exportCSV() {
@@ -660,7 +739,7 @@
             e.target.value = '';
         }
 
-        // --- FULLY REWRITTEN WORKING EXPORT FUNCTION ---
+        // --- EXPORT WITHOUT ADMIN BUTTON & TOOLBAR ---
         function downloadStandaloneHTML() {
             const tx = db.transaction("items", "readonly");
             const store = tx.objectStore("items");
@@ -669,11 +748,28 @@
             req.onsuccess = function() {
                 const latestData = req.result;
 
-                // Take full source code of current page
-                let docString = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+                // Clone current page document
+                const clonedDoc = document.documentElement.cloneNode(true);
 
-                // Replace defaultMenuItems array inside HTML string with formatted latest data
-                const updatedDoc = docString.replace(
+                // Completely remove Admin Button and Admin Toolbar elements from exported HTML
+                const adminBtn = clonedDoc.querySelector("#adminToggleBtn");
+                if (adminBtn) adminBtn.remove();
+                
+                const toolbar = clonedDoc.querySelector("#toolbar");
+                if (toolbar) toolbar.remove();
+
+                const titleModal = clonedDoc.querySelector("#titleModal");
+                if (titleModal) titleModal.remove();
+
+                let docString = "<!DOCTYPE html>\n" + clonedDoc.outerHTML;
+
+                // Inject updated pageSettings and updated defaultMenuItems
+                let updatedDoc = docString.replace(
+                    /let pageSettings = \{[\s\S]*?\};/,
+                    `let pageSettings = ${JSON.stringify(pageSettings, null, 4)};`
+                );
+
+                updatedDoc = updatedDoc.replace(
                     /let defaultMenuItems = \[[\s\S]*?\];/,
                     `let defaultMenuItems = ${JSON.stringify(latestData, null, 4)};`
                 );
@@ -681,7 +777,7 @@
                 const blob = new Blob([updatedDoc], { type: "text/html;charset=utf-8" });
                 const a = document.createElement("a");
                 a.href = URL.createObjectURL(blob);
-                a.download = "sell_and_earn_updated.html";
+                a.download = "sell_and_earn_final.html";
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
