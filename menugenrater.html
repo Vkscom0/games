@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sell and Earn Menu</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --badge-bg: #eab308;
+            --badge-text: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 450px;
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .app-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            background: #fff;
+            z-index: 10;
+        }
+
+        .app-header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #111827;
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        .admin-toggle-btn {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary);
+            transition: all 0.2s;
+        }
+
+        .admin-toggle-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .toolbar {
+            background: #f8fafc;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .btn:active { transform: scale(0.97); }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-success { background: #10b981; color: white; }
+        .btn-success:hover { background: #059669; }
+        .btn-warning { background: #f59e0b; color: white; }
+        .btn-warning:hover { background: #d97706; }
+        .btn-outline { background: white; border: 1px solid var(--border-color); color: var(--text-main); }
+
+        .menu-content {
+            padding: 16px 20px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .category-block { margin-bottom: 24px; }
+
+        .category-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .category-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background-color: #e2e8f0;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px 12px;
+        }
+
+        .menu-item-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            text-decoration: none;
+            color: var(--text-main);
+            padding: 8px;
+            border-radius: 12px;
+            position: relative;
+            transition: background 0.2s, transform 0.2s;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .menu-item-card:hover {
+            background-color: #f1f5f9;
+            transform: translateY(-2px);
+        }
+
+        .icon-wrapper {
+            position: relative;
+            width: 52px;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin-bottom: 6px;
+        }
+
+        .icon-wrapper img {
+            width: 44px;
+            height: 44px;
+            object-fit: contain;
+        }
+
+        .badge {
+            position: absolute;
+            top: -4px;
+            right: -8px;
+            background: var(--badge-bg);
+            color: var(--badge-text);
+            font-size: 9px;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+        }
+
+        .item-label {
+            font-size: 13px;
+            font-weight: 500;
+            line-height: 1.25;
+            color: #334155;
+            word-break: break-word;
+        }
+
+        .item-actions {
+            display: none;
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            gap: 2px;
+            z-index: 5;
+        }
+
+        .admin-mode .item-actions { display: flex; }
+
+        .action-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #cbd5e1;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal-card {
+            background: white;
+            width: 100%;
+            max-width: 400px;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        .form-group { margin-bottom: 12px; }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            outline: none;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        #csvFileInput { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="app-container" id="appContainer">
+        <div class="app-header">
+            <h1>Sell and Earn</h1>
+            <button class="admin-toggle-btn" id="adminToggleBtn" onclick="toggleAdminMode()">⚙️ Admin</button>
+        </div>
+
+        <div class="toolbar" id="toolbar" style="display: none;">
+            <button class="btn btn-primary" onclick="openModal('add')">➕ Item Add Karein</button>
+            <button class="btn btn-success" onclick="exportCSV()">📤 Export CSV</button>
+            <button class="btn btn-warning" onclick="triggerCSVImport()">📥 Import CSV</button>
+            <button class="btn btn-outline" onclick="downloadStandaloneHTML()">💾 Export HTML</button>
+            <input type="file" id="csvFileInput" accept=".csv" onchange="importCSV(event)" />
+        </div>
+
+        <div class="menu-content" id="menuContent"></div>
+    </div>
+
+    <div class="modal-overlay" id="itemModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="modalTitle">Item Details</h3>
+                <button class="close-btn" onclick="closeModal()">✕</button>
+            </div>
+            <form id="itemForm" onsubmit="handleFormSubmit(event)">
+                <input type="hidden" id="itemId" />
+                <div class="form-group">
+                    <label for="categoryInput">Category Name</label>
+                    <input type="text" id="categoryInput" class="form-control" placeholder="Motor, Health & Life etc." required list="categorySuggestions">
+                    <datalist id="categorySuggestions"></datalist>
+                </div>
+                <div class="form-group">
+                    <label for="titleInput">Item Title</label>
+                    <input type="text" id="titleInput" class="form-control" placeholder="Bike Insurance" required>
+                </div>
+                <div class="form-group">
+                    <label for="iconInput">Icon (Emoji ya Image URL)</label>
+                    <input type="text" id="iconInput" class="form-control" placeholder="🛵 ya https://example.com/icon.png" required>
+                </div>
+                <div class="form-group">
+                    <label for="urlInput">Target Link (URL)</label>
+                    <input type="text" id="urlInput" class="form-control" placeholder="https://example.com" value="#">
+                </div>
+                <div class="form-group">
+                    <label for="badgeInput">Badge Text (Optional)</label>
+                    <input type="text" id="badgeInput" class="form-control" placeholder="NEW, 50% OFF">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-outline" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Item</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script id="mainScript">
+        let defaultMenuItems = [
+            { id: 1, category: "Motor", title: "Bike Insurance", icon: "🛵", url: "#bike", badge: "" },
+            { id: 2, category: "Motor", title: "Car Insurance", icon: "🚗", url: "#car", badge: "" },
+            { id: 3, category: "Motor", title: "Comm. Vehicle", icon: "🚚", url: "#comm-vehicle", badge: "" },
+            { id: 4, category: "Health & Life", title: "Health Insurance", icon: "🩺", url: "#health", badge: "" },
+            { id: 5, category: "Health & Life", title: "Life Insurance", icon: "☂️", url: "#life", badge: "" },
+            { id: 6, category: "Health & Life", title: "Personal Accident", icon: "⚠️", url: "#personal-accident", badge: "" },
+            { id: 7, category: "Health & Life", title: "Payment Fraud Pr...", icon: "🛡️", url: "#payment-fraud", badge: "" },
+            { id: 8, category: "Loans & Credit", title: "Personal Loans", icon: "💰", url: "#personal-loan", badge: "" },
+            { id: 9, category: "Loans & Credit", title: "Business Loans", icon: "🏢", url: "#business-loan", badge: "" },
+            { id: 10, category: "Loans & Credit", title: "Credit Cards", icon: "💳", url: "#credit-cards", badge: "" },
+            { id: 11, category: "Loans & Credit", title: "Home Loans", icon: "🏠", url: "#home-loans", badge: "" },
+            { id: 12, category: "Loans & Credit", title: "Free Credit Sc...", icon: "📈", url: "#credit-score", badge: "NEW" },
+            { id: 13, category: "Loans & Credit", title: "MF Loans", icon: "🪙", url: "#mf-loans", badge: "" },
+            { id: 14, category: "Investment", title: "Mutual Funds", icon: "📊", url: "#mutual-funds", badge: "" },
+            { id: 15, category: "SME & Commercial Insurance", title: "Fire Insurance", icon: "🔥", url: "#fire-insurance", badge: "" },
+            { id: 16, category: "SME & Commercial Insurance", title: "Marine Insurance", icon: "⚓", url: "#marine-insurance", badge: "" },
+            { id: 17, category: "SME & Commercial Insurance", title: "Workmen's Comp.", icon: "👷", url: "#workmen-comp", badge: "" }
+        ];
+
+        let db = null;
+        let isAdmin = false;
+        let menuItems = [];
+
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open("SellAndEarnDB", 1);
+                request.onupgradeneeded = (e) => {
+                    const dbInstance = e.target.result;
+                    if (!dbInstance.objectStoreNames.contains("items")) {
+                        const store = dbInstance.createObjectStore("items", { keyPath: "id", autoIncrement: true });
+                        defaultMenuItems.forEach(item => store.add(item));
+                    }
+                };
+                request.onsuccess = (e) => {
+                    db = e.target.result;
+                    loadItemsFromDB().then(resolve);
+                };
+                request.onerror = (e) => reject(e);
+            });
+        }
+
+        function loadItemsFromDB() {
+            return new Promise((resolve) => {
+                const tx = db.transaction("items", "readonly");
+                const store = tx.objectStore("items");
+                const request = store.getAll();
+                request.onsuccess = () => {
+                    menuItems = request.result;
+                    if (menuItems.length === 0) {
+                        seedDefaultData().then(() => resolve());
+                    } else {
+                        renderMenu();
+                        updateCategorySuggestions();
+                        resolve();
+                    }
+                };
+            });
+        }
+
+        async function seedDefaultData() {
+            const tx = db.transaction("items", "readwrite");
+            const store = tx.objectStore("items");
+            defaultMenuItems.forEach(item => store.add(item));
+            await new Promise(r => tx.oncomplete = r);
+            return loadItemsFromDB();
+        }
+
+        function saveItemToDB(item) {
+            return new Promise((resolve) => {
+                const tx = db.transaction("items", "readwrite");
+                const store = tx.objectStore("items");
+                if (item.id) {
+                    store.put(item);
+                } else {
+                    delete item.id;
+                    store.add(item);
+                }
+                tx.oncomplete = () => {
+                    loadItemsFromDB();
+                    resolve();
+                };
+            });
+        }
+
+        function deleteItemFromDB(id) {
+            return new Promise((resolve) => {
+                const tx = db.transaction("items", "readwrite");
+                const store = tx.objectStore("items");
+                store.delete(id);
+                tx.oncomplete = () => {
+                    loadItemsFromDB();
+                    resolve();
+                };
+            });
+        }
+
+        function clearAndBulkInsert(items) {
+            return new Promise((resolve) => {
+                const tx = db.transaction("items", "readwrite");
+                const store = tx.objectStore("items");
+                store.clear().onsuccess = () => {
+                    items.forEach(item => {
+                        const cleanItem = { ...item };
+                        if (typeof cleanItem.id === 'string') cleanItem.id = Number(cleanItem.id) || Date.now();
+                        store.add(cleanItem);
+                    });
+                };
+                tx.oncomplete = () => {
+                    loadItemsFromDB();
+                    resolve();
+                };
+            });
+        }
+
+        function renderMenu() {
+            const container = document.getElementById("menuContent");
+            container.innerHTML = "";
+
+            if (isAdmin) container.classList.add("admin-mode");
+            else container.classList.remove("admin-mode");
+
+            const categories = {};
+            menuItems.forEach(item => {
+                if (!categories[item.category]) categories[item.category] = [];
+                categories[item.category].push(item);
+            });
+
+            for (const [catName, items] of Object.entries(categories)) {
+                const catBlock = document.createElement("div");
+                catBlock.className = "category-block";
+
+                const catHeader = document.createElement("div");
+                catHeader.className = "category-title";
+                catHeader.textContent = catName;
+                catBlock.appendChild(catHeader);
+
+                const grid = document.createElement("div");
+                grid.className = "grid-container";
+
+                items.forEach(item => {
+                    const card = document.createElement("a");
+                    card.className = "menu-item-card";
+                    card.href = item.url || "#";
+                    
+                    if (item.url && item.url !== "#") {
+                        card.onclick = (e) => { if (isAdmin) e.preventDefault(); };
+                    } else {
+                        card.onclick = (e) => {
+                            if (!isAdmin) {
+                                e.preventDefault();
+                                alert(`Aapne "${item.title}" par click kiya!`);
+                            }
+                        };
+                    }
+
+                    let iconHTML = item.icon.startsWith("http") || item.icon.startsWith("data:image")
+                        ? `<img src="${item.icon}" alt="${item.title}">`
+                        : `<span>${item.icon}</span>`;
+
+                    const badgeHTML = item.badge ? `<span class="badge">${item.badge}</span>` : "";
+
+                    card.innerHTML = `
+                        <div class="item-actions">
+                            <button class="action-btn" onclick="event.stopPropagation(); editItem(${item.id})">✏️</button>
+                            <button class="action-btn" onclick="event.stopPropagation(); confirmDelete(${item.id})">❌</button>
+                        </div>
+                        <div class="icon-wrapper">
+                            ${iconHTML}
+                            ${badgeHTML}
+                        </div>
+                        <span class="item-label">${item.title}</span>
+                    `;
+
+                    grid.appendChild(card);
+                });
+
+                catBlock.appendChild(grid);
+                container.appendChild(catBlock);
+            }
+        }
+
+        function updateCategorySuggestions() {
+            const datalist = document.getElementById("categorySuggestions");
+            const categories = [...new Set(menuItems.map(i => i.category))];
+            datalist.innerHTML = categories.map(c => `<option value="${c}">`).join('');
+        }
+
+        function toggleAdminMode() {
+            isAdmin = !isAdmin;
+            const toolbar = document.getElementById("toolbar");
+            const btn = document.getElementById("adminToggleBtn");
+            
+            if (isAdmin) {
+                toolbar.style.display = "flex";
+                btn.textContent = "✕ Exit Admin";
+                btn.style.background = "#ef4444";
+                btn.style.color = "white";
+            } else {
+                toolbar.style.display = "none";
+                btn.textContent = "⚙️ Admin";
+                btn.style.background = "#f1f5f9";
+                btn.style.color = "var(--primary)";
+            }
+            renderMenu();
+        }
+
+        function openModal(mode, item = null) {
+            const modal = document.getElementById("itemModal");
+            const modalTitle = document.getElementById("modalTitle");
+            const form = document.getElementById("itemForm");
+
+            if (mode === 'edit' && item) {
+                modalTitle.textContent = "Item Update Karein";
+                document.getElementById("itemId").value = item.id;
+                document.getElementById("categoryInput").value = item.category;
+                document.getElementById("titleInput").value = item.title;
+                document.getElementById("iconInput").value = item.icon;
+                document.getElementById("urlInput").value = item.url || "#";
+                document.getElementById("badgeInput").value = item.badge || "";
+            } else {
+                modalTitle.textContent = "Naya Item Add Karein";
+                form.reset();
+                document.getElementById("itemId").value = "";
+            }
+            modal.classList.add("active");
+        }
+
+        function closeModal() {
+            document.getElementById("itemModal").classList.remove("active");
+        }
+
+        function editItem(id) {
+            const item = menuItems.find(i => i.id === id);
+            if (item) openModal('edit', item);
+        }
+
+        function confirmDelete(id) {
+            if (confirm("Kya aap sach me is item ko delete karna chahte hain?")) {
+                deleteItemFromDB(id);
+            }
+        }
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const idVal = document.getElementById("itemId").value;
+            const itemData = {
+                category: document.getElementById("categoryInput").value.trim(),
+                title: document.getElementById("titleInput").value.trim(),
+                icon: document.getElementById("iconInput").value.trim(),
+                url: document.getElementById("urlInput").value.trim(),
+                badge: document.getElementById("badgeInput").value.trim()
+            };
+
+            if (idVal) itemData.id = Number(idVal);
+
+            saveItemToDB(itemData).then(() => closeModal());
+        }
+
+        function exportCSV() {
+            if (menuItems.length === 0) return alert("Data khali hai!");
+
+            const headers = ["id", "category", "title", "icon", "url", "badge"];
+            const rows = menuItems.map(item => [
+                item.id,
+                `"${(item.category || '').replace(/"/g, '""')}"`,
+                `"${(item.title || '').replace(/"/g, '""')}"`,
+                `"${(item.icon || '').replace(/"/g, '""')}"`,
+                `"${(item.url || '').replace(/"/g, '""')}"`,
+                `"${(item.badge || '').replace(/"/g, '""')}"`
+            ]);
+
+            const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+            const link = document.createElement("a");
+            link.href = encodeURI(csvContent);
+            link.download = "sell_and_earn_menu.csv";
+            link.click();
+        }
+
+        function triggerCSVImport() {
+            document.getElementById("csvFileInput").click();
+        }
+
+        function importCSV(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const lines = evt.target.result.split("\n").map(l => l.trim()).filter(l => l.length > 0);
+                if (lines.length < 2) return alert("Invalid CSV!");
+
+                const newItems = [];
+                for (let i = 1; i < lines.length; i++) {
+                    const cols = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || lines[i].split(",");
+                    const cleanCols = cols.map(c => c.replace(/^"|"$/g, '').replace(/""/g, '"').trim());
+
+                    if (cleanCols.length >= 4) {
+                        newItems.push({
+                            id: cleanCols[0] ? Number(cleanCols[0]) : Date.now() + i,
+                            category: cleanCols[1] || "General",
+                            title: cleanCols[2] || "Untitled",
+                            icon: cleanCols[3] || "📌",
+                            url: cleanCols[4] || "#",
+                            badge: cleanCols[5] || ""
+                        });
+                    }
+                }
+
+                if (newItems.length > 0) {
+                    clearAndBulkInsert(newItems).then(() => alert(`${newItems.length} items import ho gaye!`));
+                }
+            };
+            reader.readAsText(file);
+            e.target.value = '';
+        }
+
+        // --- FIXED EXPORT HTML FUNCTION ---
+        function downloadStandaloneHTML() {
+            // Read latest IndexedDB data
+            const tx = db.transaction("items", "readonly");
+            const store = tx.objectStore("items");
+            const req = store.getAll();
+
+            req.onsuccess = function() {
+                const latestData = req.result;
+                let scriptContent = document.getElementById("mainScript").innerHTML;
+                
+                // Replace defaultMenuItems array in script with updated IndexedDB data
+                const updatedScript = scriptContent.replace(
+                    /let defaultMenuItems = \[[\s\S]*?\];/,
+                    `let defaultMenuItems = ${JSON.stringify(latestData, null, 4)};`
+                );
+
+                // Clone full HTML DOM structure
+                const htmlCopy = document.documentElement.cloneNode(true);
+                
+                // Reset admin mode visuals in exported HTML
+                const toolbar = htmlCopy.querySelector("#toolbar");
+                if (toolbar) toolbar.style.display = "none";
+                const adminBtn = htmlCopy.querySelector("#adminToggleBtn");
+                if (adminBtn) {
+                    adminBtn.textContent = "⚙️ Admin";
+                    adminBtn.style.background = "#f1f5f9";
+                    adminBtn.style.color = "var(--primary)";
+                }
+                const menuContent = htmlCopy.querySelector("#menuContent");
+                if (menuContent) menuContent.innerHTML = "";
+
+                // Inject updated script into cloned HTML
+                const scriptTag = htmlCopy.querySelector("#mainScript");
+                if (scriptTag) scriptTag.innerHTML = updatedScript;
+
+                const finalHTML = "<!DOCTYPE html>\n" + htmlCopy.outerHTML;
+
+                // Create download blob
+                const blob = new Blob([finalHTML], { type: "text/html;charset=utf-8" });
+                const a = document.createElement("a");
+                a.href = URL.createObjectURL(blob);
+                a.download = "sell_and_earn_updated.html";
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            };
+        }
+
+        window.addEventListener("DOMContentLoaded", () => {
+            initDB();
+        });
+    </script>
+</body>
+</html>
