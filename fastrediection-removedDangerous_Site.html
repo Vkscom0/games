@@ -64,12 +64,12 @@
 
 <div class="container">
 
-  <!-- Safe Redirect Screen (With Gate Notice) -->
+  <!-- Safe Redirect Screen -->
   <div class="card redirect-msg hidden" id="redirect-screen">
     <h2 id="redirect-status">आपको री-डायरेक्ट किया जा रहा है...</h2>
     <p id="redirect-detail" style="color: var(--muted); margin-bottom: 20px;"></p>
     <div id="redirect-action">
-      <a id="proceed-btn" href="#" rel="noopener noreferrer nofollow" class="btn-link btn-success hidden">Proceed to Destination</a>
+      <a id="proceed-btn" href="#" rel="noopener noreferrer nofollow" class="btn-link btn-success hidden">Proceed Immediately</a>
     </div>
   </div>
 
@@ -247,7 +247,7 @@
     }
   }
 
-  // --- SAFE REDIRECTION LOGIC ---
+  // --- SAFE REDIRECTION + CLICK COUNT LOGIC ---
   async function handleHashAccess() {
     const hash = window.location.hash;
     let refCode = '';
@@ -294,10 +294,40 @@
     proceedBtn.href = item.targetUrl;
     proceedBtn.classList.remove('hidden');
 
-    // Smooth delay redirect (2 seconds) to avoid Malware Scanner trigger
+    // 🟢 CLICK COUNT INCREMENT LOGIC
+    item.clicks = (Number(item.clicks) || 0) + 1;
+    setLocalCache(items);
+
+    // 🟢 BACKGROUND API SYNC (Send updated click count to Google Sheet)
+    if (navigator.sendBeacon) {
+      const blob = new Blob([JSON.stringify({
+        action: "save",
+        code: item.code,
+        targetUrl: item.targetUrl,
+        clicks: item.clicks,
+        isBlocked: item.isBlocked,
+        createdAt: item.createdAt || new Date().toISOString()
+      })], { type: 'text/plain;charset=utf-8' });
+      navigator.sendBeacon(SCRIPT_URL, blob);
+    } else {
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: "save",
+          code: item.code,
+          targetUrl: item.targetUrl,
+          clicks: item.clicks,
+          isBlocked: item.isBlocked,
+          createdAt: item.createdAt || new Date().toISOString()
+        })
+      }).catch(e => console.error("Click log failed:", e));
+    }
+
+    // Delay redirect (1.5 seconds) to allow beacon request & avoid anti-bot trigger
     setTimeout(() => {
       window.location.href = item.targetUrl;
-    }, 2000);
+    }, 1500);
 
     return true;
   }
