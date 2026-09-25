@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Safe Referral Manager</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --primary: #3b82f6;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --border: #334155;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); padding: 20px; line-height: 1.5; }
+    .container { max-width: 1000px; margin: 0 auto; }
+    .auth-container { max-width: 400px; margin: 50px auto; }
+
+    h1, h2 { margin-bottom: 15px; }
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+
+    .form-group { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 5px; color: var(--muted); font-size: 14px; }
+    input[type="text"], input[type="password"], input[type="url"] {
+      width: 100%; padding: 10px; background: #0f172a; border: 1px solid var(--border);
+      border-radius: 6px; color: #fff; font-size: 14px;
+    }
+
+    .btn-group { display: flex; gap: 10px; flex-wrap: wrap; }
+    button, .btn-link {
+      padding: 10px 18px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;
+      transition: opacity 0.2s; color: #fff; text-decoration: none; display: inline-block; text-align: center;
+    }
+    button:hover, .btn-link:hover { opacity: 0.9; }
+    .btn-primary { background: var(--primary); width: 100%; }
+    .btn-action { background: var(--primary); }
+    .btn-success { background: var(--success); }
+    .btn-danger { background: var(--danger); }
+    .btn-secondary { background: #475569; }
+
+    .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); word-break: break-all; }
+    th { color: var(--muted); font-size: 13px; text-transform: uppercase; }
+
+    .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+    .badge-active { background: rgba(34, 197, 94, 0.2); color: var(--success); }
+    .badge-blocked { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+
+    .hidden { display: none !important; }
+    .redirect-msg { text-align: center; padding: 40px 20px; }
+    .loader { font-size: 14px; color: var(--primary); font-weight: bold; margin-bottom: 10px; text-align: center; }
+    .auth-toggle { text-align: center; margin-top: 15px; color: var(--muted); font-size: 14px; }
+    .auth-toggle span { color: var(--primary); cursor: pointer; text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Safe Redirect Screen (With Gate Notice) -->
+  <div class="card redirect-msg hidden" id="redirect-screen">
+    <h2 id="redirect-status">आपको री-डायरेक्ट किया जा रहा है...</h2>
+    <p id="redirect-detail" style="color: var(--muted); margin-bottom: 20px;"></p>
+    <div id="redirect-action">
+      <a id="proceed-btn" href="#" rel="noopener noreferrer nofollow" class="btn-link btn-success hidden">Proceed to Destination</a>
+    </div>
+  </div>
+
+  <!-- AUTH SECTION -->
+  <div class="auth-container hidden" id="auth-screen">
+    <div class="card" id="login-box">
+      <h2>Admin Login</h2>
+      <form id="login-form">
+        <div class="form-group">
+          <label>Username</label>
+          <input id="login-username" required type="text" />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input id="login-password" required type="password" />
+        </div>
+        <button class="btn-primary" type="submit">Login</button>
+      </form>
+      <div class="auth-toggle">
+        Account nahi hai? <span onclick="switchAuth('signup')">Signup karein</span>
+      </div>
+    </div>
+
+    <div class="card hidden" id="signup-box">
+      <h2>Naya Account Banayein</h2>
+      <form id="signup-form">
+        <div class="form-group">
+          <label>Username</label>
+          <input id="signup-username" required type="text" />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input id="signup-password" required type="password" />
+        </div>
+        <button class="btn-primary" style="background: var(--success);" type="submit">Signup</button>
+      </form>
+      <div class="auth-toggle">
+        Pehle se account hai? <span onclick="switchAuth('login')">Login karein</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN MANAGEMENT DASHBOARD -->
+  <div class="hidden" id="dashboard">
+    <div class="header-bar">
+      <h1>Referral Manager</h1>
+      <div>
+        <span id="user-display" style="color: var(--muted); margin-right: 15px;"></span>
+        <button class="btn-danger" onclick="logout()" style="padding: 6px 12px;">Logout</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Naya Referral Link Banayein</h2>
+      <form id="referral-form">
+        <div class="form-group">
+          <label for="target-url">Target URL (Jahan Redirect Karna Hai)</label>
+          <input id="target-url" placeholder="https://example.com/page" required type="url" />
+        </div>
+        <div class="form-group">
+          <label for="custom-code">Custom Hash Code (Optional)</label>
+          <input id="custom-code" placeholder="e.g. promo2026" type="text" />
+        </div>
+        <button class="btn-action" type="submit">Generate Referral Link</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>Backup & Tools</h2>
+      <div class="btn-group">
+        <button class="btn-secondary" id="export-btn">Export JSON</button>
+        <button class="btn-secondary" id="import-trigger-btn">Import JSON</button>
+        <input accept=".json" class="hidden" id="import-file" type="file" />
+        <button class="btn-secondary" id="refresh-btn">Refresh Table</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Manage Links</h2>
+      <div class="loader hidden" id="loading-indicator">Syncing...</div>
+      <div style="overflow-x: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Target URL</th>
+              <th>Clicks</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="referral-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzoFAICSgcZkWy3hJlhZTmMJUoMfTP3f16w-Ymv-sro_mRg0uOFEFPz-_hRMS-_zTGFjA/exec';
+  const CACHE_KEY = 'fast_ref_links_cache';
+
+  function getLocalCache() {
+    try { return JSON.parse(localStorage.getItem(CACHE_KEY)) || []; } catch (e) { return []; }
+  }
+
+  function setLocalCache(data) {
+    if (Array.isArray(data)) localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+  }
+
+  function switchAuth(type) {
+    if (type === 'signup') {
+      document.getElementById('login-box').classList.add('hidden');
+      document.getElementById('signup-box').classList.remove('hidden');
+    } else {
+      document.getElementById('signup-box').classList.add('hidden');
+      document.getElementById('login-box').classList.remove('hidden');
+    }
+  }
+
+  function checkSession() {
+    const user = localStorage.getItem('ref_admin_user');
+    if (user) {
+      document.getElementById('auth-screen').classList.add('hidden');
+      document.getElementById('dashboard').classList.remove('hidden');
+      document.getElementById('user-display').textContent = `User: ${user}`;
+      renderTable();
+    } else {
+      document.getElementById('dashboard').classList.add('hidden');
+      document.getElementById('auth-screen').classList.remove('hidden');
+    }
+  }
+
+  function logout() {
+    localStorage.removeItem('ref_admin_user');
+    checkSession();
+  }
+
+  async function callAPI(payload) {
+    showLoading(true);
+    try {
+      const response = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+      return await response.json();
+    } catch (e) {
+      return { status: 'error' };
+    } finally {
+      showLoading(false);
+    }
+  }
+
+  async function fetchReferrals() {
+    showLoading(true);
+    try {
+      const res = await fetch(`${SCRIPT_URL}?action=getAll`);
+      const data = await res.json();
+      if (Array.isArray(data)) setLocalCache(data);
+      return data;
+    } catch (e) {
+      return getLocalCache();
+    } finally {
+      showLoading(false);
+    }
+  }
+
+  function showLoading(show) {
+    const loader = document.getElementById('loading-indicator');
+    if (loader) {
+      if (show) loader.classList.remove('hidden');
+      else loader.classList.add('hidden');
+    }
+  }
+
+  // --- SAFE REDIRECTION LOGIC ---
+  async function handleHashAccess() {
+    const hash = window.location.hash;
+    let refCode = '';
+
+    if (hash.startsWith('#ref=')) refCode = hash.replace('#ref=', '');
+    else if (hash.startsWith('#') && hash.length > 1) refCode = hash.replace('#', '');
+
+    if (!refCode) return false;
+
+    document.getElementById('auth-screen').classList.add('hidden');
+    document.getElementById('dashboard').classList.add('hidden');
+    
+    const redirectScreen = document.getElementById('redirect-screen');
+    const statusEl = document.getElementById('redirect-status');
+    const detailEl = document.getElementById('redirect-detail');
+    const proceedBtn = document.getElementById('proceed-btn');
+    redirectScreen.classList.remove('hidden');
+
+    let items = getLocalCache();
+    let item = items.find(r => r.code === refCode);
+
+    if (!item) {
+      items = await fetchReferrals();
+      item = items.find(r => r.code === refCode);
+    }
+
+    if (!item) {
+      statusEl.textContent = "अमान्य लिंक (Invalid Referral Link)";
+      statusEl.style.color = "var(--danger)";
+      detailEl.textContent = "यह कोड डेटाबेस में नहीं मिला।";
+      return true;
+    }
+
+    if (item.isBlocked) {
+      statusEl.textContent = "Link Blocked!";
+      statusEl.style.color = "var(--danger)";
+      detailEl.textContent = "यह लिंक सुरक्षा कारणों से ब्लॉक है।";
+      return true;
+    }
+
+    statusEl.textContent = "आपको बाहरी वेबसाइट पर भेजा जा रहा है...";
+    detailEl.textContent = `Target: ${item.targetUrl}`;
+    
+    proceedBtn.href = item.targetUrl;
+    proceedBtn.classList.remove('hidden');
+
+    // Smooth delay redirect (2 seconds) to avoid Malware Scanner trigger
+    setTimeout(() => {
+      window.location.href = item.targetUrl;
+    }, 2000);
+
+    return true;
+  }
+
+  document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const u = document.getElementById('login-username').value.trim();
+    const p = document.getElementById('login-password').value.trim();
+
+    const res = await callAPI({ action: 'login', username: u, password: p });
+    if (res.status === 'success') {
+      localStorage.setItem('ref_admin_user', res.username);
+      checkSession();
+    } else {
+      alert(res.message || 'Login failed!');
+    }
+  });
+
+  document.getElementById('signup-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const u = document.getElementById('signup-username').value.trim();
+    const p = document.getElementById('signup-password').value.trim();
+
+    const res = await callAPI({ action: 'signup', username: u, password: p });
+    alert(res.message);
+    if (res.status === 'success') switchAuth('login');
+  });
+
+  async function renderTable() {
+    const referrals = await fetchReferrals();
+    const tbody = document.getElementById('referral-table-body');
+    tbody.innerHTML = '';
+
+    if (!Array.isArray(referrals) || referrals.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color: var(--muted);">Koi links nahi hain.</td></tr>`;
+      return;
+    }
+
+    const baseUrl = window.location.href.split('#')[0];
+
+    referrals.forEach((ref) => {
+      const fullRefUrl = `${baseUrl}#ref=${ref.code}`;
+      const tr = document.createElement('tr');
+
+      tr.innerHTML = `
+        <td><strong>${ref.code}</strong><br/>
+          <button style="padding:2px 6px; font-size:11px; margin-top:4px;" class="btn-secondary" onclick="copyToClipboard('${fullRefUrl}')">Copy Link</button>
+        </td>
+        <td><a href="${ref.targetUrl}" target="_blank" rel="noopener noreferrer nofollow" style="color: var(--primary);">${ref.targetUrl}</a></td>
+        <td><strong>${ref.clicks || 0}</strong></td>
+        <td><span class="badge ${ref.isBlocked ? 'badge-blocked' : 'badge-active'}">${ref.isBlocked ? 'Blocked' : 'Active'}</span></td>
+        <td>
+          <div class="btn-group">
+            <button class="${ref.isBlocked ? 'btn-success' : 'btn-danger'}" onclick="toggleBlock('${ref.code}')">${ref.isBlocked ? 'Allow' : 'Block'}</button>
+            <button class="btn-secondary" onclick="deleteRef('${ref.code}')">Delete</button>
+          </div>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  document.getElementById('referral-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const targetUrl = document.getElementById('target-url').value.trim();
+    let code = document.getElementById('custom-code').value.trim() || Math.random().toString(36).substring(2, 8);
+
+    await callAPI({
+      action: "save",
+      code: code,
+      targetUrl: targetUrl,
+      clicks: 0,
+      isBlocked: false,
+      createdAt: new Date().toISOString()
+    });
+
+    document.getElementById('referral-form').reset();
+    renderTable();
+  });
+
+  window.toggleBlock = async function(code) {
+    const items = await fetchReferrals();
+    const ref = items.find(i => i.code === code);
+    if (ref) {
+      ref.isBlocked = !ref.isBlocked;
+      await callAPI({ action: "save", ...ref });
+      renderTable();
+    }
+  };
+
+  window.deleteRef = async function(code) {
+    if (confirm(`Delete "${code}"?`)) {
+      await callAPI({ action: "delete", code: code });
+      renderTable();
+    }
+  };
+
+  window.copyToClipboard = function(text) {
+    navigator.clipboard.writeText(text).then(() => alert('Link copied!'));
+  };
+
+  document.getElementById('refresh-btn').addEventListener('click', renderTable);
+
+  window.addEventListener('DOMContentLoaded', async () => {
+    const isRedirecting = await handleHashAccess();
+    if (!isRedirecting) checkSession();
+  });
+</script>
+
+</body>
+</html>
