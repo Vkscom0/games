@@ -1,559 +1,242 @@
-<div id="event-reminder-app-root">
+<div id="alarm-reminder-box">
   <style>
-    #event-reminder-app-root {
-      --bg-color: #0f172a;
-      --card-bg: #1e293b;
-      --card-border: #334155;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --accent: #6366f1;
-      --accent-hover: #4f46e5;
-      --danger: #ef4444;
-      --success: #10b981;
-      --warning: #f59e0b;
+    #alarm-reminder-box {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      color: var(--text-main);
-      background: var(--bg-color);
-      padding: 24px;
-      border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-      margin: 20px auto;
-      max-width: 900px;
-      box-sizing: border-box;
-    }
-
-    #event-reminder-app-root * { box-sizing: border-box; }
-
-    .app-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 16px;
-      border-bottom: 1px solid var(--card-border);
-      padding-bottom: 18px;
-      margin-bottom: 24px;
-    }
-
-    .app-header h2 {
-      margin: 0;
-      font-size: 22px;
-      font-weight: 700;
-      color: #fff;
-    }
-
-    .header-actions {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-
-    .status-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 14px;
-      border-radius: 9999px;
-      font-size: 13px;
-      background: rgba(99, 102, 241, 0.15);
-      color: #a5b4fc;
-      border: 1px solid rgba(99, 102, 241, 0.3);
-      cursor: pointer;
-    }
-
-    .status-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: var(--warning);
-    }
-    .status-dot.active { background: var(--success); }
-    .status-dot.blocked { background: var(--danger); }
-
-    .form-box {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
+      background: #111827;
+      color: #f3f4f6;
       padding: 20px;
       border-radius: 12px;
-      margin-bottom: 24px;
+      max-width: 650px;
+      margin: 15px auto;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
     }
-
-    .form-title {
-      font-size: 16px;
-      font-weight: 600;
-      margin-bottom: 16px;
-      color: #cbd5e1;
-    }
-
-    .input-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
-      margin-bottom: 16px;
-    }
-
-    .input-group label {
-      display: block;
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-    }
-
-    .input-group input, 
-    .input-group textarea, 
-    .input-group select {
+    #alarm-reminder-box h3 { margin: 0 0 15px 0; color: #60a5fa; }
+    .form-row { margin-bottom: 12px; }
+    .form-row label { display: block; font-size: 13px; margin-bottom: 5px; color: #9ca3af; }
+    .form-row input, .form-row textarea {
       width: 100%;
-      padding: 10px 14px;
-      border-radius: 8px;
-      border: 1px solid var(--card-border);
-      background: #0b1120;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #374151;
+      background: #1f2937;
       color: #fff;
-      font-size: 14px;
-      outline: none;
+      box-sizing: border-box;
     }
-
-    .input-group input:focus, 
-    .input-group textarea:focus, 
-    .input-group select:focus {
-      border-color: var(--accent);
-    }
-
-    .form-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 12px;
-    }
-
-    .btn {
-      padding: 10px 18px;
-      border-radius: 8px;
+    .btn-row { display: flex; gap: 10px; margin-top: 15px; }
+    .alarm-btn {
+      background: #2563eb;
+      color: #fff;
       border: none;
-      font-size: 13px;
-      font-weight: 600;
+      padding: 10px 16px;
+      border-radius: 6px;
       cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.2s;
+      font-weight: bold;
     }
-
-    .btn-primary { background: var(--accent); color: #fff; }
-    .btn-primary:hover { background: var(--accent-hover); }
-    .btn-secondary { background: #334155; color: #cbd5e1; }
-    .btn-secondary:hover { background: #475569; }
-    .btn-test { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
-
-    .events-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
+    .alarm-btn:hover { background: #1d4ed8; }
+    .test-btn { background: #059669; }
+    .test-btn:hover { background: #047857; }
     .event-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 16px 20px;
+      background: #1f2937;
+      border: 1px solid #374151;
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 10px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
-      gap: 16px;
-      transition: all 0.3s;
     }
-
-    .event-card.highlight {
-      border-color: var(--accent);
-      background: rgba(99, 102, 241, 0.1);
-      box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+    /* स्क्रीन पर दिखने वाला अलर्ट */
+    #active-alarm-popup {
+      display: none;
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #b91c1c;
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+      z-index: 999999;
+      max-width: 350px;
+      animation: pulse 1s infinite alternate;
     }
-
-    .event-info { flex: 1 1 260px; }
-    .event-title { font-size: 16px; font-weight: 600; color: #fff; margin: 0 0 4px 0; }
-    .event-desc { color: var(--text-muted); font-size: 13px; margin: 0 0 8px 0; }
-    .event-time { font-size: 12px; color: #a5b4fc; }
-
-    .event-controls { display: flex; align-items: center; gap: 8px; }
-    .switch-btn {
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      border: 1px solid var(--card-border);
-      background: #0f172a;
-      color: var(--text-muted);
-    }
-    .switch-btn.active {
-      background: rgba(16, 185, 129, 0.15);
-      border-color: rgba(16, 185, 129, 0.4);
-      color: #34d399;
-    }
-
-    .empty-msg {
-      text-align: center;
-      padding: 40px 20px;
-      color: var(--text-muted);
-      font-size: 14px;
+    @keyframes pulse {
+      from { transform: scale(1); }
+      to { transform: scale(1.03); }
     }
   </style>
 
-  <div class="app-header">
-    <h2>🔔 इवेंट और नोटिफिकेशन रिमाइंडर</h2>
-    <div class="header-actions">
-      <button type="button" class="btn btn-test" id="test-notif-btn">⚡ टेस्ट नोटिफिकेशन</button>
-      <div class="status-badge" id="notif-permission-status" title="अनुमति बदलने के लिए क्लिक करें">
-        <span class="status-dot" id="permission-dot"></span>
-        <span id="permission-text">अनुमति चेक हो रही है...</span>
-      </div>
-    </div>
+  <!-- स्क्रीन पर पॉप-अप अलर्ट -->
+  <div id="active-alarm-popup">
+    <h4 id="popup-title" style="margin:0 0 5px 0; font-size:18px;">🔔 इवेंट का समय हो गया!</h4>
+    <p id="popup-desc" style="margin:0 0 10px 0; font-size:14px;"></p>
+    <button onclick="dismissAlarm()" style="background:#fff; color:#000; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold;">बंद करें (Dismiss)</button>
   </div>
 
-  <div class="form-box">
-    <div class="form-title" id="form-heading">नया इवेंट जोड़ें</div>
-    <form id="event-form">
-      <input type="hidden" id="event-id" value="">
-      <div class="input-grid">
-        <div class="input-group">
-          <label>इवेंट का नाम</label>
-          <input type="text" id="event-title" placeholder="जैसे: क्लाइंट कॉल, बिल भरना..." required>
-        </div>
-        <div class="input-group">
-          <label>तारीख और समय</label>
-          <input type="datetime-local" id="event-datetime" required>
-        </div>
-        <div class="input-group">
-          <label>प्राथमिकता</label>
-          <select id="event-priority">
-            <option value="medium">मध्यम (Medium)</option>
-            <option value="high">जरूरी (High)</option>
-            <option value="low">सामान्य (Low)</option>
-          </select>
-        </div>
-      </div>
-      <div class="input-group" style="margin-bottom: 16px;">
-        <label>विवरण (वैकल्पिक)</label>
-        <textarea id="event-desc" rows="2" placeholder="कोई खास विवरण जोड़ें..."></textarea>
-      </div>
-      <div class="form-actions">
-        <button type="button" class="btn btn-secondary" id="cancel-edit-btn" style="display:none;">रद्द करें</button>
-        <button type="submit" class="btn btn-primary" id="save-btn">💾 इवेंट सेव करें</button>
-      </div>
-    </form>
+  <h3>⏰ इवेंट और अलार्म शेड्यूलर</h3>
+  
+  <div class="form-row">
+    <label>इवेंट का नाम:</label>
+    <input type="text" id="ev-name" placeholder="उदा. मीटिंग, दवाई का समय">
+  </div>
+  <div class="form-row">
+    <label>तारीख और समय चुनें:</label>
+    <input type="datetime-local" id="ev-time">
+  </div>
+  
+  <div class="btn-row">
+    <button class="alarm-btn" id="save-ev-btn">इवेंट सेव करें</button>
+    <button class="alarm-btn test-btn" id="sound-test-btn">🔊 साउंड और अलर्ट टेस्ट करें</button>
   </div>
 
-  <div class="events-list" id="events-container">
-    <div class="empty-msg">कोई इवेंट मौजूद नहीं है। ऊपर दिए गए फॉर्म से जोड़ें।</div>
-  </div>
+  <div id="events-display" style="margin-top: 20px;"></div>
 
   <script>
-    (function() {
-      const DB_NAME = "BloggerPersonalReminder_v2";
-      const DB_VERSION = 1;
-      const STORE_NAME = "events";
-      let db = null;
+    let audioCtx = null;
+    let alarmInterval = null;
 
-      // साउंड अलर्ट (Web Audio Beep)
-      function playAlertTone() {
-        try {
-          const ctx = new (window.AudioContext || window.webkitAudioContext)();
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
+    // बीप साउंड बजाना
+    function startAlarmSound() {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (alarmInterval) return;
+
+        alarmInterval = setInterval(() => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
           osc.type = "sine";
-          osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
-          osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.2); // A5
-          gain.gain.setValueAtTime(0.3, ctx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+          osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+          gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
           osc.connect(gain);
-          gain.connect(ctx.destination);
+          gain.connect(audioCtx.destination);
           osc.start();
-          osc.stop(ctx.currentTime + 0.45);
-        } catch(e) {}
+          osc.stop(audioCtx.currentTime + 0.3);
+        }, 600);
+      } catch (e) {
+        console.log("Audio error", e);
       }
+    }
 
-      // IndexedDB
-      function initDB() {
-        return new Promise((resolve) => {
-          const req = indexedDB.open(DB_NAME, DB_VERSION);
-          req.onupgradeneeded = (e) => {
-            const d = e.target.result;
-            if (!d.objectStoreNames.contains(STORE_NAME)) {
-              d.createObjectStore(STORE_NAME, { keyPath: "id", autoIncrement: true });
-            }
-          };
-          req.onsuccess = (e) => { db = e.target.result; resolve(); };
-          req.onerror = () => resolve();
-        });
+    function stopAlarmSound() {
+      if (alarmInterval) {
+        clearInterval(alarmInterval);
+        alarmInterval = null;
       }
+    }
 
-      function getAllEvents() {
-        return new Promise((resolve) => {
-          if (!db) return resolve([]);
-          const tx = db.transaction(STORE_NAME, "readonly");
-          const req = tx.objectStore(STORE_NAME).getAll();
-          req.onsuccess = () => resolve(req.result || []);
-          req.onerror = () => resolve([]);
-        });
+    // अलर्ट पॉप-अप दिखाना
+    function showAlert(title, desc) {
+      startAlarmSound();
+      const popup = document.getElementById("active-alarm-popup");
+      document.getElementById("popup-title").innerText = "🔔 " + title;
+      document.getElementById("popup-desc").innerText = desc || "समय हो गया है!";
+      popup.style.display = "block";
+
+      // साथ ही सिस्टम नोटिफिकेशन की कोशिश करें
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification(title, { body: desc });
       }
+    }
 
-      function saveEvent(item) {
-        return new Promise((resolve) => {
-          if (!db) return resolve(null);
-          const tx = db.transaction(STORE_NAME, "readwrite");
-          const req = tx.objectStore(STORE_NAME).put(item);
-          req.onsuccess = () => resolve(req.result);
-          req.onerror = () => resolve(null);
-        });
+    function dismissAlarm() {
+      stopAlarmSound();
+      document.getElementById("active-alarm-popup").style.display = "none";
+    }
+
+    // टेस्ट बटन
+    document.getElementById("sound-test-btn").onclick = function() {
+      if ("Notification" in window && Notification.permission !== "granted") {
+        Notification.requestPermission();
       }
+      showAlert("टेस्ट अलर्ट!", "अगर आपको आवाज़ आ रही है और यह लाल बॉक्स दिख रहा है, तो सिस्टम सही काम कर रहा है।");
+    };
 
-      function deleteEvent(id) {
-        return new Promise((resolve) => {
-          if (!db) return resolve(false);
-          const tx = db.transaction(STORE_NAME, "readwrite");
-          const req = tx.objectStore(STORE_NAME).delete(Number(id));
-          req.onsuccess = () => resolve(true);
-          req.onerror = () => resolve(false);
-        });
+    // IndexedDB स्टोरेज
+    let db;
+    const req = indexedDB.open("BloggerEventsSafeDB", 1);
+    req.onupgradeneeded = (e) => {
+      db = e.target.result;
+      if (!db.objectStoreNames.contains("items")) {
+        db.createObjectStore("items", { keyPath: "id", autoIncrement: true });
       }
+    };
+    req.onsuccess = (e) => {
+      db = e.target.result;
+      loadEvents();
+    };
 
-      function getEventById(id) {
-        return new Promise((resolve) => {
-          if (!db) return resolve(null);
-          const tx = db.transaction(STORE_NAME, "readonly");
-          const req = tx.objectStore(STORE_NAME).get(Number(id));
-          req.onsuccess = () => resolve(req.result);
-          req.onerror = () => resolve(null);
-        });
-      }
-
-      // Notification Dispatcher
-      function triggerDirectNotification(title, body, eventId) {
-        playAlertTone();
-        if (!("Notification" in window)) return;
-
-        if (Notification.permission === "granted") {
-          const currentUrl = window.location.href.split('#')[0] + "#manage-id=" + (eventId || "");
-          const notif = new Notification(title, {
-            body: body + "\n(पेज खोलने या मैनेज करने के लिए यहाँ क्लिक करें)",
-            icon: "https://cdn-icons-png.flaticon.com/512/3602/3602145.png",
-            requireInteraction: true
-          });
-
-          notif.onclick = function() {
-            window.focus();
-            if (eventId) {
-              window.location.hash = "manage-id=" + eventId;
-              highlightEvent(eventId);
-            }
-            notif.close();
-          };
-        }
-      }
-
-      // Permissions UI
-      const permText = document.getElementById("permission-text");
-      const permDot = document.getElementById("permission-dot");
-
-      function updatePermissionStatus() {
-        if (!("Notification" in window)) {
-          permText.innerText = "सपोर्ट नहीं है";
+    function loadEvents() {
+      const tx = db.transaction("items", "readonly");
+      const store = tx.objectStore("items");
+      const listReq = store.getAll();
+      listReq.onsuccess = () => {
+        const items = listReq.result || [];
+        const container = document.getElementById("events-display");
+        if (!items.length) {
+          container.innerHTML = "<p style='color:#9ca3af;'>कोई शेड्यूल्ड इवेंट नहीं है।</p>";
           return;
         }
-        if (Notification.permission === "granted") {
-          permText.innerText = "नोटिफिकेशन चालू है";
-          permDot.className = "status-dot active";
-        } else if (Notification.permission === "denied") {
-          permText.innerText = "ब्लॉक है (ब्राउज़र में Allow करें)";
-          permDot.className = "status-dot blocked";
-        } else {
-          permText.innerText = "चालू करने के लिए टैप करें";
-          permDot.className = "status-dot";
-        }
-      }
-
-      async function requestPerm() {
-        if ("Notification" in window && Notification.permission !== "granted") {
-          await Notification.requestPermission();
-          updatePermissionStatus();
-        }
-      }
-
-      document.getElementById("notif-permission-status").addEventListener("click", requestPerm);
-
-      // Test Button
-      document.getElementById("test-notif-btn").addEventListener("click", async () => {
-        if ("Notification" in window && Notification.permission !== "granted") {
-          const res = await Notification.requestPermission();
-          updatePermissionStatus();
-          if (res !== "granted") {
-            alert("कृपया ब्राउज़र सेटिंग्स में नोटिफिकेशन की अनुमति दें!");
-            return;
-          }
-        }
-        triggerDirectNotification("🔔 टेस्ट नोटिफिकेशन सफल!", "यह एक टेस्ट अलर्ट है। अब आपके टाइमर ठीक से काम करेंगे।", null);
-      });
-
-      // Background Check Loop (Every 5 seconds)
-      setInterval(async () => {
-        const events = await getAllEvents();
-        const now = Date.now();
-
-        for (const ev of events) {
-          const targetTime = new Date(ev.datetime).getTime();
-          if (ev.enabled && !ev.notified && now >= targetTime) {
-            triggerDirectNotification(
-              `🔔 रिमाइंडर: ${ev.title}`,
-              ev.desc ? ev.desc : "निर्धारित समय आ गया है!",
-              ev.id
-            );
-            ev.notified = true;
-            await saveEvent(ev);
-            renderEvents();
-          }
-        }
-      }, 5000);
-
-      // UI Rendering
-      const eventsContainer = document.getElementById("events-container");
-      const eventForm = document.getElementById("event-form");
-      const eventIdInput = document.getElementById("event-id");
-      const eventTitleInput = document.getElementById("event-title");
-      const eventDateTimeInput = document.getElementById("event-datetime");
-      const eventPriorityInput = document.getElementById("event-priority");
-      const eventDescInput = document.getElementById("event-desc");
-      const cancelEditBtn = document.getElementById("cancel-edit-btn");
-      const formHeading = document.getElementById("form-heading");
-
-      async function renderEvents() {
-        const list = await getAllEvents();
-        if (!list.length) {
-          eventsContainer.innerHTML = '<div class="empty-msg">कोई इवेंट मौजूद नहीं है। ऊपर दिए गए फॉर्म से जोड़ें।</div>';
-          return;
-        }
-
-        list.sort((a, b) => new Date(a.datetime) - new Date(b.datetime));
-
-        eventsContainer.innerHTML = list.map(ev => `
-          <div class="event-card" id="event-card-${ev.id}">
-            <div class="event-info">
-              <h3 class="event-title">${escapeHtml(ev.title)}</h3>
-              ${ev.desc ? `<p class="event-desc">${escapeHtml(ev.desc)}</p>` : ''}
-              <div class="event-time">
-                📅 ${new Date(ev.datetime).toLocaleString()} ${ev.notified ? '· <b style="color:#10b981;">(नोटिफाइड)</b>' : ''}
-              </div>
+        container.innerHTML = items.map(it => `
+          <div class="event-card">
+            <div>
+              <strong>${it.name}</strong><br>
+              <small style="color:#9ca3af;">${new Date(it.time).toLocaleString()}</small>
             </div>
-            <div class="event-controls">
-              <button class="switch-btn ${ev.enabled ? 'active' : ''}" data-id="${ev.id}" data-action="toggle">
-                ${ev.enabled ? '🔔 चालू' : '🔕 बंद'}
-              </button>
-              <button class="btn btn-secondary" style="padding:6px 12px;font-size:12px;" data-id="${ev.id}" data-action="edit">
-                ✏️ एडिट
-              </button>
-              <button class="btn btn-secondary" style="padding:6px 12px;font-size:12px;color:#f87171;" data-id="${ev.id}" data-action="delete">
-                🗑️️ डिलीट
-              </button>
-            </div>
+            <button onclick="removeEvent(${it.id})" style="background:#ef4444; color:#fff; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">हटाएँ</button>
           </div>
         `).join('');
+      };
+    }
 
-        checkHighlight();
+    document.getElementById("save-ev-btn").onclick = function() {
+      const name = document.getElementById("ev-name").value.trim();
+      const time = document.getElementById("ev-time").value;
+      if (!name || !time) {
+        alert("कृपया नाम और समय दोनों भरें!");
+        return;
+      }
+      
+      // ऑडियो संदर्भ शुरू करने के लिए परमिशन
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if ("Notification" in window && Notification.permission !== "granted") {
+        Notification.requestPermission();
       }
 
-      function escapeHtml(t) {
-        return (t || '').replace(/[&<>'"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c]));
-      }
+      const tx = db.transaction("items", "readwrite");
+      tx.objectStore("items").add({ name, time, notified: false });
+      tx.oncomplete = () => {
+        document.getElementById("ev-name").value = "";
+        document.getElementById("ev-time").value = "";
+        loadEvents();
+        alert("इवेंट सेव हो गया!");
+      };
+    };
 
-      eventForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        await requestPerm();
+    window.removeEvent = function(id) {
+      const tx = db.transaction("items", "readwrite");
+      tx.objectStore("items").delete(id);
+      tx.oncomplete = loadEvents;
+    };
 
-        const id = eventIdInput.value ? Number(eventIdInput.value) : undefined;
-        const eventData = {
-          title: eventTitleInput.value.trim(),
-          datetime: eventDateTimeInput.value,
-          priority: eventPriorityInput.value,
-          desc: eventDescInput.value.trim(),
-          enabled: true,
-          notified: false
-        };
-
-        if (id) {
-          eventData.id = id;
-          const old = await getEventById(id);
-          if (old && old.datetime === eventData.datetime) {
-            eventData.notified = old.notified;
-            eventData.enabled = old.enabled;
+    // टाइमर चेक (हर 3 सेकंड)
+    setInterval(() => {
+      if (!db) return;
+      const tx = db.transaction("items", "readwrite");
+      const store = tx.objectStore("items");
+      const req = store.getAll();
+      req.onsuccess = () => {
+        const now = Date.now();
+        const items = req.result || [];
+        items.forEach(it => {
+          const evTime = new Date(it.time).getTime();
+          if (!it.notified && now >= evTime) {
+            showAlert("इवेंट रिमाइंडर: " + it.name, "निर्धारित समय आ गया है।");
+            it.notified = true;
+            const upTx = db.transaction("items", "readwrite");
+            upTx.objectStore("items").put(it);
           }
-        }
-
-        await saveEvent(eventData);
-        resetForm();
-        renderEvents();
-      });
-
-      eventsContainer.addEventListener("click", async (e) => {
-        const btn = e.target.closest("button");
-        if (!btn) return;
-        const act = btn.getAttribute("data-action");
-        const id = Number(btn.getAttribute("data-id"));
-
-        if (act === "delete") {
-          await deleteEvent(id);
-          renderEvents();
-        } else if (act === "toggle") {
-          const item = await getEventById(id);
-          if (item) {
-            item.enabled = !item.enabled;
-            await saveEvent(item);
-            renderEvents();
-          }
-        } else if (act === "edit") {
-          const item = await getEventById(id);
-          if (item) {
-            eventIdInput.value = item.id;
-            eventTitleInput.value = item.title;
-            eventDateTimeInput.value = item.datetime;
-            eventPriorityInput.value = item.priority;
-            eventDescInput.value = item.desc || "";
-            formHeading.innerText = "इवेंट बदलें (Edit Event)";
-            cancelEditBtn.style.display = "inline-flex";
-            window.scrollTo({ top: eventForm.offsetTop - 30, behavior: 'smooth' });
-          }
-        }
-      });
-
-      cancelEditBtn.addEventListener("click", resetForm);
-
-      function resetForm() {
-        eventIdInput.value = "";
-        eventForm.reset();
-        formHeading.innerText = "नया इवेंट जोड़ें";
-        cancelEditBtn.style.display = "none";
-      }
-
-      function highlightEvent(id) {
-        const el = document.getElementById("event-card-" + id);
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          el.classList.add("highlight");
-          setTimeout(() => el.classList.remove("highlight"), 3000);
-        }
-      }
-
-      function checkHighlight() {
-        if (window.location.hash.startsWith("#manage-id=")) {
-          const id = window.location.hash.replace("#manage-id=", "");
-          highlightEvent(id);
-        }
-      }
-
-      window.addEventListener("DOMContentLoaded", async () => {
-        await initDB();
-        updatePermissionStatus();
-        await renderEvents();
-      });
-    })();
+        });
+      };
+    }, 3000);
   </script>
 </div>
