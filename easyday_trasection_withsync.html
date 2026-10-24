@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Multi-Page Ledger</title>
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --primary: #4f46e5;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --text: #0f172a;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            margin: 0;
+            padding: 15px;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+        }
+
+        .header-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .logo-container {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            border: 2px dashed #cbd5e1;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            cursor: pointer;
+            background: #f1f5f9;
+        }
+
+        .logo-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .logo-placeholder {
+            font-size: 0.7rem;
+            color: #64748b;
+            text-align: center;
+            padding: 5px;
+        }
+
+        .editable-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+            border: 1px transparent dashed;
+            padding: 2px 8px;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        .editable-title:hover, .editable-title:focus {
+            border-color: var(--primary);
+            background: #f0fdf4;
+        }
+
+        .page-control-bar {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 550px;
+            margin-top: 5px;
+            background: #f1f5f9;
+            padding: 8px;
+            border-radius: 8px;
+        }
+
+        .page-control-bar select {
+            flex: 1;
+            padding: 6px 10px;
+            font-weight: 600;
+        }
+
+        .btn-page {
+            padding: 6px 10px;
+            font-size: 0.8rem;
+            min-width: auto;
+            border-radius: 4px;
+        }
+
+        .balance-box {
+            text-align: center;
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-bottom: 25px;
+            padding: 12px;
+            background: #e0e7ff;
+            border-radius: 8px;
+            color: var(--primary);
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        h3 { margin-top: 0; margin-bottom: 15px; font-size: 1.1rem; color: #334155; }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #475569;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 0.95rem;
+            background: #f8fafc;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: #fff;
+        }
+
+        .link-builder-box {
+            display: flex;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .link-builder-box input {
+            padding: 6px 8px;
+            font-size: 0.8rem;
+        }
+
+        .separation-textarea {
+            font-family: monospace;
+            background: #1e293b;
+            color: #38bdf8;
+            font-size: 0.85rem;
+            resize: vertical;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        button, .file-label {
+            flex: 1;
+            min-width: 110px;
+            padding: 10px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            box-sizing: border-box;
+            transition: background 0.2s;
+        }
+
+        .btn-voice { background-color: var(--primary); color: white; }
+        .btn-voice-hi { background-color: #7c3aed; color: white; }
+        .btn-save { background-color: var(--success); color: white; }
+        .btn-clear { background-color: #64748b; color: white; }
+        .btn-file { background-color: #0284c7; color: white; display: inline-block; }
+        .btn-utility { background-color: #475569; color: white; }
+        .btn-sm { padding: 6px 10px; min-width: auto; font-size: 0.8rem; }
+
+        .listening {
+            animation: pulse 1.5s infinite;
+            background-color: var(--danger) !important;
+        }
+
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+        /* Table & Resizable Columns Styling */
+        .table-wrapper {
+            overflow-x: auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+            table-layout: fixed;
+        }
+
+        th, td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+            word-wrap: break-word;
+            position: relative;
+        }
+
+        th { 
+            background-color: #f1f5f9; 
+            font-weight: 600; 
+            color: #475569; 
+            user-select: none;
+        }
+
+        /* Resizer Handle */
+        .resizer {
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            width: 5px;
+            background: rgba(0,0,0,0.1);
+            cursor: col-resize;
+            user-select: none;
+        }
+
+        .resizer:hover, .resizing {
+            background: var(--primary);
+            width: 6px;
+        }
+
+        .c-credit { color: var(--success); font-weight: bold; }
+        .c-debit { color: var(--danger); font-weight: bold; }
+
+        .td-img {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 1px solid var(--border);
+        }
+
+        .actions-btn {
+            padding: 4px 8px;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            margin-right: 4px;
+            border: none;
+            cursor: pointer;
+        }
+        .edit-btn { background: #f59e0b; color: white; }
+        .del-btn { background: #ef4444; color: white; }
+
+        .hidden-input { display: none; }
+
+        @media print {
+            body { background: white; color: black; padding: 0; }
+            .card, .btn-group, .actions-btn, th:last-child, td:last-child, .logo-placeholder, .hidden-print, .page-control-bar, .resizer {
+                display: none !important;
+            }
+            .container { max-width: 100%; }
+            .table-wrapper { box-shadow: none; overflow: visible; }
+            table { table-layout: auto; }
+            th { background-color: #e2e8f0 !important; -webkit-print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <!-- Custom Header Zone -->
+    <div class="header-section">
+        <div class="logo-container" onclick="document.getElementById('logoInput').click()" title="Change Image/Logo for active page">
+            <input type="file" id="logoInput" class="hidden-input" accept="image/*">
+            <img id="logoImg" src="" style="display:none;">
+            <div id="logoText" class="logo-placeholder">Click to set Page Title Image</div>
+        </div>
+        <div class="editable-title" id="pageTitle" contenteditable="true">My Digital Ledger</div>
+
+        <!-- Page Management Controls -->
+        <div class="page-control-bar hidden-print">
+            <select id="pageSelect"></select>
+            <button class="btn-page btn-save" id="addPageBtn" title="Add Page">➕</button>
+            <button class="btn-page edit-btn" id="renamePageBtn" title="Rename Page">✏️</button>
+            <button class="btn-page del-btn" id="deletePageBtn" title="Delete Page">🗑️</button>
+        </div>
+    </div>
+
+    <div id="cloudSyncStatus" style="text-align:center;font-size:.82rem;margin:0 0 12px;color:#64748b;">Google Sheets sync: starting…</div>
+    <div class="balance-box">
+        Total Balance: ₹<span id="totalBalance">0</span>
+    </div>
+
+    <!-- Data Form -->
+    <div class="card">
+        <h3>Transaction Entry</h3>
+        <div class="grid-2">
+            <div class="form-group">
+                <label>Date</label>
+                <input type="date" id="txDate">
+            </div>
+            <div class="form-group">
+                <label>Transaction Type</label>
+                <select id="txType">
+                    <option value="Credit">Credit (+)</option>
+                    <option value="Debit">Debit (-)</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="grid-2">
+            <div class="form-group">
+                <label>Description</label>
+                <input type="text" id="txDesc" placeholder="e.g., Salary, Grocery">
+                <!-- Hyperlink Embed Tool -->
+                <div class="link-builder-box">
+                    <input type="text" id="linkText" placeholder="Link Text (e.g. Bill)">
+                    <input type="text" id="linkUrl" placeholder="URL (https://...)">
+                    <button class="btn-sm btn-utility" id="addLinkBtn" type="button">🔗 Add Link</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Amount (₹)</label>
+                <input type="number" id="txAmount" placeholder="0.00">
+            </div>
+        </div>
+
+        <!-- Camera & Gallery Attachment -->
+        <div class="form-group">
+            <label>Attach Image</label>
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                <!-- Dedicated Camera capture input -->
+                <label for="cameraDirectInput" class="btn-file btn-sm">📷 Open Camera</label>
+                <input type="file" id="cameraDirectInput" class="hidden-input" accept="image/*" capture="environment">
+
+                <!-- File picker input -->
+                <label for="fileGalleryInput" class="btn-file btn-sm" style="background:#475569;">📁 Pick File</label>
+                <input type="file" id="fileGalleryInput" class="hidden-input" accept="image/*">
+
+                <span id="fileStatus" style="font-size:0.8rem; color:#64748b;">No image attached</span>
+            </div>
+        </div>
+
+        <!-- Real-time Synchronization Textbox -->
+        <div class="form-group">
+            <label>Separation Format String (Live Sync)</label>
+            <textarea id="separationTxt" class="separation-textarea" rows="2" placeholder="Format: Date | Description | Type | Amount"></textarea>
+        </div>
+
+        <input type="hidden" id="editKey">
+        <input type="hidden" id="imageBase64">
+
+        <div class="btn-group">
+            <button class="btn-voice-hi" id="voiceHiBtn">🎤 Speech (Hindi/Hinglish)</button>
+            <button class="btn-voice" id="voiceEnBtn">🎤 Speech (English)</button>
+            <button class="btn-save" id="saveBtn">Save Entry</button>
+            <button class="btn-clear" id="clearBtn">Clear</button>
+        </div>
+    </div>
+
+    <!-- Resizable Data Table -->
+    <div class="table-wrapper">
+        <table id="ledgerTable">
+            <thead>
+                <tr>
+                    <th style="width: 50px;">Img<div class="resizer"></div></th>
+                    <th style="width: 100px;">Date<div class="resizer"></div></th>
+                    <th style="width: 220px;">Description<div class="resizer"></div></th>
+                    <th style="width: 80px;">Type<div class="resizer"></div></th>
+                    <th style="width: 90px;">Amount<div class="resizer"></div></th>
+                    <th style="width: 100px;">Total<div class="resizer"></div></th>
+                    <th class="hidden-print" style="width: 110px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="ledgerBody">
+                <!-- Records injected here -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Backup & Print Controls -->
+    <div class="card hidden-print">
+        <h3>Utilities</h3>
+        <div class="btn-group">
+            <button class="btn-utility" id="manualSyncBtn" type="button">☁️ Sync Now</button>
+            <button class="btn-utility" id="exportCsvBtn">📥 Download CSV</button>
+            <label for="importCsvInput" class="btn-utility" style="display:inline-block;">📤 Upload CSV</label>
+            <input type="file" id="importCsvInput" class="hidden-input" accept=".csv">
+            <button class="btn-utility" onclick="window.print()">🖨️ Print / Save PDF</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- DATABASE CONFIGURATION ---
+    let db;
+    const dbName = "AdvancedLedgerDB_v4";
+    const storeName = "ledger_entries";
+    const settingsStore = "app_settings";
+    const pagesStore = "ledger_pages";
+
+
+    let activePageId = 1;
+    let pageList = [];
+
+    // ===== GOOGLE SHEETS FULL-DATABASE SYNC =====
+    // Paste your deployed Apps Script Web App URL here (must end in /exec).
+    const GOOGLE_SHEETS_WEB_APP_URL = "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE";
+    const CLOUD_POLL_MS = 15000;
+    let cloudSyncBusy = false;
+    let suppressAutoSync = false;
+    let cloudPollTimer = null;
+    let cloudLastSeenUpdatedAt = 0;
+    let cloudSyncTimer = null;
+
+    function setSyncStatus(message, color) {
+        const el = document.getElementById('cloudSyncStatus');
+        if (!el) return;
+        el.textContent = 'Google Sheets sync: ' + message;
+        el.style.color = color || '#64748b';
+    }
+
+    function isCloudConfigured() {
+        return GOOGLE_SHEETS_WEB_APP_URL &&
+            GOOGLE_SHEETS_WEB_APP_URL.startsWith('https://script.google.com/') &&
+            !GOOGLE_SHEETS_WEB_APP_URL.includes('PASTE_YOUR');
+    }
+
+    function idbRequest(req) {
+        return new Promise((resolve, reject) => {
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => reject(req.error || new Error('IndexedDB request failed'));
+        });
+    }
+
+    function idbTransactionDone(tx) {
+        return new Promise((resolve, reject) => {
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => reject(tx.error || new Error('IndexedDB transaction failed'));
+            tx.onabort = () => reject(tx.error || new Error('IndexedDB transaction aborted'));
+        });
+    }
+
+    async function readWholeLocalDatabase() {
+        const tx = db.transaction([storeName, settingsStore, pagesStore], 'readonly');
+        const entries = await idbRequest(tx.objectStore(storeName).getAll());
+        const settings = await idbRequest(tx.objectStore(settingsStore).getAll());
+        const pages = await idbRequest(tx.objectStore(pagesStore).getAll());
+        await idbTransactionDone(tx);
+        return { version: 1, entries, settings, pages };
+    }
+
+    async function replaceLocalDatabase(snapshot) {
+        if (!snapshot || !Array.isArray(snapshot.pages) ||
+            !Array.isArray(snapshot.entries) || !Array.isArray(snapshot.settings)) {
+            throw new Error('Google Sheet snapshot format is invalid');
+        }
+        suppressAutoSync = true;
+        try {
+            const tx = db.transaction([storeName, settingsStore, pagesStore], 'readwrite');
+            const entriesStore = tx.objectStore(storeName);
+            const settingsObj = tx.objectStore(settingsStore);
+            const pagesObj = tx.objectStore(pagesStore);
+            entriesStore.clear();
+            settingsObj.clear();
+            pagesObj.clear();
+            snapshot.pages.forEach(item => pagesObj.put(item));
+            snapshot.entries.forEach(item => entriesStore.put(item));
+            snapshot.settings.forEach(item => settingsObj.put(item));
+            await idbTransactionDone(tx);
+        } finally {
+            suppressAutoSync = false;
+        }
+    }
+
+    async function cloudGetSnapshot() {
+        const response = await fetch(GOOGLE_SHEETS_WEB_APP_URL + '?action=load&t=' + Date.now(), {
+            method: 'GET',
+            cache: 'no-store',
+            redirect: 'follow'
+        });
+        if (!response.ok) throw new Error('Google Sheets load failed: HTTP ' + response.status);
+        const result = await response.json();
+        if (!result || result.ok !== true) throw new Error(result && result.error ? result.error : 'Invalid response from Apps Script');
+        return result;
+    }
+
+    async function cloudPostSnapshot(snapshot) {
+        // text/plain avoids browser CORS preflight for Apps Script web apps.
+        const response = await fetch(GOOGLE_SHEETS_WEB_APP_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: 'save', snapshot: snapshot, clientUpdatedAt: Date.now() }),
+            redirect: 'follow'
+        });
+        if (!response.ok) throw new Error('Google Sheets save failed: HTTP ' + response.status);
+        const result = await response.json();
+        if (!result || result.ok !== true) throw new Error(result && result.error ? result.error : 'Google Sheets rejected the save');
+        cloudLastSeenUpdatedAt = Number(result.updatedAt || Date.now());
+        return result;
+    }
+
+    async function cloudSyncInit() {
+        if (!isCloudConfigured()) {
+            setSyncStatus('URL not configured — using this device only', '#b45309');
+            return;
+        }
+        cloudSyncBusy = true;
+        try {
+            const cloud = await cloudGetSnapshot();
+            cloudLastSeenUpdatedAt = Number(cloud.updatedAt || 0);
+            const local = await readWholeLocalDatabase();
+            const cloudHasData = cloud.snapshot &&
+                Array.isArray(cloud.snapshot.pages) && cloud.snapshot.pages.length > 0;
+            const localHasData = local.pages.length > 0 || local.entries.length > 0 || local.settings.length > 0;
+            if (cloudHasData) {
+                // Cloud snapshot is the shared source of truth once it contains data.
+                await replaceLocalDatabase(cloud.snapshot);
+                setSyncStatus('Loaded all pages and records from Google Sheets', '#15803d');
+            } else if (localHasData) {
+                await cloudPostSnapshot(local);
+                setSyncStatus('Existing local data uploaded to Google Sheets', '#15803d');
+            } else {
+                // Seed a new spreadsheet with the app's initial page.
+                setSyncStatus('Connected — preparing first sync', '#15803d');
+            }
+        } finally {
+            cloudSyncBusy = false;
+        }
+    }
+
+    function scheduleCloudSync() {
+        if (!isCloudConfigured() || suppressAutoSync || cloudSyncBusy) return;
+        clearTimeout(cloudSyncTimer);
+        cloudSyncTimer = setTimeout(async () => {
+            if (cloudSyncBusy || suppressAutoSync) return;
+            cloudSyncBusy = true;
+            setSyncStatus('Saving changes…');
+            try {
+                const snapshot = await readWholeLocalDatabase();
+                await cloudPostSnapshot(snapshot);
+                setSyncStatus('All pages synced ✓ ' + new Date().toLocaleTimeString(), '#15803d');
+            } catch (err) {
+                console.error('Google Sheets sync failed:', err);
+                setSyncStatus('Save failed — check Web App URL/deployment', '#b91c1c');
+            } finally {
+                cloudSyncBusy = false;
+            }
+        }, 900);
+    }
+
+    function installAutoSyncHook() {
+        // Watch all IndexedDB read/write transactions so entries, page names,
+        // page deletion, logos, titles, CSV imports and settings are all synced.
+        const originalTransaction = db.transaction.bind(db);
+        db.transaction = function(stores, mode, options) {
+            const tx = originalTransaction(stores, mode, options);
+            if (mode === 'readwrite') {
+                tx.addEventListener('complete', () => {
+                    if (!suppressAutoSync) scheduleCloudSync();
+                }, { once: true });
+            }
+            return tx;
+        };
+    }
+
+    function startCloudPolling() {
+        if (!isCloudConfigured()) return;
+        if (cloudPollTimer) clearInterval(cloudPollTimer);
+        cloudPollTimer = setInterval(async () => {
+            if (cloudSyncBusy || suppressAutoSync || document.hidden) return;
+            try {
+                const cloud = await cloudGetSnapshot();
+                const updatedAt = Number(cloud.updatedAt || 0);
+                if (updatedAt > cloudLastSeenUpdatedAt && cloud.snapshot) {
+                    cloudSyncBusy = true;
+                    await replaceLocalDatabase(cloud.snapshot);
+                    cloudLastSeenUpdatedAt = updatedAt;
+                    // Refresh the visible page, page dropdown and page-specific settings.
+                    const hashId = parseInt(window.location.hash.replace('#page-', ''), 10);
+                    pageList = cloud.snapshot.pages.slice();
+                    if (!pageList.some(p => p.id === activePageId)) activePageId = pageList[0]?.id || 1;
+                    if (hashId && pageList.some(p => p.id === hashId)) activePageId = hashId;
+                    renderPagesDropdown();
+                    loadPageSettings();
+                    loadLedgerData();
+                    setSyncStatus('Updated from another device ✓', '#15803d');
+                }
+            } catch (err) {
+                console.warn('Cloud polling failed:', err);
+                setSyncStatus('Connection issue — retrying automatically', '#b45309');
+            } finally {
+                cloudSyncBusy = false;
+            }
+        }, CLOUD_POLL_MS);
+    }
+
+    const request = indexedDB.open(dbName, 1);
+    request.onupgradeneeded = (e) => {
+        db = e.target.result;
+        if (!db.objectStoreNames.contains(storeName)) {
+            const ledgerStore = db.createObjectStore(storeName, { keyPath: "id", autoIncrement: true });
+            ledgerStore.createIndex("pageId", "pageId", { unique: false });
+        }
+        if (!db.objectStoreNames.contains(settingsStore)) {
+            db.createObjectStore(settingsStore, { keyPath: "key" });
+        }
+        if (!db.objectStoreNames.contains(pagesStore)) {
+            db.createObjectStore(pagesStore, { keyPath: "id", autoIncrement: true });
+        }
+    };
+
+    request.onsuccess = async (e) => {
+        db = e.target.result;
+        installAutoSyncHook();
+        setSyncStatus('Connecting to Google Sheets…');
+        try {
+            await cloudSyncInit();
+        } catch (err) {
+            console.error('Cloud sync startup failed:', err);
+            setSyncStatus('Offline / sync error — local data is available');
+        }
+        initPages();
+        startCloudPolling();
+    };
+
+    // Set Default Date
+    document.getElementById('txDate').value = new Date().toISOString().substring(0, 10);
+
+    // --- PAGE & URL HASH MANAGEMENT ---
+    function initPages() {
+        const tx = db.transaction(pagesStore, "readwrite");
+        const store = tx.objectStore(pagesStore);
+        store.getAll().onsuccess = (e) => {
+            pageList = e.target.result;
+            if(pageList.length === 0) {
+                const defaultPage = { name: "General Ledger" };
+                const addReq = store.add(defaultPage);
+                addReq.onsuccess = (evt) => {
+                    defaultPage.id = evt.target.result;
+                    pageList = [defaultPage];
+                    checkHashAndSetPage();
+                };
+            } else {
+                checkHashAndSetPage();
+            }
+        };
+    }
+
+    function checkHashAndSetPage() {
+        const hash = window.location.hash.replace('#page-', '');
+        const pageFromHash = pageList.find(p => p.id === parseInt(hash));
+        if (pageFromHash) {
+            activePageId = pageFromHash.id;
+        } else {
+            activePageId = pageList[0].id;
+        }
+        updateUrlHash();
+        renderPagesDropdown();
+        loadPageSettings();
+        loadLedgerData();
+    }
+
+    function updateUrlHash() {
+        window.location.hash = `page-${activePageId}`;
+    }
+
+    window.addEventListener('hashchange', () => {
+        const hash = window.location.hash.replace('#page-', '');
+        const targetId = parseInt(hash);
+        if(targetId && targetId !== activePageId && pageList.some(p => p.id === targetId)) {
+            activePageId = targetId;
+            renderPagesDropdown();
+            loadPageSettings();
+            clearForm();
+            loadLedgerData();
+        }
+    });
+
+    function renderPagesDropdown() {
+        const select = document.getElementById('pageSelect');
+        select.innerHTML = "";
+        pageList.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.id;
+            opt.textContent = p.name;
+            if(p.id === activePageId) opt.selected = true;
+            select.appendChild(opt);
+        });
+    }
+
+    document.getElementById('pageSelect').addEventListener('change', function() {
+        activePageId = parseInt(this.value);
+        updateUrlHash();
+        loadPageSettings();
+        clearForm();
+        loadLedgerData();
+    });
+
+    document.getElementById('addPageBtn').addEventListener('click', () => {
+        const pageName = prompt("Enter new page name:");
+        if (pageName && pageName.trim()) {
+            const tx = db.transaction(pagesStore, "readwrite");
+            const store = tx.objectStore(pagesStore);
+            const req = store.add({ name: pageName.trim() });
+            req.onsuccess = (e) => {
+                const newId = e.target.result;
+                pageList.push({ id: newId, name: pageName.trim() });
+                activePageId = newId;
+                updateUrlHash();
+                renderPagesDropdown();
+                loadPageSettings();
+                clearForm();
+                loadLedgerData();
+            };
+        }
+    });
+
+    document.getElementById('renamePageBtn').addEventListener('click', () => {
+        const currPage = pageList.find(p => p.id === activePageId);
+        if(!currPage) return;
+        const newName = prompt("Rename current page:", currPage.name);
+        if (newName && newName.trim() && newName.trim() !== currPage.name) {
+            currPage.name = newName.trim();
+            const tx = db.transaction(pagesStore, "readwrite");
+            tx.objectStore(pagesStore).put(currPage).onsuccess = () => {
+                renderPagesDropdown();
+            };
+        }
+    });
+
+    document.getElementById('deletePageBtn').addEventListener('click', () => {
+        if (pageList.length <= 1) {
+            alert("Cannot delete the last remaining page.");
+            return;
+        }
+        const currPage = pageList.find(p => p.id === activePageId);
+        if (confirm(`Delete page "${currPage.name}" and ALL its transaction entries permanently?`)) {
+            const tx = db.transaction([pagesStore, storeName, settingsStore], "readwrite");
+            tx.objectStore(pagesStore).delete(activePageId);
+            
+            // Delete entries for this page
+            const store = tx.objectStore(storeName);
+            const index = store.index("pageId");
+            const req = index.openCursor(IDBKeyRange.only(activePageId));
+            req.onsuccess = (e) => {
+                const cursor = e.target.result;
+                if(cursor) { cursor.delete(); cursor.continue(); }
+            };
+
+            // Remove page-specific settings
+            tx.objectStore(settingsStore).delete(`title_${activePageId}`);
+            tx.objectStore(settingsStore).delete(`logo_${activePageId}`);
+
+            tx.oncomplete = () => {
+                pageList = pageList.filter(p => p.id !== activePageId);
+                activePageId = pageList[0].id;
+                updateUrlHash();
+                renderPagesDropdown();
+                loadPageSettings();
+                clearForm();
+                loadLedgerData();
+            };
+        }
+    });
+
+    // --- HYPERLINK TEXT CHANGE FEATURE ---
+    document.getElementById('addLinkBtn').addEventListener('click', () => {
+        const text = document.getElementById('linkText').value.trim();
+        let url = document.getElementById('linkUrl').value.trim();
+        
+        if(!text || !url) {
+            alert("Enter both Link Text and URL");
+            return;
+        }
+        if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+
+        const markdownLink = `[${text}](${url})`;
+        const descInput = document.getElementById('txDesc');
+        descInput.value = descInput.value ? `${descInput.value} ${markdownLink}` : markdownLink;
+        
+        document.getElementById('linkText').value = "";
+        document.getElementById('linkUrl').value = "";
+        updateSeparationString();
+    });
+
+    // Helper to render markdown links as clickable HTML elements
+    function formatDescriptionWithLinks(text) {
+        if (!text) return "";
+        const escaped = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        return escaped.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" style="color:var(--primary); font-weight:bold;">$1</a>');
+    }
+
+    // --- PAGE-SPECIFIC LOGO & TITLE CONFIGURATION ---
+    document.getElementById('logoInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            compressAndConvertImage(file, (base64) => {
+                saveSetting(`logo_${activePageId}`, base64);
+                displayLogo(base64);
+            });
+        }
+    });
+
+    document.getElementById('pageTitle').addEventListener('blur', function() {
+        saveSetting(`title_${activePageId}`, this.textContent);
+    });
+
+    function saveSetting(key, val) {
+        const tx = db.transaction(settingsStore, "readwrite");
+        tx.objectStore(settingsStore).put({ key: key, value: val });
+    }
+
+    function loadPageSettings() {
+        const tx = db.transaction(settingsStore, "readonly");
+        const store = tx.objectStore(settingsStore);
+        
+        // Reset defaults
+        document.getElementById('pageTitle').textContent = pageList.find(p => p.id === activePageId)?.name || "My Digital Ledger";
+        displayLogo(null);
+
+        store.get(`title_${activePageId}`).onsuccess = (e) => {
+            if(e.target.result) document.getElementById('pageTitle').textContent = e.target.result.value;
+        };
+        store.get(`logo_${activePageId}`).onsuccess = (e) => {
+            if(e.target.result) displayLogo(e.target.result.value);
+        };
+    }
+
+    function displayLogo(base64) {
+        const img = document.getElementById('logoImg');
+        const txt = document.getElementById('logoText');
+        if(base64) {
+            img.src = base64;
+            img.style.display = 'block';
+            txt.style.display = 'none';
+        } else {
+            img.src = "";
+            img.style.display = 'none';
+            txt.style.display = 'block';
+        }
+    }
+
+    // --- TWO-WAY SYNC SYSTEM ---
+    const inputs = ['txDate', 'txDesc', 'txType', 'txAmount'];
+    const sepTxt = document.getElementById('separationTxt');
+
+    function updateSeparationString() {
+        const date = document.getElementById('txDate').value;
+        const desc = document.getElementById('txDesc').value || 'Empty';
+        const type = document.getElementById('txType').value;
+        const amount = document.getElementById('txAmount').value || '0';
+        sepTxt.value = `${date} | ${desc} | ${type} | ${amount}`;
+    }
+
+    inputs.forEach(id => {
+        document.getElementById(id).addEventListener('input', updateSeparationString);
+        document.getElementById(id).addEventListener('change', updateSeparationString);
+    });
+
+    sepTxt.addEventListener('input', () => {
+        const parts = sepTxt.value.split('|');
+        if (parts.length === 4) {
+            document.getElementById('txDate').value = parts[0].trim();
+            document.getElementById('txDesc').value = parts[1].trim();
+            document.getElementById('txType').value = parts[2].trim();
+            document.getElementById('txAmount').value = parts[3].trim();
+        }
+    });
+
+    // --- CAMERA & FILE IMAGE COMPRESSION & HANDLER ---
+    function compressAndConvertImage(file, callback) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                const maxDim = 800; // Resize max dimension to 800px for speed & storage efficiency
+                
+                if (width > height && width > maxDim) {
+                    height *= maxDim / width;
+                    width = maxDim;
+                } else if (height > maxDim) {
+                    width *= maxDim / height;
+                    height = maxDim;
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                callback(canvas.toDataURL('image/jpeg', 0.7)); // Compressed JPEG
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function handleImageAttachment(fileInput) {
+        const file = fileInput.files[0];
+        if (file) {
+            document.getElementById('fileStatus').textContent = file.name;
+            compressAndConvertImage(file, (base64) => {
+                document.getElementById('imageBase64').value = base64;
+            });
+        }
+    }
+
+    document.getElementById('cameraDirectInput').addEventListener('change', function() { handleImageAttachment(this); });
+    document.getElementById('fileGalleryInput').addEventListener('change', function() { handleImageAttachment(this); });
+
+    // --- GOOGLE VOICE TO TEXT (DEDICATED HINDI & ENGLISH) ---
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    function initVoiceRecognition(langCode, btnElement) {
+        if (!SpeechRecognition) {
+            alert("Speech recognition is not supported in this browser.");
+            return;
+        }
+        const recognition = new SpeechRecognition();
+        recognition.lang = langCode;
+        recognition.interimResults = false;
+
+        if (btnElement.classList.contains('listening')) {
+            recognition.stop();
+            return;
+        }
+
+        recognition.start();
+
+        recognition.onstart = () => {
+            btnElement.dataset.oldText = btnElement.textContent;
+            btnElement.textContent = "🛑 Listening...";
+            btnElement.classList.add('listening');
+        };
+        recognition.onend = () => {
+            btnElement.textContent = btnElement.dataset.oldText || "🎤 Speech";
+            btnElement.classList.remove('listening');
+        };
+        recognition.onresult = (event) => {
+            const text = event.results[0][0].transcript;
+            parseVoiceText(text);
+        };
+    }
+
+    document.getElementById('voiceHiBtn').addEventListener('click', function() {
+        initVoiceRecognition('hi-IN', this);
+    });
+
+    document.getElementById('voiceEnBtn').addEventListener('click', function() {
+        initVoiceRecognition('en-US', this);
+    });
+
+    function parseVoiceText(text) {
+        let parts = text.split(/comma|,|और/i);
+        if (parts.length >= 2) {
+            document.getElementById('txDesc').value = parts[0].trim();
+            if (/credit|जमा|गया/i.test(text)) document.getElementById('txType').value = 'Credit';
+            if (/debit|काटा|दिया/i.test(text)) document.getElementById('txType').value = 'Debit';
+            let match = text.match(/\d+/);
+            if (match) document.getElementById('txAmount').value = match[0];
+        } else {
+            document.getElementById('txDesc').value = text;
+        }
+        updateSeparationString();
+    }
+
+    // --- CORE CRUD OPERATIONS ---
+    document.getElementById('saveBtn').addEventListener('click', () => {
+        const date = document.getElementById('txDate').value;
+        const desc = document.getElementById('txDesc').value;
+        const type = document.getElementById('txType').value;
+        const amount = parseFloat(document.getElementById('txAmount').value) || 0;
+        const image = document.getElementById('imageBase64').value;
+        const editKey = document.getElementById('editKey').value;
+
+        if (!desc || amount <= 0) {
+            alert("Fill basic description and valid positive amount.");
+            return;
+        }
+
+        const dataPayload = { pageId: activePageId, date, desc, type, amount, image };
+        const tx = db.transaction(storeName, "readwrite");
+        const store = tx.objectStore(storeName);
+
+        if (editKey) {
+            dataPayload.id = parseInt(editKey);
+            store.put(dataPayload);
+        } else {
+            store.add(dataPayload);
+        }
+
+        tx.oncomplete = () => {
+            clearForm();
+            loadLedgerData();
+        };
+    });
+
+    function loadLedgerData() {
+        const tx = db.transaction(storeName, "readonly");
+        const store = tx.objectStore(storeName);
+        const req = store.index("pageId").getAll(IDBKeyRange.only(activePageId));
+
+        req.onsuccess = (e) => {
+            let list = e.target.result;
+            list.sort((a,b) => new Date(a.date) - new Date(b.date));
+
+            const tbody = document.getElementById('ledgerBody');
+            tbody.innerHTML = "";
+            let runningTotal = 0;
+
+            list.forEach(item => {
+                runningTotal += (item.type === "Credit") ? item.amount : -item.amount;
+                
+                let imgEl = item.image ? `<img src="${item.image}" class="td-img" onclick="viewFullImage('${item.image}')">` : `❌`;
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${imgEl}</td>
+                    <td>${item.date}</td>
+                    <td>${formatDescriptionWithLinks(item.desc)}</td>
+                    <td class="${item.type === 'Credit' ? 'c-credit' : 'c-debit'}">${item.type}</td>
+                    <td>₹${item.amount}</td>
+                    <td style="font-weight:bold;">₹${runningTotal}</td>
+                    <td class="hidden-print">
+                        <button class="actions-btn edit-btn" onclick="editEntry(${item.id})">Edit</button>
+                        <button class="actions-btn del-btn" onclick="deleteEntry(${item.id})">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            document.getElementById('totalBalance').textContent = runningTotal;
+        };
+    }
+
+    window.editEntry = function(id) {
+        const tx = db.transaction(storeName, "readonly");
+        tx.objectStore(storeName).get(id).onsuccess = (e) => {
+            const item = e.target.result;
+            document.getElementById('txDate').value = item.date;
+            document.getElementById('txDesc').value = item.desc;
+            document.getElementById('txType').value = item.type;
+            document.getElementById('txAmount').value = item.amount;
+            document.getElementById('imageBase64').value = item.image || "";
+            document.getElementById('editKey').value = item.id;
+            document.getElementById('fileStatus').textContent = item.image ? "Saved image loaded" : "No image";
+            document.getElementById('saveBtn').textContent = "Update Entry";
+            updateSeparationString();
+        };
+    };
+
+    window.deleteEntry = function(id) {
+        if (confirm("Delete this entry forever?")) {
+            const tx = db.transaction(storeName, "readwrite");
+            tx.objectStore(storeName).delete(id).onsuccess = () => loadLedgerData();
+        }
+    };
+
+    window.viewFullImage = function(base64) {
+        const w = window.open();
+        w.document.write(`<body style="margin:0; background:#0f172a; display:flex; align-items:center; justify-content:center; min-height:100vh;"><img src="${base64}" style="max-width:100%; max-height:100vh; object-fit:contain;"></body>`);
+    };
+
+    function clearForm() {
+        document.getElementById('txDesc').value = "";
+        document.getElementById('txAmount').value = "";
+        document.getElementById('editKey').value = "";
+        document.getElementById('imageBase64').value = "";
+        document.getElementById('cameraDirectInput').value = "";
+        document.getElementById('fileGalleryInput').value = "";
+        document.getElementById('fileStatus').textContent = "No image attached";
+        document.getElementById('txDate').value = new Date().toISOString().substring(0, 10);
+        document.getElementById('saveBtn').textContent = "Save Entry";
+        updateSeparationString();
+    }
+    document.getElementById('clearBtn').addEventListener('click', clearForm);
+
+    // --- CSV EXPORT & IMPORT ---
+    document.getElementById('exportCsvBtn').addEventListener('click', () => {
+        const tx = db.transaction(storeName, "readonly");
+        const store = tx.objectStore(storeName);
+        const req = store.index("pageId").getAll(IDBKeyRange.only(activePageId));
+
+        req.onsuccess = (e) => {
+            const records = e.target.result;
+            const currPage = pageList.find(p => p.id === activePageId);
+            const pageNameStr = currPage ? currPage.name.replace(/\s+/g, '_') : 'page';
+
+            let csvContent = "data:text/csv;charset=utf-8,Date,Description,Type,Amount\n";
+            records.forEach(r => {
+                csvContent += `${r.date},"${r.desc.replace(/"/g, '""')}",${r.type},${r.amount}\n`;
+            });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `ledger_${pageNameStr}_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+    });
+
+    document.getElementById('importCsvInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            const lines = evt.target.result.split("\n");
+            const tx = db.transaction(storeName, "readwrite");
+            const store = tx.objectStore(storeName);
+            
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i].trim()) continue;
+                const columns = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                if(columns.length >= 4) {
+                    store.add({
+                        pageId: activePageId,
+                        date: columns[0].trim(),
+                        desc: columns[1].replace(/^"|"$/g, '').trim(),
+                        type: columns[2].trim(),
+                        amount: parseFloat(columns[3]) || 0,
+                        image: ""
+                    });
+                }
+            }
+            tx.oncomplete = () => {
+                alert("CSV Data imported successfully!");
+                loadLedgerData();
+            };
+        };
+        reader.readAsText(file);
+    });
+
+    // --- ADJUSTABLE TABLE COLUMN RESIZING SCRIPT ---
+    document.querySelectorAll('th').forEach(th => {
+        const resizer = th.querySelector('.resizer');
+        if (!resizer) return;
+
+        let startX, startWidth;
+
+        resizer.addEventListener('mousedown', (e) => {
+            startX = e.pageX;
+            startWidth = th.offsetWidth;
+            resizer.classList.add('resizing');
+
+            const onMouseMove = (e) => {
+                const newWidth = startWidth + (e.pageX - startX);
+                if (newWidth > 40) {
+                    th.style.width = `${newWidth}px`;
+                }
+            };
+
+            const onMouseUp = () => {
+                resizer.classList.remove('resizing');
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+            };
+
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+        });
+    });
+
+    // Manual sync: useful after configuring the Apps Script URL.
+    document.getElementById('manualSyncBtn').addEventListener('click', async () => {
+        if (!isCloudConfigured()) {
+            alert('Please paste your deployed Apps Script Web App URL into GOOGLE_SHEETS_WEB_APP_URL first.');
+            return;
+        }
+        if (cloudSyncBusy) return;
+        cloudSyncBusy = true;
+        setSyncStatus('Syncing now…');
+        try {
+            const snapshot = await readWholeLocalDatabase();
+            await cloudPostSnapshot(snapshot);
+            setSyncStatus('Manual sync complete ✓', '#15803d');
+        } catch (err) {
+            console.error(err);
+            setSyncStatus('Sync failed — check URL and deployment', '#b91c1c');
+            alert('Google Sheets sync failed. Check the Web App URL and deployment access.');
+        } finally {
+            cloudSyncBusy = false;
+        }
+    });
+
+    // Run startup sync
+    updateSeparationString();
+</script>
+
+</body>
+</html>
