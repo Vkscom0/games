@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Voice Ledger Pro - Voice & Text-to-Speech Transaction App</title>
+    <title>Voice Ledger Pro - Voice & Speech Output Transaction App</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -18,7 +18,7 @@
         }
         @keyframes pulse-ring {
             0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-            70% { box-shadow: 0 0 0 16px rgba(239, 68, 68, 0); }
+            70% { box-shadow: 0 0 0 18px rgba(239, 68, 68, 0); }
             100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
         }
 
@@ -27,16 +27,16 @@
         }
         @keyframes speak-pulse {
             0% { transform: scale(1); opacity: 0.8; }
-            100% { transform: scale(1.08); opacity: 1; }
+            100% { transform: scale(1.05); opacity: 1; }
         }
 
         .field-highlight {
             border-color: #6366f1 !important;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25) !important;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.3) !important;
             background-color: #ffffff !important;
         }
 
-        /* Sound Wave Animation Bars */
+        /* Animated Sound Wave Bars */
         .sound-wave-bar {
             display: inline-block;
             width: 3px;
@@ -63,10 +63,10 @@
 </head>
 <body class="min-h-full flex flex-col text-slate-800">
 
-    <!-- Toast Notification Container -->
+    <!-- Toast Container -->
     <div id="toastContainer" class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full"></div>
 
-    <!-- Custom Dialog Modal (Replaces Browser Alert/Confirm) -->
+    <!-- Custom Modal Dialog -->
     <div id="customDialogModal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 text-center">
             <div id="dialogIconBox" class="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center text-xl bg-amber-100 text-amber-600">
@@ -89,7 +89,7 @@
     <div id="imageModal" class="fixed inset-0 z-50 hidden bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-xl w-full overflow-hidden shadow-2xl relative">
             <div class="p-4 bg-slate-900 text-white flex justify-between items-center">
-                <h3 class="font-bold text-sm tracking-wide" id="imageModalTitle">Receipt / Bill Attachment</h3>
+                <h3 class="font-bold text-sm tracking-wide" id="imageModalTitle">Receipt / Bill Preview</h3>
                 <button onclick="closeImageModal()" class="text-slate-400 hover:text-white p-1">
                     <i class="fa-solid fa-xmark text-xl"></i>
                 </button>
@@ -106,7 +106,7 @@
             <div class="flex justify-between items-center mb-4 border-b pb-3">
                 <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
                     <i class="fa-solid fa-book-bookmark text-indigo-600"></i>
-                    <span>Manage Ledger Pages</span>
+                    <span>Manage Ledger Pages (खाता पेज)</span>
                 </h3>
                 <button onclick="closeLedgerModal()" class="text-slate-400 hover:text-slate-600 p-1">
                     <i class="fa-solid fa-xmark text-xl"></i>
@@ -134,10 +134,72 @@
         </div>
     </div>
 
-    <!-- Header & Navigation -->
+    <!-- Interactive Help & Voice Command Cheat Sheet Modal -->
+    <div id="helpModal" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4 border-b pb-3">
+                <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-question text-amber-500"></i>
+                    <span>Voice Commands & Interactive Guide (सहायता निर्देश)</span>
+                </h3>
+                <button onclick="closeHelpModal()" class="text-slate-400 hover:text-slate-600 p-1">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Voice Commands Reference Table -->
+            <div class="space-y-4">
+                <div class="bg-amber-50 p-4 rounded-xl border border-amber-200">
+                    <h4 class="font-extrabold text-xs text-amber-900 uppercase tracking-wider mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-microphone text-amber-600"></i> Voice Command Cheat Sheet (बोलने वाले कमांड)
+                    </h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        <div class="bg-white p-2.5 rounded-lg border border-amber-200 font-semibold">
+                            <span class="text-indigo-600 font-bold block">"Next" / "Agla" / "Aage"</span>
+                            Moves selection cursor to next field.
+                        </div>
+                        <div class="bg-white p-2.5 rounded-lg border border-amber-200 font-semibold">
+                            <span class="text-emerald-600 font-bold block">"Jama" / "Credit" / "Plus"</span>
+                            Sets transaction type to Credit.
+                        </div>
+                        <div class="bg-white p-2.5 rounded-lg border border-amber-200 font-semibold">
+                            <span class="text-rose-600 font-bold block">"Kharcha" / "Debit" / "Minus"</span>
+                            Sets transaction type to Debit.
+                        </div>
+                        <div class="bg-white p-2.5 rounded-lg border border-amber-200 font-semibold">
+                            <span class="text-indigo-600 font-bold block">"Save" / "Submit" / "Jama Karo"</span>
+                            Saves the current transaction into table.
+                        </div>
+                        <div class="bg-white p-2.5 rounded-lg border border-amber-200 font-semibold">
+                            <span class="text-amber-700 font-bold block">"Comma" / "Komma"</span>
+                            Inserts a comma ( , ) into current text field.
+                        </div>
+                        <div class="bg-white p-2.5 rounded-lg border border-amber-200 font-semibold">
+                            <span class="text-indigo-700 font-bold block">"Sunao" / "Read" / "Boliye"</span>
+                            Reads aloud current form state via Speech Synthesis.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mic Permission Troubleshooting -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs space-y-2">
+                    <h4 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-headset text-indigo-600"></i> Microphone Troubleshooting (माइक नहीं चल रहा?)
+                    </h4>
+                    <ol class="list-decimal list-inside space-y-1 text-slate-600">
+                        <li>Click <strong>"Request Mic Access"</strong> button in the voice status bar.</li>
+                        <li>Ensure browser site permissions allow Microphone access (HTTPS/Localhost).</li>
+                        <li>If using Chrome/Edge/Brave, check address bar mic icon to set to 'Allow'.</li>
+                        <li>If speech input is unavailable, use the <strong>Voice Input Simulator</strong> buttons below!</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
     <header class="bg-slate-900 text-white shadow-xl sticky top-0 z-30 border-b border-slate-800">
         <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4">
-            <!-- App Title -->
             <div class="flex items-center gap-3">
                 <div class="bg-indigo-600 p-2.5 rounded-2xl shadow-md text-amber-300">
                     <i class="fa-solid fa-microphone-lines text-2xl"></i>
@@ -147,13 +209,17 @@
                         Voice Ledger Pro
                         <span class="text-[10px] bg-amber-400 text-slate-950 font-black px-2 py-0.5 rounded-full uppercase">Voice + Speech Output</span>
                     </h1>
-                    <p class="text-xs text-slate-400">Speech Recognition & Text-To-Speech (Awaaz Feedback)</p>
+                    <p class="text-xs text-slate-400">Offline Voice Recognition & Audio Text-To-Speech (Awaaz Feedback)</p>
                 </div>
             </div>
 
-            <!-- Audio Feedback & Active Ledger Switcher Controls -->
             <div class="flex items-center gap-3">
-                <!-- Text-to-Speech Output Mute/Unmute Toggle Button -->
+                <!-- Help & Tutorial Trigger Button -->
+                <button onclick="openHelpModal()" class="bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-circle-question text-amber-400"></i> Help & Guides
+                </button>
+
+                <!-- Audio TTS Mute Toggle -->
                 <button id="ttsToggleBtn" onclick="toggleTTSSpeech()" class="bg-amber-500/20 border border-amber-400/40 text-amber-300 hover:bg-amber-500/30 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 transition">
                     <i id="ttsIcon" class="fa-solid fa-volume-high text-amber-400"></i>
                     <span id="ttsBtnText">Voice Output: ON</span>
@@ -176,7 +242,7 @@
     <!-- Main Container -->
     <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full space-y-6">
 
-        <!-- Dashboard Stat Cards -->
+        <!-- Stat Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <!-- Total Balance -->
             <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex items-center justify-between relative overflow-hidden">
@@ -186,31 +252,36 @@
                     <h2 id="totalBalance" class="text-3xl font-black text-slate-800">₹0.00</h2>
                     <span id="balanceBadge" class="inline-block mt-2 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600">Neutral</span>
                 </div>
-                <div class="h-14 w-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
-                    <i class="fa-solid fa-wallet text-2xl"></i>
+                <div class="flex flex-col items-end gap-2">
+                    <div class="h-12 w-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
+                        <i class="fa-solid fa-wallet text-xl"></i>
+                    </div>
+                    <button onclick="readAloudSummary()" class="text-[11px] bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                        <i class="fa-solid fa-volume-high"></i> Sunao
+                    </button>
                 </div>
             </div>
 
-            <!-- Total Credit (Jama) -->
+            <!-- Total Credit -->
             <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex items-center justify-between relative overflow-hidden">
                 <div class="absolute left-0 top-0 bottom-0 w-2 bg-emerald-500"></div>
                 <div>
-                    <p class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Total Credit (कुल जमा / Inflow)</p>
+                    <p class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Total Credit (कुल जमा)</p>
                     <h2 id="totalCredit" class="text-3xl font-black text-emerald-600">₹0.00</h2>
-                    <p class="text-xs text-slate-400 mt-2"><i class="fa-solid fa-arrow-down-left text-emerald-500 mr-1"></i>Credit Total</p>
+                    <p class="text-xs text-slate-400 mt-2"><i class="fa-solid fa-arrow-down-left text-emerald-500 mr-1"></i>Credit Inflow</p>
                 </div>
                 <div class="h-14 w-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
                     <i class="fa-solid fa-circle-arrow-down text-2xl"></i>
                 </div>
             </div>
 
-            <!-- Total Debit (Kharcha) -->
+            <!-- Total Debit -->
             <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex items-center justify-between relative overflow-hidden">
                 <div class="absolute left-0 top-0 bottom-0 w-2 bg-rose-500"></div>
                 <div>
-                    <p class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Total Debit (कुल खर्चा / Outflow)</p>
+                    <p class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Total Debit (कुल खर्चा)</p>
                     <h2 id="totalDebit" class="text-3xl font-black text-rose-600">₹0.00</h2>
-                    <p class="text-xs text-slate-400 mt-2"><i class="fa-solid fa-arrow-up-right text-rose-500 mr-1"></i>Debit Total</p>
+                    <p class="text-xs text-slate-400 mt-2"><i class="fa-solid fa-arrow-up-right text-rose-500 mr-1"></i>Debit Outflow</p>
                 </div>
                 <div class="h-14 w-14 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-600">
                     <i class="fa-solid fa-circle-arrow-up text-2xl"></i>
@@ -218,54 +289,79 @@
             </div>
         </div>
 
-        <!-- Voice Simulation & Test Scenarios Panel -->
+        <!-- Interactive Guided Voice Demos & Tutorial Step Bar -->
         <div class="bg-amber-50 rounded-2xl p-5 border-2 border-amber-300 shadow-sm">
-            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-3">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 mb-3">
                 <div class="flex items-center gap-2 text-amber-900">
                     <i class="fa-solid fa-wand-magic-sparkles text-xl text-amber-600"></i>
-                    <h3 class="font-extrabold text-base">Voice Input Simulator & Audio Speech Demo</h3>
-                </div>
-                <div class="flex items-center gap-2">
-                    <button onclick="readAloudSummary()" class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow transition">
-                        <i class="fa-solid fa-volume-high"></i> Sunao Balance (Speak Balance)
-                    </button>
+                    <div>
+                        <h3 class="font-extrabold text-base">Interactive Guided Voice Demos & Simulator</h3>
+                        <p class="text-xs text-amber-800">Click a demo step below to test voice recognition, phrase insertion, and text-to-speech feedback live.</p>
+                    </div>
                 </div>
             </div>
 
-            <!-- Quick Voice Simulation Preset Buttons -->
+            <!-- Guided Interactive Tutorial Steps -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 mb-4">
-                <button onclick="runVoiceDemoPreset('Ramesh Kumar jama 5000 next save')" class="bg-white hover:bg-amber-100/60 text-slate-800 border border-amber-300 p-2.5 rounded-xl text-left text-xs font-semibold shadow-sm transition flex flex-col">
-                    <span class="text-amber-800 font-bold flex items-center gap-1"><i class="fa-solid fa-bolt text-amber-500"></i> Ramesh Kumar 5000 Jama</span>
-                    <span class="font-mono text-[11px] text-slate-600 mt-0.5">"Ramesh Kumar jama 5000 next save"</span>
+                <button onclick="runStepDemo(1)" class="bg-white hover:bg-amber-100/80 border border-amber-300 p-3 rounded-xl text-left text-xs shadow-sm transition flex flex-col justify-between">
+                    <div>
+                        <span class="text-amber-800 font-bold flex items-center gap-1 mb-1">
+                            <span class="bg-amber-600 text-white w-4 h-4 rounded-full inline-flex items-center justify-center text-[10px]">1</span>
+                            Full Sentence Voice Command
+                        </span>
+                        <span class="font-mono text-[11px] text-slate-600 block">"Ramesh Kumar jama 5000 next save"</span>
+                    </div>
+                    <span class="text-[10px] text-indigo-600 font-bold mt-2">Run Step 1 &rarr;</span>
                 </button>
-                <button onclick="runVoiceDemoPreset('Kirana Store kharcha 1200 next save')" class="bg-white hover:bg-amber-100/60 text-slate-800 border border-amber-300 p-2.5 rounded-xl text-left text-xs font-semibold shadow-sm transition flex flex-col">
-                    <span class="text-rose-700 font-bold flex items-center gap-1"><i class="fa-solid fa-bolt text-amber-500"></i> Grocery Store 1200 Kharcha</span>
-                    <span class="font-mono text-[11px] text-slate-600 mt-0.5">"Kirana Store kharcha 1200 next save"</span>
+
+                <button onclick="runStepDemo(2)" class="bg-white hover:bg-amber-100/80 border border-amber-300 p-3 rounded-xl text-left text-xs shadow-sm transition flex flex-col justify-between">
+                    <div>
+                        <span class="text-amber-800 font-bold flex items-center gap-1 mb-1">
+                            <span class="bg-amber-600 text-white w-4 h-4 rounded-full inline-flex items-center justify-center text-[10px]">2</span>
+                            Field Navigation ("agla")
+                        </span>
+                        <span class="font-mono text-[11px] text-slate-600 block">"Kirana Store" &rarr; "agla" &rarr; "1200 kharcha"</span>
+                    </div>
+                    <span class="text-[10px] text-indigo-600 font-bold mt-2">Run Step 2 &rarr;</span>
                 </button>
-                <button onclick="runVoiceDemoPreset('Salary Credit 45000 next save')" class="bg-white hover:bg-amber-100/60 text-slate-800 border border-amber-300 p-2.5 rounded-xl text-left text-xs font-semibold shadow-sm transition flex flex-col">
-                    <span class="text-amber-800 font-bold flex items-center gap-1"><i class="fa-solid fa-bolt text-amber-500"></i> Salary Credit 45000</span>
-                    <span class="font-mono text-[11px] text-slate-600 mt-0.5">"Salary Credit 45000 next save"</span>
+
+                <button onclick="runStepDemo(3)" class="bg-white hover:bg-amber-100/80 border border-amber-300 p-3 rounded-xl text-left text-xs shadow-sm transition flex flex-col justify-between">
+                    <div>
+                        <span class="text-amber-800 font-bold flex items-center gap-1 mb-1">
+                            <span class="bg-amber-600 text-white w-4 h-4 rounded-full inline-flex items-center justify-center text-[10px]">3</span>
+                            Phrase Click-Insertion Demo
+                        </span>
+                        <span class="font-mono text-[11px] text-slate-600 block">Inject phrase history to focused input</span>
+                    </div>
+                    <span class="text-[10px] text-indigo-600 font-bold mt-2">Run Step 3 &rarr;</span>
                 </button>
-                <button onclick="runVoiceDemoPreset('Electric Bill debit 850 next save')" class="bg-white hover:bg-amber-100/60 text-slate-800 border border-amber-300 p-2.5 rounded-xl text-left text-xs font-semibold shadow-sm transition flex flex-col">
-                    <span class="text-rose-700 font-bold flex items-center gap-1"><i class="fa-solid fa-bolt text-amber-500"></i> Electric Bill 850 Kharcha</span>
-                    <span class="font-mono text-[11px] text-slate-600 mt-0.5">"Electric Bill debit 850 next save"</span>
+
+                <button onclick="runStepDemo(4)" class="bg-white hover:bg-amber-100/80 border border-amber-300 p-3 rounded-xl text-left text-xs shadow-sm transition flex flex-col justify-between">
+                    <div>
+                        <span class="text-amber-800 font-bold flex items-center gap-1 mb-1">
+                            <span class="bg-amber-600 text-white w-4 h-4 rounded-full inline-flex items-center justify-center text-[10px]">4</span>
+                            Voice Read Form ("sunao")
+                        </span>
+                        <span class="font-mono text-[11px] text-slate-600 block">Reads out current values aloud</span>
+                    </div>
+                    <span class="text-[10px] text-indigo-600 font-bold mt-2">Run Step 4 &rarr;</span>
                 </button>
             </div>
 
-            <!-- Interactive Custom Simulator Bar -->
+            <!-- Custom Simulator Bar -->
             <div class="flex flex-col sm:flex-row gap-2">
-                <input type="text" id="simulatedVoiceInput" placeholder="Type custom command e.g. 'Suresh Patel credit 4500 next save'" class="flex-grow bg-white border border-amber-300 rounded-xl px-3.5 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500">
+                <input type="text" id="simulatedVoiceInput" placeholder="Type custom voice command e.g. 'Suresh Patel credit 4500 next save'" class="flex-grow bg-white border border-amber-300 rounded-xl px-3.5 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500">
                 <button onclick="simulateVoiceFromInput()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-5 py-2 rounded-xl text-xs shadow transition shrink-0 flex items-center justify-center gap-1.5">
-                    <i class="fa-solid fa-play"></i> Simulate Voice Command
+                    <i class="fa-solid fa-play"></i> Simulate Voice Input
                 </button>
             </div>
         </div>
 
-        <!-- Voice Recognition & Speech Feedback Section -->
+        <!-- Voice Recognition & Audio Feedback Panel -->
         <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-2xl p-5 shadow-xl text-white border border-indigo-900/60 relative">
             <div class="flex flex-col md:flex-row items-center justify-between gap-6">
                 
-                <!-- Mic Button & Status -->
+                <!-- Mic Button & Status Controls -->
                 <div class="flex items-center gap-5 w-full md:w-auto">
                     <button id="voiceToggleBtn" onclick="toggleVoice()" class="relative shrink-0 w-20 h-20 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white flex flex-col items-center justify-center shadow-xl transition-all transform active:scale-95 focus:outline-none border-2 border-indigo-400">
                         <i id="micIcon" class="fa-solid fa-microphone text-2xl"></i>
@@ -277,15 +373,19 @@
                             <h3 id="voiceStatusText" class="font-bold text-base text-slate-100">Voice Recognition Ready</h3>
                         </div>
                         <p class="text-xs text-slate-300 mt-1 max-w-md">
-                            Commands: <span class="bg-indigo-900 text-amber-300 px-1.5 py-0.5 rounded font-mono text-[11px]">"next" / "aage"</span>, 
+                            Speak commands: <span class="bg-indigo-900 text-amber-300 px-1.5 py-0.5 rounded font-mono text-[11px]">"next" / "agla"</span>, 
                             <span class="bg-indigo-900 text-amber-300 px-1.5 py-0.5 rounded font-mono text-[11px]">"jama" / "kharcha"</span>, 
                             <span class="bg-indigo-900 text-amber-300 px-1.5 py-0.5 rounded font-mono text-[11px]">"save"</span>,
-                            <span class="bg-indigo-900 text-amber-300 px-1.5 py-0.5 rounded font-mono text-[11px]">"boliye" / "sunao"</span>.
+                            <span class="bg-indigo-900 text-amber-300 px-1.5 py-0.5 rounded font-mono text-[11px]">"sunao"</span>.
                         </p>
+                        <!-- Explicit Mic Permission Request Link -->
+                        <button onclick="requestExplicitMicAccess()" class="mt-2 text-[11px] text-amber-300 hover:text-amber-200 font-bold underline flex items-center gap-1">
+                            <i class="fa-solid fa-key text-xs"></i> Request Mic Permission / Fix Access
+                        </button>
                     </div>
                 </div>
 
-                <!-- Active Voice Cursor Badge & Live Speech Feedback Wave -->
+                <!-- Voice Cursor Badge & TTS Animation -->
                 <div class="w-full md:w-auto flex flex-col items-start md:items-end gap-2">
                     <div id="ttsSpeakingIndicator" class="hidden flex items-center gap-2 bg-amber-500/20 text-amber-300 border border-amber-400/40 px-3 py-1 rounded-xl text-xs font-bold speaking-pulse">
                         <div class="flex items-center gap-1">
@@ -299,7 +399,7 @@
                     </div>
 
                     <div class="flex flex-col items-start md:items-end">
-                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Targeting Field:</span>
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Active Field Target:</span>
                         <span id="activeVoiceFieldBadge" class="bg-amber-400 text-slate-950 font-black px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 shadow-md">
                             <i class="fa-solid fa-crosshairs"></i> 1. Name / Description
                         </span>
@@ -326,12 +426,12 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            <!-- Entry Form Panel (2 Columns wide) -->
+            <!-- Entry Form Panel (2 Columns) -->
             <div class="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
                 <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-100">
                     <h3 class="font-bold text-base text-slate-800 flex items-center gap-2" id="formHeading">
                         <i class="fa-solid fa-pen-to-square text-indigo-600"></i>
-                        <span>Transaction Form</span>
+                        <span>Transaction Form (लेन-देन फॉर्म)</span>
                     </h3>
                     <div class="flex items-center gap-2">
                         <button type="button" onclick="readAloudFormState()" class="text-xs text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition font-bold flex items-center gap-1">
@@ -352,7 +452,7 @@
                         <div class="sm:col-span-2">
                             <label class="block text-xs font-bold uppercase text-slate-600 mb-1 flex justify-between">
                                 <span>1. Name / Description (नाम / विवरण)</span>
-                                <span class="text-indigo-600 font-semibold text-[10px]">Field 1</span>
+                                <span class="text-indigo-600 font-semibold text-[10px]">Target Field 1</span>
                             </label>
                             <input type="text" id="fieldName" required placeholder="e.g. Shop Sale, Grocery, Ramesh" 
                                 class="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-medium focus:outline-none transition">
@@ -377,13 +477,13 @@
                         </div>
                     </div>
 
-                    <!-- Row 2: Amount & Custom Formatted DateTime -->
+                    <!-- Row 2: Amount & Formatted DateTime -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <!-- Amount Field -->
                         <div>
                             <label class="block text-xs font-bold uppercase text-slate-600 mb-1 flex justify-between">
                                 <span>3. Amount (राशि ₹)</span>
-                                <span class="text-indigo-600 font-semibold text-[10px]">Field 3</span>
+                                <span class="text-indigo-600 font-semibold text-[10px]">Target Field 3</span>
                             </label>
                             <div class="relative">
                                 <span class="absolute left-3.5 top-2.5 font-bold text-slate-400">₹</span>
@@ -406,7 +506,7 @@
                         </div>
                     </div>
 
-                    <!-- Row 3: Image File Attachment -->
+                    <!-- Row 3: Receipt Attachment -->
                     <div>
                         <label class="block text-xs font-bold uppercase text-slate-600 mb-1">
                             5. Receipt / Bill Photo Attachment
@@ -441,44 +541,44 @@
                 </form>
             </div>
 
-            <!-- Mistake Correction & Spoken History List -->
-            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col h-[480px] lg:h-auto">
+            <!-- Spoken History List & Direct Click-to-Insert Panel -->
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col h-[520px] lg:h-auto">
                 <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-100">
                     <h3 class="font-bold text-slate-800 text-xs uppercase tracking-wider flex items-center gap-2">
                         <i class="fa-solid fa-list-ul text-amber-500"></i>
                         <span>Spoken Phrase History</span>
                     </h3>
-                    <span class="text-[10px] bg-indigo-50 text-indigo-700 font-bold px-2 py-0.5 rounded">Click to Use</span>
+                    <span class="text-[10px] bg-indigo-100 text-indigo-800 font-extrabold px-2 py-0.5 rounded-full">Click to Insert</span>
                 </div>
                 
                 <p class="text-[11px] text-slate-500 mb-3">
-                    Click any spoken phrase below to insert into the active input field or hear it spoken back:
+                    Click any spoken phrase below or hit <span class="font-bold text-indigo-600">"Insert"</span> to inject it directly into your focused input field!
                 </p>
 
                 <!-- Scrollable Voice History -->
                 <div id="transcriptHistoryList" class="flex-grow overflow-y-auto space-y-2 pr-1 text-xs">
                     <div class="text-center py-12 text-slate-400 italic">
                         <i class="fa-solid fa-microphone-slash text-2xl mb-2 text-slate-300 block"></i>
-                        Spoken voice history items will appear here.
+                        Spoken voice phrases will appear here automatically.
                     </div>
                 </div>
 
                 <div class="mt-3 pt-3 border-t border-slate-100">
                     <button onclick="clearTranscriptHistory()" class="w-full text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2 rounded-lg transition">
-                        <i class="fa-solid fa-trash-can mr-1"></i> Clear History
+                        <i class="fa-solid fa-trash-can mr-1"></i> Clear Phrase History
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- Ledger Entries Interactive Table Panel -->
+        <!-- Ledger Entries Table -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             
             <!-- Table Action Toolbar -->
             <div class="p-4 border-b border-slate-100 flex flex-col md:flex-row gap-4 justify-between items-center bg-slate-50/60">
                 <div class="flex items-center gap-2 w-full md:w-auto">
                     <i class="fa-solid fa-table-list text-indigo-600 text-lg"></i>
-                    <h3 class="font-bold text-slate-800 text-base">Transactions Ledger</h3>
+                    <h3 class="font-bold text-slate-800 text-base">Transactions Ledger Table</h3>
                     <span id="entryCountBadge" class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-0.5 rounded-full ml-1">0 entries</span>
                 </div>
 
@@ -515,7 +615,7 @@
                 <table class="w-full text-left text-xs border-collapse">
                     <thead>
                         <tr class="bg-slate-100/90 text-slate-600 font-bold uppercase tracking-wider border-b border-slate-200">
-                            <th class="p-3.5 text-center w-14">Image</th>
+                            <th class="p-3.5 text-center w-14">Receipt</th>
                             <th class="p-3.5 whitespace-nowrap">Date & Time</th>
                             <th class="p-3.5">Name / Description</th>
                             <th class="p-3.5 text-right">Credit (+)</th>
@@ -534,8 +634,8 @@
             <!-- Empty Table Placeholder -->
             <div id="emptyTableState" class="p-12 text-center text-slate-400">
                 <i class="fa-solid fa-receipt text-4xl mb-3 text-slate-300 block"></i>
-                <p class="font-bold text-sm text-slate-600">No transactions recorded in this page yet.</p>
-                <p class="text-xs mt-1">Click a demo preset above or use the form to add an entry.</p>
+                <p class="font-bold text-sm text-slate-600">No transactions recorded in this ledger page yet.</p>
+                <p class="text-xs mt-1">Click a demo preset above or use voice input to add entries.</p>
             </div>
         </div>
 
@@ -543,13 +643,13 @@
 
     <!-- Footer -->
     <footer class="bg-white border-t border-slate-200 mt-8 py-4 text-center text-xs text-slate-500 font-medium">
-        <p>Voice Ledger Pro &copy; 2026 — Speech Recognition & Audio Synthesis (TTS) Engine</p>
+        <p>Voice Ledger Pro &copy; 2026 — Speech Recognition & Audio Text-To-Speech (TTS) Engine</p>
     </footer>
 
     <!-- JS Application Logic -->
     <script>
         /* ==========================================================================
-           1. APPLICATION STATE & INDEXEDDB DATABASE INITIALIZATION
+           1. APPLICATION STATE & INDEXEDDB INITIALIZATION
            ========================================================================== */
         const DB_NAME = 'VoiceLedgerProDB';
         const DB_VERSION = 1;
@@ -564,6 +664,7 @@
         let recognition = null;
         let isListening = false;
         let activeVoiceField = 'name'; // 'name' | 'type' | 'amount'
+        let lastFocusedElement = null;
         let transcriptHistory = [];
         let pendingDialogResolver = null;
 
@@ -618,9 +719,49 @@
             initTextToSpeechVoices();
             setupFormFieldFocusEvents();
             refreshFormTimestamp();
+
+            // Track last focused input for spoken phrase direct insertion
+            document.addEventListener('focusin', (e) => {
+                if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
+                    lastFocusedElement = e.target;
+                }
+            });
         });
 
-        /* Setup IndexedDB Persistence */
+        /* Web Audio API Sound Feedback Generator */
+        function playAudioBeep(type = 'success') {
+            try {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (!AudioCtx) return;
+                const ctx = new AudioCtx();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                if (type === 'start') {
+                    osc.frequency.setValueAtTime(440, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
+                } else if (type === 'save') {
+                    osc.frequency.setValueAtTime(520, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(1040, ctx.currentTime + 0.2);
+                } else {
+                    osc.frequency.setValueAtTime(300, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.15);
+                }
+
+                gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+
+                osc.start();
+                osc.stop(ctx.currentTime + 0.2);
+            } catch (e) {
+                // Audio synth fallback
+            }
+        }
+
+        /* IndexedDB Storage Initialization */
         function initIndexedDB() {
             const request = indexedDB.open(DB_NAME, DB_VERSION);
 
@@ -649,7 +790,6 @@
             };
         }
 
-        /* Load Ledgers */
         function loadLedgersFromDB() {
             const tx = db.transaction(['ledgers'], 'readonly');
             const store = tx.objectStore('ledgers');
@@ -687,7 +827,7 @@
         function switchLedger(ledgerId) {
             activeLedgerId = ledgerId;
             loadTransactionsForActiveLedger();
-            showToast(`Switched to ledger: ${getLedgerName(ledgerId)}`, 'info');
+            showToast(`Switched to ledger page: ${getLedgerName(ledgerId)}`, 'info');
             speakText(`Switched to ledger page ${getLedgerName(ledgerId)}`);
         }
 
@@ -722,7 +862,6 @@
 
             function loadVoices() {
                 const voices = synth.getVoices();
-                // Prefer Hindi or Indian English voice if available
                 selectedHindiVoice = voices.find(v => v.lang.includes('hi') || v.lang.includes('hi-IN')) ||
                                      voices.find(v => v.lang.includes('en-IN')) ||
                                      voices[0];
@@ -738,7 +877,6 @@
             if (!synth) return;
             if (!ttsEnabled && !force) return;
 
-            // Cancel ongoing speech to give immediate response
             synth.cancel();
 
             const utterance = new SpeechSynthesisUtterance(textToSpeak);
@@ -815,13 +953,13 @@
         }
 
         /* ==========================================================================
-           3. VOICE SIMULATION & SPEECH RECOGNITION ENGINE
+           3. SPEECH RECOGNITION & CONTINUOUS MIC LISTENING ENGINE
            ========================================================================== */
         function initSpeechEngine() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
             if (!SpeechRecognition) {
-                elements.voiceStatusText.textContent = "Web Speech API Unavailable (Use Demo Mode)";
+                elements.voiceStatusText.textContent = "Web Speech API Unavailable (Use Demos)";
                 elements.voiceToggleBtn.classList.add('opacity-70');
                 return;
             }
@@ -834,6 +972,7 @@
             recognition.onstart = () => {
                 isListening = true;
                 updateVoiceUI();
+                playAudioBeep('start');
                 speakText("Voice mic chalu hai, bolo.");
             };
 
@@ -865,8 +1004,8 @@
             recognition.onerror = (e) => {
                 console.warn("Speech API Notice:", e.error);
                 if (e.error === 'not-allowed') {
-                    showToast("Microphone permission denied. Try Demo Buttons below!", "error");
-                    speakText("Microphone permission blocked hai.");
+                    showToast("Microphone access blocked. Click Request Mic Access or use Demos!", "error");
+                    speakText("Microphone access blocked hai.");
                     stopVoice();
                 }
             };
@@ -880,6 +1019,24 @@
             };
         }
 
+        function requestExplicitMicAccess() {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(stream => {
+                        showToast("Microphone permission granted!", "success");
+                        speakText("Microphone access mil gaya hai");
+                        stream.getTracks().forEach(track => track.stop());
+                        startVoice();
+                    })
+                    .catch(err => {
+                        showToast("Mic permission denied by browser settings.", "error");
+                        openHelpModal();
+                    });
+            } else {
+                showToast("Media devices API unavailable in browser", "warning");
+            }
+        }
+
         function toggleVoice() {
             if (isListening) {
                 stopVoice();
@@ -890,7 +1047,7 @@
 
         function startVoice() {
             if (!recognition) {
-                showToast("Web Speech API not supported by browser. Using Simulator mode!", "warning");
+                showToast("Web Speech API not supported. Using Simulator mode!", "warning");
                 return;
             }
             isListening = true;
@@ -908,6 +1065,7 @@
             if (recognition) {
                 try { recognition.stop(); } catch (e) {}
             }
+            playAudioBeep('stop');
             updateVoiceUI();
             showToast("Voice assistant paused", "info");
             speakText("Voice recognition pause ho gaya.");
@@ -930,7 +1088,7 @@
             highlightActiveFieldUI();
         }
 
-        /* Focus Handlers for Form Inputs */
+        /* Focus Handlers for Input Navigation */
         function setupFormFieldFocusEvents() {
             elements.fieldName.addEventListener('focus', () => setTargetVoiceField('name'));
             elements.fieldAmount.addEventListener('focus', () => setTargetVoiceField('amount'));
@@ -960,49 +1118,45 @@
         function advanceToNextVoiceField() {
             if (activeVoiceField === 'name') {
                 setTargetVoiceField('type');
-                showToast("Voice target: TYPE (Say Jama/Credit or Kharcha/Debit)", "info");
+                showToast("Target: TYPE (Say Jama/Credit or Kharcha/Debit)", "info");
                 speakText("Agla field Type hai. Jama ya Kharcha bolo.");
             } else if (activeVoiceField === 'type') {
                 setTargetVoiceField('amount');
                 elements.fieldAmount.focus();
-                showToast("Voice target: AMOUNT (Say numbers)", "info");
+                showToast("Target: AMOUNT (Say numbers)", "info");
                 speakText("Agla field Amount hai. Rupey bolo.");
             } else if (activeVoiceField === 'amount') {
                 showToast("All fields filled. Say 'SAVE' to submit entry.", "info");
-                speakText("Sabhi fields bhar gaye hain. Save bolo entry jama karne ke liye.");
+                speakText("Sabhi fields bhar gaye hain. Save bolo transaction save karne ke liye.");
             }
         }
 
-        /* VOICE INPUT & SIMULATOR PARSER LOGIC */
+        /* NATURAL LANGUAGE VOICE COMMAND PARSER */
         function parseVoiceInput(spokenText) {
             const raw = spokenText.trim();
             if (!raw) return;
 
             const lower = raw.toLowerCase();
 
-            // Commands for Text-to-Speech Output trigger
             if (lower.includes('boliye') || lower.includes('sunao') || lower.includes('read') || lower.includes('सुनाओ') || lower.includes('बोलिए')) {
                 readAloudFormState();
                 return;
             }
 
-            // Check if input contains combined phrase commands
             let isTypeMatch = lower.includes('jama') || lower.includes('credit') || lower.includes('kharcha') || lower.includes('debit');
             let isAmountMatch = /\d+/.test(lower);
 
-            if (isTypeMatch && isAmountMatch && (lower.includes('next') || lower.includes('save'))) {
-                // Auto parse full sentence scenario directly
+            if (isTypeMatch && isAmountMatch && (lower.includes('next') || lower.includes('save') || lower.includes('aage'))) {
                 parseFullVoiceSentence(raw);
                 return;
             }
 
-            // Single Command Parsing
             if (lower === 'next' || lower === 'aage' || lower === 'agla' || lower === 'अगला' || lower === 'आगे') {
                 advanceToNextVoiceField();
                 return;
             }
 
-            if (lower === 'comma' || lower === 'कोमा') {
+            if (lower === 'comma' || lower === 'komma' || lower === 'कोमा') {
                 if (activeVoiceField === 'name') {
                     elements.fieldName.value += ', ';
                     speakText("Comma laga diya gaya");
@@ -1022,7 +1176,7 @@
                 return;
             }
 
-            if (lower.includes('credit') || lower.includes('jama') || lower.includes('plus') || lower.includes('जमा') || lower.includes('मिला')) {
+            if (lower.includes('credit') || lower.includes('jama') || lower.includes('plus') || lower.includes('जमा')) {
                 setTransactionType('CREDIT');
                 showToast("Type set to CREDIT", "info");
                 speakText("Credit Jama select hua");
@@ -1030,7 +1184,7 @@
                 return;
             }
 
-            if (lower.includes('debit') || lower.includes('kharcha') || lower.includes('minus') || lower.includes('खर्चा') || lower.includes('उधार')) {
+            if (lower.includes('debit') || lower.includes('kharcha') || lower.includes('minus') || lower.includes('खर्चा')) {
                 setTransactionType('DEBIT');
                 showToast("Type set to DEBIT", "info");
                 speakText("Debit Kharcha select hua");
@@ -1050,7 +1204,6 @@
             }
         }
 
-        /* Full sentence Auto-Extractor for Voice Simulation */
         function parseFullVoiceSentence(sentence) {
             let tokens = sentence.split(' ');
             let nameParts = [];
@@ -1077,9 +1230,9 @@
             setTransactionType(detectedType);
             if (detectedAmount) elements.fieldAmount.value = detectedAmount;
 
-            showToast("Parsed voice input & filled form!", "success");
+            showToast("Parsed full sentence & filled form!", "success");
             const typeWord = detectedType === 'CREDIT' ? 'Jama' : 'Kharcha';
-            speakText(`Voice samjha gaya: ${parsedName || 'Entry'}, ${typeWord} ${detectedAmount || ''} rupey.`);
+            speakText(`Voice command: ${parsedName || 'Entry'}, ${typeWord} ${detectedAmount || ''} rupey.`);
 
             if (shouldSave) {
                 setTimeout(() => {
@@ -1088,7 +1241,32 @@
             }
         }
 
-        /* Demo Mode Helpers */
+        /* Guided Interactive Demos */
+        function runStepDemo(stepNum) {
+            if (stepNum === 1) {
+                runVoiceDemoPreset("Ramesh Kumar jama 5000 next save");
+            } else if (stepNum === 2) {
+                resetForm();
+                elements.fieldName.value = "Kirana Store Grocery";
+                setTargetVoiceField('name');
+                showToast("Step 2: Filled Name. Now advancing using 'agla' command...", "info");
+                speakText("Step 2: Name Kirana Store. Ab agla bol rahe hain.");
+                setTimeout(() => {
+                    parseVoiceInput("agla");
+                    setTimeout(() => {
+                        parseVoiceInput("1200 kharcha");
+                    }, 1000);
+                }, 1200);
+            } else if (stepNum === 3) {
+                addTranscriptHistoryItem("Electricity Bill 2450");
+                elements.fieldName.focus();
+                injectSpokenText("Electricity Bill 2450");
+                showToast("Step 3: Direct Phrase Injection into active field completed!", "success");
+            } else if (stepNum === 4) {
+                readAloudFormState();
+            }
+        }
+
         function runVoiceDemoPreset(spokenPhrase) {
             elements.simulatedVoiceInput.value = spokenPhrase;
             simulateVoiceFromInput();
@@ -1097,7 +1275,7 @@
         function simulateVoiceFromInput() {
             const val = elements.simulatedVoiceInput.value.trim();
             if (!val) {
-                showToast("Please enter a voice text to simulate", "warning");
+                showToast("Please enter a voice phrase to simulate", "warning");
                 return;
             }
             elements.liveTranscript.textContent = `"${val}"`;
@@ -1110,7 +1288,7 @@
         }
 
         /* ==========================================================================
-           4. FORM HANDLING, DATE FORMATTING & IMAGE ATTACHMENT
+           4. FORM HANDLING, DATE FORMATTING & ATTACHMENTS
            ========================================================================== */
         function setTransactionType(type) {
             elements.fieldType.value = type;
@@ -1123,7 +1301,7 @@
             }
         }
 
-        /* Custom Date/Time Format: DD/MM/YYYY HH:MM:SS AM/PM */
+        /* Format: DD/MM/YYYY HH:MM:SS AM/PM */
         function getFormattedCurrentDateTime(dObj = new Date()) {
             const dd = String(dObj.getDate()).padStart(2, '0');
             const mm = String(dObj.getMonth() + 1).padStart(2, '0');
@@ -1150,7 +1328,7 @@
             if (!file) return;
 
             if (file.size > 5 * 1024 * 1024) {
-                showToast("File size too large (>5MB). Choose a smaller image.", "error");
+                showToast("File size too large (>5MB). Choose a smaller photo.", "error");
                 speakText("Photo ka size bada hai");
                 return;
             }
@@ -1216,6 +1394,7 @@
 
             tx.oncomplete = () => {
                 const msg = editId ? "Entry update ho gayi hai!" : "Transaction successfully save ho gayi hai!";
+                playAudioBeep('save');
                 showToast(msg, "success");
                 speakText(msg);
                 resetForm();
@@ -1231,7 +1410,7 @@
             removeAttachedImage();
             refreshFormTimestamp();
             setTargetVoiceField('name');
-            elements.formHeading.innerHTML = `<i class="fa-solid fa-pen-to-square text-indigo-600"></i><span>Transaction Form</span>`;
+            elements.formHeading.innerHTML = `<i class="fa-solid fa-pen-to-square text-indigo-600"></i><span>Transaction Form (लेन-देन फॉर्म)</span>`;
         }
 
         function editTransaction(id) {
@@ -1254,15 +1433,15 @@
                 removeAttachedImage();
             }
 
-            elements.formHeading.innerHTML = `<i class="fa-solid fa-pen-to-square text-amber-500"></i><span>Edit Entry</span>`;
+            elements.formHeading.innerHTML = `<i class="fa-solid fa-pen-to-square text-amber-500"></i><span>Edit Transaction</span>`;
             window.scrollTo({ top: 0, behavior: 'smooth' });
-            showToast("Editing entry. Make changes and click Save.", "info");
+            showToast("Editing transaction...", "info");
             speakText(`Editing entry for ${item.name}`);
         }
 
         async function deleteTransaction(id) {
             const item = allTransactions.find(t => t.id === id);
-            const confirmed = await openCustomDialog("Delete Transaction", `Are you sure you want to delete transaction "${item ? item.name : ''}"?`);
+            const confirmed = await openCustomDialog("Delete Transaction", `Are you sure you want to delete "${item ? item.name : ''}"?`);
             if (!confirmed) return;
 
             const tx = db.transaction(['transactions'], 'readwrite');
@@ -1376,11 +1555,11 @@
         }
 
         /* ==========================================================================
-           6. MISTAKE CORRECTION HISTORY
+           6. SPOKEN PHRASE HISTORY & DIRECT CLICK-TO-INSERT LOGIC
            ========================================================================== */
         function addTranscriptHistoryItem(text) {
             transcriptHistory.unshift({ text, id: Date.now() });
-            if (transcriptHistory.length > 15) transcriptHistory.pop();
+            if (transcriptHistory.length > 20) transcriptHistory.pop();
             renderTranscriptHistory();
         }
 
@@ -1389,7 +1568,7 @@
                 elements.transcriptHistoryList.innerHTML = `
                     <div class="text-center py-12 text-slate-400 italic">
                         <i class="fa-solid fa-microphone-slash text-2xl mb-2 text-slate-300 block"></i>
-                        Spoken voice history items will appear here.
+                        Spoken voice phrases will appear here automatically.
                     </div>`;
                 return;
             }
@@ -1397,15 +1576,22 @@
             elements.transcriptHistoryList.innerHTML = '';
             transcriptHistory.forEach(item => {
                 const div = document.createElement('div');
-                div.className = "bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl p-2.5 flex items-center justify-between gap-2 transition";
+                div.className = "bg-slate-50 hover:bg-indigo-50/60 border border-slate-200 hover:border-indigo-300 rounded-xl p-2.5 flex items-center justify-between gap-2 transition cursor-pointer";
+                div.onclick = (e) => {
+                    // Prevent triggering double insert if user clicked button specifically
+                    if (e.target.tagName !== 'BUTTON' && !e.target.closest('button')) {
+                        injectSpokenText(item.text);
+                    }
+                };
+
                 div.innerHTML = `
-                    <span class="font-medium text-slate-700 break-all">${escapeHtml(item.text)}</span>
+                    <span class="font-medium text-slate-800 break-all select-none">${escapeHtml(item.text)}</span>
                     <div class="flex items-center gap-1 shrink-0">
-                        <button onclick="speakText('${escapeHtml(item.text)}', true)" class="text-amber-600 hover:bg-amber-100 p-1 rounded-lg text-xs" title="Hear aloud">
+                        <button onclick="speakText('${escapeHtml(item.text)}', true)" class="text-amber-600 hover:bg-amber-100 p-1.5 rounded-lg text-xs" title="Hear phrase">
                             <i class="fa-solid fa-volume-high"></i>
                         </button>
-                        <button onclick="injectSpokenText('${escapeHtml(item.text)}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-1 rounded-lg text-[10px] font-bold transition shadow-sm">
-                            Use
+                        <button onclick="injectSpokenText('${escapeHtml(item.text)}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold transition shadow-sm flex items-center gap-1">
+                            <i class="fa-solid fa-circle-plus"></i> Insert
                         </button>
                     </div>
                 `;
@@ -1414,14 +1600,25 @@
         }
 
         function injectSpokenText(text) {
-            if (activeVoiceField === 'name') {
+            let target = lastFocusedElement || elements.fieldName;
+
+            if (target === elements.fieldName || activeVoiceField === 'name') {
                 elements.fieldName.value = text;
-            } else if (activeVoiceField === 'amount') {
+                elements.fieldName.focus();
+            } else if (target === elements.fieldAmount || activeVoiceField === 'amount') {
                 const nums = text.match(/\d+(\.\d+)?/g);
                 if (nums) elements.fieldAmount.value = nums[0];
+                else elements.fieldAmount.value = text;
+                elements.fieldAmount.focus();
+            } else if (target === elements.searchInput) {
+                elements.searchInput.value = text;
+                renderTable();
+            } else {
+                target.value = text;
             }
-            showToast(`Inserted phrase into ${activeVoiceField.toUpperCase()}`, 'info');
-            speakText(`Phrase inserted into ${activeVoiceField}`);
+
+            showToast(`Inserted phrase directly into active field!`, 'success');
+            speakText(`Phrase inserted into active input field.`);
         }
 
         function clearTranscriptHistory() {
@@ -1430,7 +1627,7 @@
         }
 
         /* ==========================================================================
-           7. MULTI-LEDGER MANAGEMENT MODAL
+           7. MULTI-LEDGER MANAGEMENT & HELP MODAL LOGIC
            ========================================================================== */
         function openLedgerModal() {
             document.getElementById('newLedgerInput').value = '';
@@ -1440,6 +1637,14 @@
 
         function closeLedgerModal() {
             document.getElementById('ledgerModal').classList.add('hidden');
+        }
+
+        function openHelpModal() {
+            document.getElementById('helpModal').classList.remove('hidden');
+        }
+
+        function closeHelpModal() {
+            document.getElementById('helpModal').classList.add('hidden');
         }
 
         function saveNewLedger() {
@@ -1476,10 +1681,10 @@
                 li.innerHTML = `
                     <span class="truncate font-bold text-slate-800 flex-grow">${escapeHtml(l.name)} ${l.id === activeLedgerId ? '<span class="text-[10px] bg-indigo-100 text-indigo-800 px-1.5 py-0.5 rounded-full ml-1">Active</span>' : ''}</span>
                     <div class="flex items-center gap-1 shrink-0">
-                        <button onclick="renameLedgerPage('${l.id}')" class="text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 p-1.5 rounded-lg transition" title="Rename Ledger Page">
+                        <button onclick="renameLedgerPage('${l.id}')" class="text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 p-1.5 rounded-lg transition" title="Rename Page">
                             <i class="fa-solid fa-pen"></i>
                         </button>
-                        ${l.id !== 'default_ledger' ? `<button onclick="deleteLedgerPage('${l.id}')" class="text-rose-600 hover:bg-rose-100 p-1.5 rounded-lg transition" title="Delete Ledger Page"><i class="fa-solid fa-trash"></i></button>` : ''}
+                        ${l.id !== 'default_ledger' ? `<button onclick="deleteLedgerPage('${l.id}')" class="text-rose-600 hover:bg-rose-100 p-1.5 rounded-lg transition" title="Delete Page"><i class="fa-solid fa-trash"></i></button>` : ''}
                     </div>
                 `;
                 list.appendChild(li);
@@ -1504,8 +1709,32 @@
             };
         }
 
+        async function deleteLedgerPage(id) {
+            const confirmed = await openCustomDialog("Delete Ledger Page", "All transactions in this page will be permanently removed. Continue?");
+            if (!confirmed) return;
+
+            const tx = db.transaction(['ledgers', 'transactions'], 'readwrite');
+            tx.objectStore('ledgers').delete(id);
+            
+            // Delete all transactions under this ledger
+            const transStore = tx.objectStore('transactions');
+            const index = transStore.index('ledgerId');
+            const req = index.getAllKeys(id);
+
+            req.onsuccess = () => {
+                req.result.forEach(key => transStore.delete(key));
+            };
+
+            tx.oncomplete = () => {
+                showToast("Ledger page deleted", "info");
+                activeLedgerId = 'default_ledger';
+                loadLedgersFromDB();
+                renderLedgerManageList();
+            };
+        }
+
         /* ==========================================================================
-           8. EXPORT / IMPORT CSV & MODALS
+           8. EXPORT / IMPORT CSV & MODAL UTILITIES
            ========================================================================== */
         function exportCSV() {
             if (allTransactions.length === 0) {
@@ -1526,7 +1755,7 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            showToast("CSV export generated!", "success");
+            showToast("CSV file exported successfully!", "success");
             speakText("CSV file export ho gayi");
         }
 
