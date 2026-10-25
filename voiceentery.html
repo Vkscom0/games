@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Voice Ledger Pro - Voice Transaction App</title>
+    <title>Voice Ledger Pro - Voice & Text-to-Speech Transaction App</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -22,10 +22,36 @@
             100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
         }
 
+        .speaking-pulse {
+            animation: speak-pulse 1.2s ease-in-out infinite alternate;
+        }
+        @keyframes speak-pulse {
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(1.08); opacity: 1; }
+        }
+
         .field-highlight {
             border-color: #6366f1 !important;
             box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25) !important;
             background-color: #ffffff !important;
+        }
+
+        /* Sound Wave Animation Bars */
+        .sound-wave-bar {
+            display: inline-block;
+            width: 3px;
+            height: 12px;
+            background-color: #f59e0b;
+            border-radius: 2px;
+            animation: wave 1s ease-in-out infinite alternate;
+        }
+        .sound-wave-bar:nth-child(2) { animation-delay: 0.2s; height: 18px; }
+        .sound-wave-bar:nth-child(3) { animation-delay: 0.4s; height: 14px; }
+        .sound-wave-bar:nth-child(4) { animation-delay: 0.1s; height: 20px; }
+        .sound-wave-bar:nth-child(5) { animation-delay: 0.3s; height: 10px; }
+        @keyframes wave {
+            0% { height: 6px; }
+            100% { height: 22px; }
         }
 
         /* Custom Scrollbar */
@@ -119,21 +145,30 @@
                 <div>
                     <h1 class="font-extrabold text-xl tracking-wide flex items-center gap-2">
                         Voice Ledger Pro
-                        <span class="text-[10px] bg-amber-400 text-slate-950 font-black px-2 py-0.5 rounded-full uppercase">Hindi / Eng</span>
+                        <span class="text-[10px] bg-amber-400 text-slate-950 font-black px-2 py-0.5 rounded-full uppercase">Voice + Speech Output</span>
                     </h1>
-                    <p class="text-xs text-slate-400">Speech Recognition & Voice Simulation Mode</p>
+                    <p class="text-xs text-slate-400">Speech Recognition & Text-To-Speech (Awaaz Feedback)</p>
                 </div>
             </div>
 
-            <!-- Active Ledger Page Switcher & Controls -->
-            <div class="flex items-center gap-2 bg-slate-800/80 p-1.5 rounded-2xl border border-slate-700">
-                <i class="fa-solid fa-book-open text-amber-400 ml-2 text-sm"></i>
-                <span class="text-xs font-semibold text-slate-300 hidden sm:inline">Active Page:</span>
-                <select id="ledgerSelect" onchange="switchLedger(this.value)" class="bg-slate-950 text-white text-xs font-bold rounded-xl px-3 py-2 border border-slate-600 focus:outline-none cursor-pointer">
-                </select>
-                <button onclick="openLedgerModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow transition">
-                    <i class="fa-solid fa-gear"></i> <span class="hidden md:inline">Manage Pages</span>
+            <!-- Audio Feedback & Active Ledger Switcher Controls -->
+            <div class="flex items-center gap-3">
+                <!-- Text-to-Speech Output Mute/Unmute Toggle Button -->
+                <button id="ttsToggleBtn" onclick="toggleTTSSpeech()" class="bg-amber-500/20 border border-amber-400/40 text-amber-300 hover:bg-amber-500/30 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 transition">
+                    <i id="ttsIcon" class="fa-solid fa-volume-high text-amber-400"></i>
+                    <span id="ttsBtnText">Voice Output: ON</span>
                 </button>
+
+                <!-- Active Ledger Switcher -->
+                <div class="flex items-center gap-2 bg-slate-800/80 p-1.5 rounded-2xl border border-slate-700">
+                    <i class="fa-solid fa-book-open text-amber-400 ml-2 text-sm"></i>
+                    <span class="text-xs font-semibold text-slate-300 hidden sm:inline">Active Page:</span>
+                    <select id="ledgerSelect" onchange="switchLedger(this.value)" class="bg-slate-950 text-white text-xs font-bold rounded-xl px-3 py-2 border border-slate-600 focus:outline-none cursor-pointer">
+                    </select>
+                    <button onclick="openLedgerModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow transition">
+                        <i class="fa-solid fa-gear"></i> <span class="hidden md:inline">Manage</span>
+                    </button>
+                </div>
             </div>
         </div>
     </header>
@@ -183,48 +218,50 @@
             </div>
         </div>
 
-        <!-- NEW FEATURE: Voice Simulation & Test Scenarios Panel -->
+        <!-- Voice Simulation & Test Scenarios Panel -->
         <div class="bg-amber-50 rounded-2xl p-5 border-2 border-amber-300 shadow-sm">
             <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-3">
                 <div class="flex items-center gap-2 text-amber-900">
                     <i class="fa-solid fa-wand-magic-sparkles text-xl text-amber-600"></i>
-                    <h3 class="font-extrabold text-base">Voice Input Simulator & Instant Demo Mode</h3>
+                    <h3 class="font-extrabold text-base">Voice Input Simulator & Audio Speech Demo</h3>
                 </div>
-                <span class="text-xs font-bold bg-amber-200 text-amber-950 px-3 py-1 rounded-full border border-amber-300">
-                    Click any preset below to test auto-fill instantly!
-                </span>
+                <div class="flex items-center gap-2">
+                    <button onclick="readAloudSummary()" class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow transition">
+                        <i class="fa-solid fa-volume-high"></i> Sunao Balance (Speak Balance)
+                    </button>
+                </div>
             </div>
 
             <!-- Quick Voice Simulation Preset Buttons -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 mb-4">
                 <button onclick="runVoiceDemoPreset('Ramesh Kumar jama 5000 next save')" class="bg-white hover:bg-amber-100/60 text-slate-800 border border-amber-300 p-2.5 rounded-xl text-left text-xs font-semibold shadow-sm transition flex flex-col">
-                    <span class="text-amber-800 font-bold flex items-center gap-1"><i class="fa-solid fa-bolt text-amber-500"></i> Say: Ramesh Kumar 5000 Jama</span>
+                    <span class="text-amber-800 font-bold flex items-center gap-1"><i class="fa-solid fa-bolt text-amber-500"></i> Ramesh Kumar 5000 Jama</span>
                     <span class="font-mono text-[11px] text-slate-600 mt-0.5">"Ramesh Kumar jama 5000 next save"</span>
                 </button>
                 <button onclick="runVoiceDemoPreset('Kirana Store kharcha 1200 next save')" class="bg-white hover:bg-amber-100/60 text-slate-800 border border-amber-300 p-2.5 rounded-xl text-left text-xs font-semibold shadow-sm transition flex flex-col">
-                    <span class="text-rose-700 font-bold flex items-center gap-1"><i class="fa-solid fa-bolt text-amber-500"></i> Say: Grocery Store 1200 Kharcha</span>
+                    <span class="text-rose-700 font-bold flex items-center gap-1"><i class="fa-solid fa-bolt text-amber-500"></i> Grocery Store 1200 Kharcha</span>
                     <span class="font-mono text-[11px] text-slate-600 mt-0.5">"Kirana Store kharcha 1200 next save"</span>
                 </button>
                 <button onclick="runVoiceDemoPreset('Salary Credit 45000 next save')" class="bg-white hover:bg-amber-100/60 text-slate-800 border border-amber-300 p-2.5 rounded-xl text-left text-xs font-semibold shadow-sm transition flex flex-col">
-                    <span class="text-amber-800 font-bold flex items-center gap-1"><i class="fa-solid fa-bolt text-amber-500"></i> Say: Salary Credit 45000</span>
+                    <span class="text-amber-800 font-bold flex items-center gap-1"><i class="fa-solid fa-bolt text-amber-500"></i> Salary Credit 45000</span>
                     <span class="font-mono text-[11px] text-slate-600 mt-0.5">"Salary Credit 45000 next save"</span>
                 </button>
                 <button onclick="runVoiceDemoPreset('Electric Bill debit 850 next save')" class="bg-white hover:bg-amber-100/60 text-slate-800 border border-amber-300 p-2.5 rounded-xl text-left text-xs font-semibold shadow-sm transition flex flex-col">
-                    <span class="text-rose-700 font-bold flex items-center gap-1"><i class="fa-solid fa-bolt text-amber-500"></i> Say: Electric Bill 850 Kharcha</span>
+                    <span class="text-rose-700 font-bold flex items-center gap-1"><i class="fa-solid fa-bolt text-amber-500"></i> Electric Bill 850 Kharcha</span>
                     <span class="font-mono text-[11px] text-slate-600 mt-0.5">"Electric Bill debit 850 next save"</span>
                 </button>
             </div>
 
             <!-- Interactive Custom Simulator Bar -->
             <div class="flex flex-col sm:flex-row gap-2">
-                <input type="text" id="simulatedVoiceInput" placeholder="Type custom voice command e.g. 'Suresh Patel credit 4500 next save'" class="flex-grow bg-white border border-amber-300 rounded-xl px-3.5 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500">
+                <input type="text" id="simulatedVoiceInput" placeholder="Type custom command e.g. 'Suresh Patel credit 4500 next save'" class="flex-grow bg-white border border-amber-300 rounded-xl px-3.5 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500">
                 <button onclick="simulateVoiceFromInput()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-5 py-2 rounded-xl text-xs shadow transition shrink-0 flex items-center justify-center gap-1.5">
                     <i class="fa-solid fa-play"></i> Simulate Voice Command
                 </button>
             </div>
         </div>
 
-        <!-- Voice Recognition Control Section -->
+        <!-- Voice Recognition & Speech Feedback Section -->
         <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-2xl p-5 shadow-xl text-white border border-indigo-900/60 relative">
             <div class="flex flex-col md:flex-row items-center justify-between gap-6">
                 
@@ -237,24 +274,36 @@
                     <div>
                         <div class="flex items-center gap-2">
                             <span id="voiceStatusDot" class="w-3 h-3 rounded-full bg-slate-400"></span>
-                            <h3 id="voiceStatusText" class="font-bold text-base text-slate-100">Voice Recognition Paused</h3>
+                            <h3 id="voiceStatusText" class="font-bold text-base text-slate-100">Voice Recognition Ready</h3>
                         </div>
                         <p class="text-xs text-slate-300 mt-1 max-w-md">
-                            Commands: <span class="bg-indigo-900 text-amber-300 px-1.5 py-0.5 rounded font-mono text-[11px]">"next" / "aage"</span> (field change), 
-                            <span class="bg-indigo-900 text-amber-300 px-1.5 py-0.5 rounded font-mono text-[11px]">"comma"</span>, 
+                            Commands: <span class="bg-indigo-900 text-amber-300 px-1.5 py-0.5 rounded font-mono text-[11px]">"next" / "aage"</span>, 
                             <span class="bg-indigo-900 text-amber-300 px-1.5 py-0.5 rounded font-mono text-[11px]">"jama" / "kharcha"</span>, 
-                            <span class="bg-indigo-900 text-amber-300 px-1.5 py-0.5 rounded font-mono text-[11px]">"save"</span>.
+                            <span class="bg-indigo-900 text-amber-300 px-1.5 py-0.5 rounded font-mono text-[11px]">"save"</span>,
+                            <span class="bg-indigo-900 text-amber-300 px-1.5 py-0.5 rounded font-mono text-[11px]">"boliye" / "sunao"</span>.
                         </p>
                     </div>
                 </div>
 
-                <!-- Active Voice Cursor Badge -->
-                <div class="w-full md:w-auto flex flex-col items-start md:items-end gap-1">
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Currently Targeting Field:</span>
-                    <span id="activeVoiceFieldBadge" class="bg-amber-400 text-slate-950 font-black px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 shadow-md">
-                        <i class="fa-solid fa-crosshairs"></i> 1. Name / Description
-                    </span>
-                    <span class="text-[10px] text-slate-400 mt-0.5">Focus field automatically switches when you click inputs!</span>
+                <!-- Active Voice Cursor Badge & Live Speech Feedback Wave -->
+                <div class="w-full md:w-auto flex flex-col items-start md:items-end gap-2">
+                    <div id="ttsSpeakingIndicator" class="hidden flex items-center gap-2 bg-amber-500/20 text-amber-300 border border-amber-400/40 px-3 py-1 rounded-xl text-xs font-bold speaking-pulse">
+                        <div class="flex items-center gap-1">
+                            <span class="sound-wave-bar"></span>
+                            <span class="sound-wave-bar"></span>
+                            <span class="sound-wave-bar"></span>
+                            <span class="sound-wave-bar"></span>
+                            <span class="sound-wave-bar"></span>
+                        </div>
+                        <span>App is speaking out loud...</span>
+                    </div>
+
+                    <div class="flex flex-col items-start md:items-end">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Targeting Field:</span>
+                        <span id="activeVoiceFieldBadge" class="bg-amber-400 text-slate-950 font-black px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 shadow-md">
+                            <i class="fa-solid fa-crosshairs"></i> 1. Name / Description
+                        </span>
+                    </div>
                 </div>
             </div>
 
@@ -262,11 +311,16 @@
             <div class="mt-4 bg-slate-950/80 border border-slate-800 rounded-xl p-3 flex items-center justify-between gap-3">
                 <div class="flex items-center gap-3 overflow-hidden">
                     <i class="fa-solid fa-quote-left text-indigo-400 text-sm shrink-0"></i>
-                    <p id="liveTranscript" class="text-xs font-semibold text-amber-200 italic truncate">"Click Start Voice or Demo buttons above to test..."</p>
+                    <p id="liveTranscript" class="text-xs font-semibold text-amber-200 italic truncate">"Click Start Voice or Demo buttons above to test speech..."</p>
                 </div>
-                <button onclick="clearVoiceBuffer()" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-lg shrink-0 border border-slate-700 transition" title="Clear buffer">
-                    <i class="fa-solid fa-eraser mr-1"></i> Clear Buffer
-                </button>
+                <div class="flex items-center gap-1">
+                    <button onclick="speakCurrentTranscript()" class="text-[11px] bg-indigo-700 hover:bg-indigo-600 text-white px-2.5 py-1 rounded-lg shrink-0 border border-indigo-500 transition flex items-center gap-1" title="Read phrase aloud">
+                        <i class="fa-solid fa-volume-high"></i> Read
+                    </button>
+                    <button onclick="clearVoiceBuffer()" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-lg shrink-0 border border-slate-700 transition" title="Clear buffer">
+                        <i class="fa-solid fa-eraser"></i> Clear
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -279,9 +333,14 @@
                         <i class="fa-solid fa-pen-to-square text-indigo-600"></i>
                         <span>Transaction Form</span>
                     </h3>
-                    <button onclick="resetForm()" class="text-xs text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 px-3 py-1 rounded-lg transition font-medium">
-                        <i class="fa-solid fa-rotate-left mr-1"></i> Reset Form
-                    </button>
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="readAloudFormState()" class="text-xs text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition font-bold flex items-center gap-1">
+                            <i class="fa-solid fa-volume-high"></i> Read Form
+                        </button>
+                        <button type="button" onclick="resetForm()" class="text-xs text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition font-medium">
+                            <i class="fa-solid fa-rotate-left mr-1"></i> Reset
+                        </button>
+                    </div>
                 </div>
 
                 <form id="transactionForm" onsubmit="handleFormSubmit(event)" class="space-y-4">
@@ -333,7 +392,7 @@
                             </div>
                         </div>
 
-                        <!-- Date & Time Input (DD/MM/YYYY HH:MM:SS AM/PM) -->
+                        <!-- Date & Time Input -->
                         <div>
                             <label class="block text-xs font-bold uppercase text-slate-600 mb-1">
                                 4. Date & Time Format
@@ -393,7 +452,7 @@
                 </div>
                 
                 <p class="text-[11px] text-slate-500 mb-3">
-                    If voice assistant mishears a word, click any spoken phrase below to instantly insert it into active input field:
+                    Click any spoken phrase below to insert into the active input field or hear it spoken back:
                 </p>
 
                 <!-- Scrollable Voice History -->
@@ -463,7 +522,7 @@
                             <th class="p-3.5 text-right">Debit (-)</th>
                             <th class="p-3.5 text-right">Amount (₹)</th>
                             <th class="p-3.5 text-right">Running Total</th>
-                            <th class="p-3.5 text-center w-24">Actions</th>
+                            <th class="p-3.5 text-center w-28">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="transactionTableBody" class="divide-y divide-slate-100 font-medium text-slate-700">
@@ -484,7 +543,7 @@
 
     <!-- Footer -->
     <footer class="bg-white border-t border-slate-200 mt-8 py-4 text-center text-xs text-slate-500 font-medium">
-        <p>Voice Ledger Pro &copy; 2026 — Speech Recognition & Simulation Engine</p>
+        <p>Voice Ledger Pro &copy; 2026 — Speech Recognition & Audio Synthesis (TTS) Engine</p>
     </footer>
 
     <!-- JS Application Logic -->
@@ -507,6 +566,11 @@
         let activeVoiceField = 'name'; // 'name' | 'type' | 'amount'
         let transcriptHistory = [];
         let pendingDialogResolver = null;
+
+        // Speech Synthesis (Text-to-Speech / TTS) State
+        let ttsEnabled = true;
+        let selectedHindiVoice = null;
+        const synth = window.speechSynthesis;
 
         // HTML DOM Cache
         const elements = {
@@ -541,12 +605,17 @@
             filterType: document.getElementById('filterType'),
             transcriptHistoryList: document.getElementById('transcriptHistoryList'),
             formHeading: document.getElementById('formHeading'),
-            simulatedVoiceInput: document.getElementById('simulatedVoiceInput')
+            simulatedVoiceInput: document.getElementById('simulatedVoiceInput'),
+            ttsSpeakingIndicator: document.getElementById('ttsSpeakingIndicator'),
+            ttsToggleBtn: document.getElementById('ttsToggleBtn'),
+            ttsIcon: document.getElementById('ttsIcon'),
+            ttsBtnText: document.getElementById('ttsBtnText')
         };
 
         window.addEventListener('DOMContentLoaded', () => {
             initIndexedDB();
             initSpeechEngine();
+            initTextToSpeechVoices();
             setupFormFieldFocusEvents();
             refreshFormTimestamp();
         });
@@ -619,6 +688,7 @@
             activeLedgerId = ledgerId;
             loadTransactionsForActiveLedger();
             showToast(`Switched to ledger: ${getLedgerName(ledgerId)}`, 'info');
+            speakText(`Switched to ledger page ${getLedgerName(ledgerId)}`);
         }
 
         function getLedgerName(id) {
@@ -642,13 +712,116 @@
         }
 
         /* ==========================================================================
-           2. VOICE SIMULATION & SPEECH RECOGNITION ENGINE
+           2. TEXT-TO-SPEECH (TTS AUDIO FEEDBACK) ENGINE
+           ========================================================================== */
+        function initTextToSpeechVoices() {
+            if (!synth) {
+                console.warn("Text-to-Speech API not supported in this browser.");
+                return;
+            }
+
+            function loadVoices() {
+                const voices = synth.getVoices();
+                // Prefer Hindi or Indian English voice if available
+                selectedHindiVoice = voices.find(v => v.lang.includes('hi') || v.lang.includes('hi-IN')) ||
+                                     voices.find(v => v.lang.includes('en-IN')) ||
+                                     voices[0];
+            }
+
+            loadVoices();
+            if (speechSynthesis.onvoiceschanged !== undefined) {
+                speechSynthesis.onvoiceschanged = loadVoices;
+            }
+        }
+
+        function speakText(textToSpeak, force = false) {
+            if (!synth) return;
+            if (!ttsEnabled && !force) return;
+
+            // Cancel ongoing speech to give immediate response
+            synth.cancel();
+
+            const utterance = new SpeechSynthesisUtterance(textToSpeak);
+            if (selectedHindiVoice) {
+                utterance.voice = selectedHindiVoice;
+            }
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+
+            utterance.onstart = () => {
+                if (elements.ttsSpeakingIndicator) {
+                    elements.ttsSpeakingIndicator.classList.remove('hidden');
+                }
+            };
+
+            utterance.onend = () => {
+                if (elements.ttsSpeakingIndicator) {
+                    elements.ttsSpeakingIndicator.classList.add('hidden');
+                }
+            };
+
+            utterance.onerror = () => {
+                if (elements.ttsSpeakingIndicator) {
+                    elements.ttsSpeakingIndicator.classList.add('hidden');
+                }
+            };
+
+            synth.speak(utterance);
+        }
+
+        function toggleTTSSpeech() {
+            ttsEnabled = !ttsEnabled;
+            if (ttsEnabled) {
+                elements.ttsToggleBtn.className = "bg-amber-500/20 border border-amber-400/40 text-amber-300 hover:bg-amber-500/30 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 transition";
+                elements.ttsIcon.className = "fa-solid fa-volume-high text-amber-400";
+                elements.ttsBtnText.textContent = "Voice Output: ON";
+                showToast("Voice feedback enabled", "info");
+                speakText("Awaaz feedback chalu kar diya gaya hai", true);
+            } else {
+                elements.ttsToggleBtn.className = "bg-slate-800 border border-slate-700 text-slate-400 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 transition";
+                elements.ttsIcon.className = "fa-solid fa-volume-xmark text-slate-500";
+                elements.ttsBtnText.textContent = "Voice Output: OFF";
+                synth.cancel();
+                showToast("Voice feedback muted", "info");
+            }
+        }
+
+        function readAloudSummary() {
+            const creditStr = elements.totalCredit.textContent;
+            const debitStr = elements.totalDebit.textContent;
+            const balanceStr = elements.totalBalance.textContent;
+            speakText(`Aapka Total Credit ${creditStr} hai, Total Debit ${debitStr} hai, aur Net Balance ${balanceStr} hai.`, true);
+        }
+
+        function readAloudFormState() {
+            const name = elements.fieldName.value || "Khali hai";
+            const type = elements.fieldType.value === 'CREDIT' ? 'Jama Credit' : 'Kharcha Debit';
+            const amount = elements.fieldAmount.value ? `${elements.fieldAmount.value} Rupey` : "Khali hai";
+            speakText(`Form status: Name ${name}. Type ${type}. Amount ${amount}.`, true);
+        }
+
+        function speakTransactionRow(id) {
+            const item = allTransactions.find(t => t.id === id);
+            if (!item) return;
+            const typeText = item.type === 'CREDIT' ? 'Jama' : 'Kharcha';
+            speakText(`Transaction detail: ${item.name}, ${typeText} ${item.amount} Rupey. Date ${item.dateTimeStr}`, true);
+        }
+
+        function speakCurrentTranscript() {
+            const text = elements.liveTranscript.textContent.replace(/"/g, '');
+            if (text) {
+                speakText(text, true);
+            }
+        }
+
+        /* ==========================================================================
+           3. VOICE SIMULATION & SPEECH RECOGNITION ENGINE
            ========================================================================== */
         function initSpeechEngine() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
             if (!SpeechRecognition) {
-                elements.voiceStatusText.textContent = "Web Speech API Unavailable (Use Demo Buttons)";
+                elements.voiceStatusText.textContent = "Web Speech API Unavailable (Use Demo Mode)";
                 elements.voiceToggleBtn.classList.add('opacity-70');
                 return;
             }
@@ -661,6 +834,7 @@
             recognition.onstart = () => {
                 isListening = true;
                 updateVoiceUI();
+                speakText("Voice mic chalu hai, bolo.");
             };
 
             recognition.onresult = (event) => {
@@ -692,6 +866,7 @@
                 console.warn("Speech API Notice:", e.error);
                 if (e.error === 'not-allowed') {
                     showToast("Microphone permission denied. Try Demo Buttons below!", "error");
+                    speakText("Microphone permission blocked hai.");
                     stopVoice();
                 }
             };
@@ -734,7 +909,8 @@
                 try { recognition.stop(); } catch (e) {}
             }
             updateVoiceUI();
-            showToast("Voice assistant stopped", "info");
+            showToast("Voice assistant paused", "info");
+            speakText("Voice recognition pause ho gaya.");
         }
 
         function updateVoiceUI() {
@@ -785,12 +961,15 @@
             if (activeVoiceField === 'name') {
                 setTargetVoiceField('type');
                 showToast("Voice target: TYPE (Say Jama/Credit or Kharcha/Debit)", "info");
+                speakText("Agla field Type hai. Jama ya Kharcha bolo.");
             } else if (activeVoiceField === 'type') {
                 setTargetVoiceField('amount');
                 elements.fieldAmount.focus();
                 showToast("Voice target: AMOUNT (Say numbers)", "info");
+                speakText("Agla field Amount hai. Rupey bolo.");
             } else if (activeVoiceField === 'amount') {
                 showToast("All fields filled. Say 'SAVE' to submit entry.", "info");
+                speakText("Sabhi fields bhar gaye hain. Save bolo entry jama karne ke liye.");
             }
         }
 
@@ -799,8 +978,13 @@
             const raw = spokenText.trim();
             if (!raw) return;
 
-            // Intelligent Full Scenario Auto Parser (e.g. "Ramesh Kumar jama 5000 next save")
             const lower = raw.toLowerCase();
+
+            // Commands for Text-to-Speech Output trigger
+            if (lower.includes('boliye') || lower.includes('sunao') || lower.includes('read') || lower.includes('सुनाओ') || lower.includes('बोलिए')) {
+                readAloudFormState();
+                return;
+            }
 
             // Check if input contains combined phrase commands
             let isTypeMatch = lower.includes('jama') || lower.includes('credit') || lower.includes('kharcha') || lower.includes('debit');
@@ -821,13 +1005,15 @@
             if (lower === 'comma' || lower === 'कोमा') {
                 if (activeVoiceField === 'name') {
                     elements.fieldName.value += ', ';
+                    speakText("Comma laga diya gaya");
                 }
                 return;
             }
 
-            if (lower === 'clear' || lower === 'saaf karo' || lower === 'हटाओ') {
+            if (lower === 'clear' || lower === 'reset' || lower === 'saaf karo' || lower === 'हटाओ') {
                 resetForm();
                 showToast("Form cleared by voice command", "info");
+                speakText("Form saaf kar diya gaya");
                 return;
             }
 
@@ -839,6 +1025,7 @@
             if (lower.includes('credit') || lower.includes('jama') || lower.includes('plus') || lower.includes('जमा') || lower.includes('मिला')) {
                 setTransactionType('CREDIT');
                 showToast("Type set to CREDIT", "info");
+                speakText("Credit Jama select hua");
                 if (activeVoiceField === 'type') advanceToNextVoiceField();
                 return;
             }
@@ -846,16 +1033,19 @@
             if (lower.includes('debit') || lower.includes('kharcha') || lower.includes('minus') || lower.includes('खर्चा') || lower.includes('उधार')) {
                 setTransactionType('DEBIT');
                 showToast("Type set to DEBIT", "info");
+                speakText("Debit Kharcha select hua");
                 if (activeVoiceField === 'type') advanceToNextVoiceField();
                 return;
             }
 
             if (activeVoiceField === 'name') {
                 elements.fieldName.value = (elements.fieldName.value ? elements.fieldName.value + ' ' : '') + raw;
+                speakText(`Naam: ${raw}`);
             } else if (activeVoiceField === 'amount') {
                 const numberMatch = raw.match(/\d+(\.\d+)?/g);
                 if (numberMatch) {
                     elements.fieldAmount.value = numberMatch[0];
+                    speakText(`Amount: ${numberMatch[0]} rupey`);
                 }
             }
         }
@@ -882,16 +1072,19 @@
                 }
             }
 
-            if (nameParts.length > 0) elements.fieldName.value = nameParts.join(' ');
+            const parsedName = nameParts.join(' ');
+            if (parsedName) elements.fieldName.value = parsedName;
             setTransactionType(detectedType);
             if (detectedAmount) elements.fieldAmount.value = detectedAmount;
 
             showToast("Parsed voice input & filled form!", "success");
+            const typeWord = detectedType === 'CREDIT' ? 'Jama' : 'Kharcha';
+            speakText(`Voice samjha gaya: ${parsedName || 'Entry'}, ${typeWord} ${detectedAmount || ''} rupey.`);
 
             if (shouldSave) {
                 setTimeout(() => {
                     handleFormSubmit(new Event('submit'));
-                }, 400);
+                }, 800);
             }
         }
 
@@ -917,7 +1110,7 @@
         }
 
         /* ==========================================================================
-           3. FORM HANDLING, DATE FORMATTING & IMAGE ATTACHMENT
+           4. FORM HANDLING, DATE FORMATTING & IMAGE ATTACHMENT
            ========================================================================== */
         function setTransactionType(type) {
             elements.fieldType.value = type;
@@ -958,6 +1151,7 @@
 
             if (file.size > 5 * 1024 * 1024) {
                 showToast("File size too large (>5MB). Choose a smaller image.", "error");
+                speakText("Photo ka size bada hai");
                 return;
             }
 
@@ -968,6 +1162,7 @@
                 elements.imageFileName.textContent = file.name;
                 elements.imagePreviewBox.classList.remove('hidden');
                 elements.noImageText.classList.add('hidden');
+                speakText("Bill photo attach kar di gayi hai");
             };
             reader.readAsDataURL(file);
         }
@@ -990,6 +1185,7 @@
 
             if (!name) {
                 showToast("Please enter or speak a Name / Description.", "warning");
+                speakText("Kripya Naam bolo ya likho.");
                 setTargetVoiceField('name');
                 elements.fieldName.focus();
                 return;
@@ -997,6 +1193,7 @@
 
             if (isNaN(amount) || amount <= 0) {
                 showToast("Please enter or speak a valid Amount.", "warning");
+                speakText("Kripya sahi Amount bolo ya likho.");
                 setTargetVoiceField('amount');
                 elements.fieldAmount.focus();
                 return;
@@ -1018,7 +1215,9 @@
             store.put(transactionObj);
 
             tx.oncomplete = () => {
-                showToast(editId ? "Entry updated!" : "Transaction saved successfully!", "success");
+                const msg = editId ? "Entry update ho gayi hai!" : "Transaction successfully save ho gayi hai!";
+                showToast(msg, "success");
+                speakText(msg);
                 resetForm();
                 loadTransactionsForActiveLedger();
             };
@@ -1058,10 +1257,12 @@
             elements.formHeading.innerHTML = `<i class="fa-solid fa-pen-to-square text-amber-500"></i><span>Edit Entry</span>`;
             window.scrollTo({ top: 0, behavior: 'smooth' });
             showToast("Editing entry. Make changes and click Save.", "info");
+            speakText(`Editing entry for ${item.name}`);
         }
 
         async function deleteTransaction(id) {
-            const confirmed = await openCustomDialog("Delete Transaction", "Are you sure you want to delete this transaction entry?");
+            const item = allTransactions.find(t => t.id === id);
+            const confirmed = await openCustomDialog("Delete Transaction", `Are you sure you want to delete transaction "${item ? item.name : ''}"?`);
             if (!confirmed) return;
 
             const tx = db.transaction(['transactions'], 'readwrite');
@@ -1069,12 +1270,13 @@
 
             tx.oncomplete = () => {
                 showToast("Transaction deleted", "info");
+                speakText("Transaction delete ho gaya");
                 loadTransactionsForActiveLedger();
             };
         }
 
         /* ==========================================================================
-           4. DASHBOARD CALCULATIONS & TABLE RENDER
+           5. DASHBOARD CALCULATIONS & TABLE RENDER
            ========================================================================== */
         function updateDashboardTotals() {
             let totalCredit = 0;
@@ -1156,6 +1358,9 @@
                         </td>
                         <td class="p-3.5 text-center whitespace-nowrap">
                             <div class="flex items-center justify-center gap-1">
+                                <button onclick="speakTransactionRow('${t.id}')" class="p-1.5 text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition" title="Speak Out Loud">
+                                    <i class="fa-solid fa-volume-high"></i>
+                                </button>
                                 <button onclick="editTransaction('${t.id}')" class="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition" title="Edit">
                                     <i class="fa-solid fa-pen-to-square"></i>
                                 </button>
@@ -1171,7 +1376,7 @@
         }
 
         /* ==========================================================================
-           5. MISTAKE CORRECTION HISTORY
+           6. MISTAKE CORRECTION HISTORY
            ========================================================================== */
         function addTranscriptHistoryItem(text) {
             transcriptHistory.unshift({ text, id: Date.now() });
@@ -1195,9 +1400,14 @@
                 div.className = "bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl p-2.5 flex items-center justify-between gap-2 transition";
                 div.innerHTML = `
                     <span class="font-medium text-slate-700 break-all">${escapeHtml(item.text)}</span>
-                    <button onclick="injectSpokenText('${escapeHtml(item.text)}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold shrink-0 transition shadow-sm">
-                        Use Phrase
-                    </button>
+                    <div class="flex items-center gap-1 shrink-0">
+                        <button onclick="speakText('${escapeHtml(item.text)}', true)" class="text-amber-600 hover:bg-amber-100 p-1 rounded-lg text-xs" title="Hear aloud">
+                            <i class="fa-solid fa-volume-high"></i>
+                        </button>
+                        <button onclick="injectSpokenText('${escapeHtml(item.text)}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-1 rounded-lg text-[10px] font-bold transition shadow-sm">
+                            Use
+                        </button>
+                    </div>
                 `;
                 elements.transcriptHistoryList.appendChild(div);
             });
@@ -1211,6 +1421,7 @@
                 if (nums) elements.fieldAmount.value = nums[0];
             }
             showToast(`Inserted phrase into ${activeVoiceField.toUpperCase()}`, 'info');
+            speakText(`Phrase inserted into ${activeVoiceField}`);
         }
 
         function clearTranscriptHistory() {
@@ -1219,7 +1430,7 @@
         }
 
         /* ==========================================================================
-           6. MULTI-LEDGER MANAGEMENT MODAL
+           7. MULTI-LEDGER MANAGEMENT MODAL
            ========================================================================== */
         function openLedgerModal() {
             document.getElementById('newLedgerInput').value = '';
@@ -1249,6 +1460,7 @@
 
             tx.oncomplete = () => {
                 showToast("New ledger page added!", "success");
+                speakText(`Naya ledger page ${input} ban gaya`);
                 loadLedgersFromDB();
                 activeLedgerId = newLedger.id;
                 closeLedgerModal();
@@ -1293,7 +1505,7 @@
         }
 
         /* ==========================================================================
-           7. EXPORT / IMPORT CSV & MODALS
+           8. EXPORT / IMPORT CSV & MODALS
            ========================================================================== */
         function exportCSV() {
             if (allTransactions.length === 0) {
@@ -1315,6 +1527,7 @@
             link.click();
             document.body.removeChild(link);
             showToast("CSV export generated!", "success");
+            speakText("CSV file export ho gayi");
         }
 
         function importCSV(event) {
@@ -1358,6 +1571,7 @@
 
                 tx.oncomplete = () => {
                     showToast(`Imported ${count} transactions successfully!`, "success");
+                    speakText(`${count} transactions import ho gaye`);
                     loadTransactionsForActiveLedger();
                 };
             };
