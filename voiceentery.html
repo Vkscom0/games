@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="hi" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Ledger - Hindi/English Voice Transaction Entry</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .mic-pulsing {
+            animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        /* Custom scrollbars */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="min-h-full flex flex-col text-slate-800">
+
+    <!-- Notification Toast Container -->
+    <div id="toastContainer" class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full"></div>
+
+    <!-- Image Preview Modal -->
+    <div id="imageModal" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl relative">
+            <div class="p-4 bg-slate-900 text-white flex justify-between items-center">
+                <h3 class="font-semibold text-lg" id="imageModalTitle">Attachment Preview</h3>
+                <button onclick="closeImageModal()" class="text-slate-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <div class="p-4 flex justify-center items-center bg-slate-100 max-h-[80vh]">
+                <img id="modalImg" src="" alt="Transaction Attachment" class="max-h-[70vh] object-contain rounded-lg">
+            </div>
+        </div>
+    </div>
+
+    <!-- Ledger Management Modal -->
+    <div id="ledgerModal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
+            <div class="flex justify-between items-center mb-4 border-b pb-3">
+                <h3 class="font-bold text-xl text-slate-800" id="ledgerModalTitle">Manage Ledgers</h3>
+                <button onclick="closeLedgerModal()" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Ledger Name (खाता/पेज का नाम)</label>
+                    <input type="text" id="newLedgerInput" placeholder="e.g. Shop Daily Account, Personal" class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button onclick="closeLedgerModal()" class="px-4 py-2 border rounded-lg text-slate-600 hover:bg-slate-100">Cancel</button>
+                    <button onclick="saveLedgerFromModal()" id="saveLedgerBtn" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow">Save Ledger</button>
+                </div>
+                <hr class="my-4">
+                <div>
+                    <h4 class="text-sm font-semibold text-slate-700 mb-2">Existing Ledgers</h4>
+                    <ul id="ledgerManageList" class="space-y-2 max-h-48 overflow-y-auto"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header Navigation Bar -->
+    <header class="bg-indigo-900 text-white shadow-lg sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
+            <div class="flex items-center gap-3">
+                <div class="bg-indigo-600 p-2.5 rounded-xl shadow-inner">
+                    <i class="fa-solid fa-microphone-lines text-2xl text-amber-300"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-xl tracking-wide flex items-center gap-2">
+                        Voice Ledger
+                        <span class="text-xs bg-amber-400 text-indigo-950 font-extrabold px-2 py-0.5 rounded-full uppercase">Hindi / Eng</span>
+                    </h1>
+                    <p class="text-xs text-indigo-200">Offline Voice Transaction Manager</p>
+                </div>
+            </div>
+
+            <!-- Active Ledger Selector Dropdown -->
+            <div class="flex items-center gap-2 bg-indigo-800/80 p-1.5 rounded-xl border border-indigo-700">
+                <i class="fa-solid fa-book-bookmark text-amber-300 ml-2"></i>
+                <span class="text-xs font-medium text-indigo-200 hidden sm:inline">Active Ledger:</span>
+                <select id="ledgerSelect" onchange="switchLedger(this.value)" class="bg-indigo-950 text-white text-sm rounded-lg px-3 py-1.5 font-semibold focus:outline-none border border-indigo-600 cursor-pointer">
+                </select>
+                <button onclick="openAddLedgerModal()" class="bg-amber-500 hover:bg-amber-600 text-indigo-950 p-2 rounded-lg font-bold text-xs flex items-center gap-1 transition shadow" title="Add New Ledger">
+                    <i class="fa-solid fa-plus"></i> <span class="hidden md:inline">New Ledger</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full space-y-6">
+
+        <!-- Top Dashboard Balance Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Total Balance Card -->
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex items-center justify-between relative overflow-hidden">
+                <div class="absolute left-0 top-0 bottom-0 w-2 bg-indigo-600"></div>
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Total Balance (कुल जमा राशि)</p>
+                    <h2 id="totalBalance" class="text-3xl font-extrabold text-slate-800">₹0.00</h2>
+                    <span id="balanceStatusBadge" class="inline-block mt-2 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600">Neutral</span>
+                </div>
+                <div class="h-14 w-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
+                    <i class="fa-solid fa-wallet text-2xl"></i>
+                </div>
+            </div>
+
+            <!-- Total Credit (Jama) Card -->
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex items-center justify-between relative overflow-hidden">
+                <div class="absolute left-0 top-0 bottom-0 w-2 bg-emerald-500"></div>
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Total Credit (कुल मिला / जमा)</p>
+                    <h2 id="totalCredit" class="text-3xl font-extrabold text-emerald-600">₹0.00</h2>
+                    <p class="text-xs text-slate-400 mt-2"><i class="fa-solid fa-arrow-down-left text-emerald-500 mr-1"></i>Inflow</p>
+                </div>
+                <div class="h-14 w-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
+                    <i class="fa-solid fa-circle-arrow-down text-2xl"></i>
+                </div>
+            </div>
+
+            <!-- Total Debit (Kharcha) Card -->
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex items-center justify-between relative overflow-hidden">
+                <div class="absolute left-0 top-0 bottom-0 w-2 bg-rose-500"></div>
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Total Debit (कुल दिया / खर्चा)</p>
+                    <h2 id="totalDebit" class="text-3xl font-extrabold text-rose-600">₹0.00</h2>
+                    <p class="text-xs text-slate-400 mt-2"><i class="fa-solid fa-arrow-up-right text-rose-500 mr-1"></i>Outflow</p>
+                </div>
+                <div class="h-14 w-14 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-600">
+                    <i class="fa-solid fa-circle-arrow-up text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Voice Recognition Controller Section -->
+        <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-2xl p-5 shadow-xl text-white relative overflow-hidden border border-indigo-800">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                
+                <!-- Voice Control Left Block -->
+                <div class="flex items-center gap-5 w-full md:w-auto">
+                    <button id="voiceToggleBtn" onclick="toggleVoiceRecognition()" class="relative shrink-0 w-20 h-20 rounded-full bg-rose-600 hover:bg-rose-500 text-white flex flex-col items-center justify-center shadow-lg transition-all transform active:scale-95 focus:outline-none">
+                        <i id="micIcon" class="fa-solid fa-microphone text-2xl"></i>
+                        <span id="micText" class="text-[10px] font-bold uppercase mt-1">Start Voice</span>
+                    </button>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span id="voiceStatusIndicator" class="w-3 h-3 rounded-full bg-amber-400"></span>
+                            <h3 id="voiceStatusText" class="font-bold text-lg text-slate-100">Voice Assistant Ready</h3>
+                        </div>
+                        <p class="text-xs text-slate-300 mt-1 max-w-md">
+                            Speak entries naturally. Say <span class="bg-indigo-800 text-amber-300 px-1.5 py-0.5 rounded text-[11px] font-mono">"comma" / "next" / "aage"</span> to move inputs. Say <span class="bg-indigo-800 text-amber-300 px-1.5 py-0.5 rounded text-[11px] font-mono">"jama"</span> or <span class="bg-indigo-800 text-amber-300 px-1.5 py-0.5 rounded text-[11px] font-mono">"kharcha"</span> for type.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Active Voice Field Cursor -->
+                <div class="w-full md:w-auto flex flex-col items-start md:items-end gap-1">
+                    <span class="text-xs uppercase font-semibold text-indigo-300 tracking-wider">Current Target Field:</span>
+                    <span id="activeFieldBadge" class="bg-amber-400 text-indigo-950 font-bold px-3 py-1 rounded-lg text-sm flex items-center gap-2 shadow">
+                        <i class="fa-solid fa-bullseye"></i> 1. Name / Description
+                    </span>
+                    <span class="text-[11px] text-slate-400 mt-1">Say "Submit" or "Save" when done</span>
+                </div>
+            </div>
+
+            <!-- Live Voice Transcript Output Box -->
+            <div class="mt-4 bg-slate-950/70 border border-slate-800 rounded-xl p-3 flex items-start gap-3">
+                <i class="fa-solid fa-quote-left text-indigo-400 mt-1"></i>
+                <div class="flex-grow">
+                    <p class="text-xs text-slate-400 font-semibold uppercase">Live Transcript (बोलने पर यहाँ दिखेगा):</p>
+                    <p id="liveTranscript" class="text-sm font-medium text-amber-200 min-h-[20px] italic">"Press Start Voice and begin speaking..."</p>
+                </div>
+                <button onclick="clearVoiceBuffer()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1.5 rounded-lg border border-slate-700 transition" title="Clear Buffer (Say 'Clear' or 'Hatao')">
+                    <i class="fa-solid fa-eraser mr-1"></i>Clear
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Entry Form Block (2 Columns Wide on desktop) -->
+            <div class="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-100">
+                    <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2" id="formHeading">
+                        <i class="fa-solid fa-square-plus text-indigo-600"></i>
+                        <span>New Transaction Entry</span>
+                    </h3>
+                    <button onclick="resetForm()" class="text-xs text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition font-medium">
+                        <i class="fa-solid fa-rotate-left mr-1"></i>Reset Fields
+                    </button>
+                </div>
+
+                <form id="transactionForm" onsubmit="handleFormSubmit(event)" class="space-y-4">
+                    <input type="hidden" id="editEntryId" value="">
+
+                    <!-- Row 1: Name & Type -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <!-- Field 1: Name / Description -->
+                        <div class="sm:col-span-2" id="fieldContainer_name">
+                            <label class="block text-xs font-bold uppercase text-slate-600 mb-1 flex justify-between">
+                                <span>1. Name / Description (नाम / विवरण)</span>
+                                <span class="text-indigo-600 font-normal">Step 1</span>
+                            </label>
+                            <div class="relative">
+                                <input type="text" id="fieldName" required placeholder="e.g. Ramesh Traders, Grocery Shop" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                                <button type="button" onclick="setActiveVoiceField('name')" class="absolute right-2 top-2 text-slate-400 hover:text-indigo-600 p-1">
+                                    <i class="fa-solid fa-microphone text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Field 2: Credit / Debit Type -->
+                        <div id="fieldContainer_type">
+                            <label class="block text-xs font-bold uppercase text-slate-600 mb-1">
+                                2. Type (जमा / खर्चा)
+                            </label>
+                            <div class="grid grid-cols-2 gap-2 h-[42px]">
+                                <button type="button" id="typeCreditBtn" onclick="setTransactionType('CREDIT')" class="rounded-xl font-bold text-xs flex items-center justify-center gap-1 border-2 border-emerald-500 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition">
+                                    <i class="fa-solid fa-arrow-down-left"></i> Credit
+                                </button>
+                                <button type="button" id="typeDebitBtn" onclick="setTransactionType('DEBIT')" class="rounded-xl font-bold text-xs flex items-center justify-center gap-1 border-2 border-slate-200 text-slate-600 bg-slate-50 hover:bg-slate-100 transition">
+                                    <i class="fa-solid fa-arrow-up-right"></i> Debit
+                                </button>
+                            </div>
+                            <input type="hidden" id="fieldType" value="CREDIT">
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Amount & Date/Time -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Field 3: Amount -->
+                        <div id="fieldContainer_amount">
+                            <label class="block text-xs font-bold uppercase text-slate-600 mb-1 flex justify-between">
+                                <span>3. Amount (राशि ₹)</span>
+                                <span class="text-indigo-600 font-normal">Step 3</span>
+                            </label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-2.5 font-bold text-slate-400">₹</span>
+                                <input type="number" step="0.01" min="0" id="fieldAmount" required placeholder="0.00" class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-8 pr-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                                <button type="button" onclick="setActiveVoiceField('amount')" class="absolute right-2 top-2 text-slate-400 hover:text-indigo-600 p-1">
+                                    <i class="fa-solid fa-microphone text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Field 4: Custom Date & Time Format Selector -->
+                        <div id="fieldContainer_datetime">
+                            <label class="block text-xs font-bold uppercase text-slate-600 mb-1">
+                                4. Date & Time (DD/MM/YYYY HH:MM:SS AM/PM)
+                            </label>
+                            <div class="flex gap-2">
+                                <input type="text" id="fieldDateTimeFormatted" readonly placeholder="DD/MM/YYYY HH:MM:SS AM/PM" class="w-full bg-slate-100 border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono text-slate-700 cursor-not-allowed">
+                                <button type="button" onclick="setCurrentTimestamp()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-2 rounded-xl text-xs font-semibold transition shrink-0" title="Set Now">
+                                    Now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Image File Attachment & Thumbnail -->
+                    <div id="fieldContainer_image">
+                        <label class="block text-xs font-bold uppercase text-slate-600 mb-1">
+                            5. Image Attachment (बिल / रसीद की फोटो)
+                        </label>
+                        <div class="flex items-center gap-4 bg-slate-50 p-3 border border-slate-200 rounded-xl">
+                            <input type="file" id="fieldImageInput" accept="image/*" capture="environment" onchange="handleImageSelection(event)" class="hidden">
+                            <label for="fieldImageInput" class="cursor-pointer bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 shadow-sm transition">
+                                <i class="fa-solid fa-camera text-indigo-600 text-sm"></i> Upload / Capture
+                            </label>
+                            
+                            <!-- Thumbnail Preview Box -->
+                            <div id="imagePreviewContainer" class="hidden flex items-center gap-3">
+                                <div class="relative">
+                                    <img id="imagePreviewThumb" src="" alt="Thumbnail" class="w-12 h-12 object-cover rounded-lg border border-indigo-200 shadow-sm cursor-pointer" onclick="openImageModal(this.src, 'Selected Attachment')">
+                                    <button type="button" onclick="removeSelectedImage()" class="absolute -top-2 -right-2 bg-rose-600 text-white rounded-full w-5 h-5 text-[10px] flex items-center justify-center shadow">
+                                        <i class="fa-solid fa-xmark"></i>
+                                    </button>
+                                </div>
+                                <span id="imageFileName" class="text-xs text-slate-500 font-mono truncate max-w-[150px]"></span>
+                            </div>
+                            <span id="noImageText" class="text-xs text-slate-400 italic">No image attached</span>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="pt-2">
+                        <button type="submit" id="saveTransactionBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transition flex items-center justify-center gap-2 text-sm tracking-wide">
+                            <i class="fa-solid fa-check-circle text-lg"></i>
+                            <span>Save Entry (एंट्री सेव करें)</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Mistake Correction & Live Transcript Log Panel -->
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col h-[500px] lg:h-auto">
+                <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-100">
+                    <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left text-amber-500"></i>
+                        <span>Voice Correction Log</span>
+                    </h3>
+                    <span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono">Real-time</span>
+                </div>
+                
+                <p class="text-xs text-slate-500 mb-3">
+                    Click any recent recognized voice phrase below to fix mistakes or insert directly into active field:
+                </p>
+
+                <!-- Scrollable Transcript History List -->
+                <div id="transcriptHistoryList" class="flex-grow overflow-y-auto space-y-2 pr-1 text-xs">
+                    <div class="text-center py-10 text-slate-400 italic">
+                        <i class="fa-solid fa-comment-dots text-2xl mb-2 text-slate-300 block"></i>
+                        Spoken history phrases will appear here for easy editing.
+                    </div>
+                </div>
+
+                <div class="mt-3 pt-3 border-t border-slate-100 flex gap-2">
+                    <button onclick="clearTranscriptHistory()" class="w-full text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 font-medium py-2 rounded-lg transition flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-trash-can"></i> Clear History
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Interactive Data Table & Filter Panel -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            
+            <!-- Table Action Toolbar -->
+            <div class="p-5 border-b border-slate-100 flex flex-col md:flex-row gap-4 justify-between items-center bg-slate-50/50">
+                <div class="flex items-center gap-2 w-full md:w-auto">
+                    <i class="fa-solid fa-list-check text-indigo-600 text-lg"></i>
+                    <h3 class="font-bold text-slate-800 text-base">Ledger Entries</h3>
+                    <span id="entryCountBadge" class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-0.5 rounded-full ml-1">0 entries</span>
+                </div>
+
+                <!-- Search & Filters -->
+                <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                    <!-- Search Input -->
+                    <div class="relative flex-grow md:w-64">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                        <input type="text" id="searchInput" oninput="renderTable()" placeholder="Search by name or amount..." class="w-full bg-white border border-slate-300 rounded-xl pl-8 pr-3 py-1.5 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+
+                    <!-- Type Filter -->
+                    <select id="filterType" onchange="renderTable()" class="bg-white border border-slate-300 text-xs rounded-xl px-3 py-1.5 font-medium focus:outline-none">
+                        <option value="ALL">All Types</option>
+                        <option value="CREDIT">Credit Only</option>
+                        <option value="DEBIT">Debit Only</option>
+                    </select>
+
+                    <!-- Backup / Export Buttons -->
+                    <div class="flex items-center gap-1">
+                        <button onclick="exportLedgerCSV()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1 transition" title="Export CSV">
+                            <i class="fa-solid fa-file-csv text-emerald-600"></i> Export
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table Container -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead>
+                        <tr class="bg-slate-100/80 text-slate-600 font-bold uppercase tracking-wider border-b border-slate-200">
+                            <th class="p-3.5 text-center w-14">Image</th>
+                            <th class="p-3.5">Date & Time</th>
+                            <th class="p-3.5">Name / Description</th>
+                            <th class="p-3.5 text-right">Credit (+)</th>
+                            <th class="p-3.5 text-right">Debit (-)</th>
+                            <th class="p-3.5 text-right">Amount (₹)</th>
+                            <th class="p-3.5 text-right">Running Total</th>
+                            <th class="p-3.5 text-center w-24">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactionTableBody" class="divide-y divide-slate-100 font-medium text-slate-700">
+                        <!-- Rows rendered dynamically -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Empty Table State -->
+            <div id="emptyTableState" class="p-12 text-center text-slate-400">
+                <i class="fa-solid fa-receipt text-4xl mb-3 text-slate-300 block"></i>
+                <p class="font-medium text-sm text-slate-600">No transactions recorded in this ledger yet.</p>
+                <p class="text-xs mt-1">Use the voice assistant or manual form above to add your first transaction.</p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 mt-8 py-4 text-center text-xs text-slate-500">
+        <p>Voice Ledger Web App &copy; 2026 - Client-Side IndexedDB Storage & Offline Web Speech API</p>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        /* ==========================================================================
+           1. GLOBAL STATE & INDEXEDDB DATABASE SETUP
+           ========================================================================== */
+        const DB_NAME = 'VoiceLedgerDB';
+        const DB_VERSION = 1;
+        let db = null;
+
+        let activeLedgerId = 'default_ledger';
+        let ledgersList = [];
+        let allTransactions = [];
+        let currentImageBase64 = null;
+
+        // Speech Recognition Setup
+        let recognition = null;
+        let isListening = false;
+        let activeVoiceField = 'name'; // 'name' | 'type' | 'amount'
+        let transcriptHistory = [];
+
+        /* Field sequence for "comma" or "next" navigation */
+        const FIELD_SEQUENCE = ['name', 'type', 'amount'];
+
+        // DOM Element Cache
+        const elements = {
+            totalBalance: document.getElementById('totalBalance'),
+            totalCredit: document.getElementById('totalCredit'),
+            totalDebit: document.getElementById('totalDebit'),
+            balanceStatusBadge: document.getElementById('balanceStatusBadge'),
+            ledgerSelect: document.getElementById('ledgerSelect'),
+            liveTranscript: document.getElementById('liveTranscript'),
+            voiceToggleBtn: document.getElementById('voiceToggleBtn'),
+            micIcon: document.getElementById('micIcon'),
+            micText: document.getElementById('micText'),
+            voiceStatusIndicator: document.getElementById('voiceStatusIndicator'),
+            voiceStatusText: document.getElementById('voiceStatusText'),
+            activeFieldBadge: document.getElementById('activeFieldBadge'),
+            editEntryId: document.getElementById('editEntryId'),
+            fieldName: document.getElementById('fieldName'),
+            fieldType: document.getElementById('fieldType'),
+            fieldAmount: document.getElementById('fieldAmount'),
+            fieldDateTimeFormatted: document.getElementById('fieldDateTimeFormatted'),
+            typeCreditBtn: document.getElementById('typeCreditBtn'),
+            typeDebitBtn: document.getElementById('typeDebitBtn'),
+            fieldImageInput: document.getElementById('fieldImageInput'),
+            imagePreviewContainer: document.getElementById('imagePreviewContainer'),
+            imagePreviewThumb: document.getElementById('imagePreviewThumb'),
+            imageFileName: document.getElementById('imageFileName'),
+            noImageText: document.getElementById('noImageText'),
+            transactionTableBody: document.getElementById('transactionTableBody'),
+            emptyTableState: document.getElementById('emptyTableState'),
+            entryCountBadge: document.getElementById('entryCountBadge'),
+            searchInput: document.getElementById('searchInput'),
+            filterType: document.getElementById('filterType'),
+            transcriptHistoryList: document.getElementById('transcriptHistoryList'),
+            formHeading: document.getElementById('formHeading')
+        };
+
+        /* ==========================================================================
+           2. INITIALIZATION & INDEXEDDB MANAGEMENT
+           ========================================================================== */
+        window.addEventListener('DOMContentLoaded', () => {
+            initIndexedDB();
+            initSpeechRecognition();
+            setCurrentTimestamp();
+        });
+
+        function initIndexedDB() {
+            const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+            request.onupgradeneeded = (event) => {
+                const dbRef = event.target.result;
+                
+                // Store for Ledgers
+                if (!dbRef.objectStoreNames.contains('ledgers')) {
+                    const ledgerStore = dbRef.createObjectStore('ledgers', { keyPath: 'id' });
+                    ledgerStore.createIndex('name', 'name', { unique: false });
+                }
+
+                // Store for Transactions
+                if (!dbRef.objectStoreNames.contains('transactions')) {
+                    const transStore = dbRef.createObjectStore('transactions', { keyPath: 'id' });
+                    transStore.createIndex('ledgerId', 'ledgerId', { unique: false });
+                    transStore.createIndex('timestamp', 'timestamp', { unique: false });
+                }
+            };
+
+            request.onsuccess = (event) => {
+                db = event.target.result;
+                loadLedgers();
+            };
+
+            request.onerror = (event) => {
+                showToast('Failed to open IndexedDB database', 'error');
+                console.error('IndexedDB error:', event.target.error);
+            };
+        }
+
+        /* Load Ledgers from IndexedDB or create Default */
+        function loadLedgers() {
+            const tx = db.transaction(['ledgers'], 'readonly');
+            const store = tx.objectStore('ledgers');
+            const getAll = store.getAll();
+
+            getAll.onsuccess = () => {
+                ledgersList = getAll.result || [];
+                if (ledgersList.length === 0) {
+                    // Create Default Ledgers
+                    const defaultLedger = { id: 'default_ledger', name: 'Shop Daily Account', createdAt: Date.now() };
+                    const txAdd = db.transaction(['ledgers'], 'readwrite');
+                    txAdd.objectStore('ledgers').add(defaultLedger);
+                    txAdd.oncomplete = () => {
+                        ledgersList = [defaultLedger];
+                        populateLedgerDropdown();
+                        loadTransactionsForActiveLedger();
+                    };
+                } else {
+                    populateLedgerDropdown();
+                    loadTransactionsForActiveLedger();
+                }
+            };
+        }
+
+        function populateLedgerDropdown() {
+            elements.ledgerSelect.innerHTML = '';
+            ledgersList.forEach(ledger => {
+                const opt = document.createElement('option');
+                opt.value = ledger.id;
+                opt.textContent = ledger.name;
+                if (ledger.id === activeLedgerId) opt.selected = true;
+                elements.ledgerSelect.appendChild(opt);
+            });
+        }
+
+        function switchLedger(ledgerId) {
+            activeLedgerId = ledgerId;
+            loadTransactionsForActiveLedger();
+            showToast(`Switched to ledger: ${getLedgerName(ledgerId)}`, 'info');
+        }
+
+        function getLedgerName(id) {
+            const l = ledgersList.find(x => x.id === id);
+            return l ? l.name : 'Ledger';
+        }
+
+        /* Load Transactions for current active Ledger */
+        function loadTransactionsForActiveLedger() {
+            if (!db) return;
+            const tx = db.transaction(['transactions'], 'readonly');
+            const store = tx.objectStore('transactions');
+            const index = store.index('ledgerId');
+            const request = index.getAll(activeLedgerId);
+
+            request.onsuccess = () => {
+                allTransactions = request.result || [];
+                // Sort by timestamp ascending
+                allTransactions.sort((a, b) => a.timestamp - b.timestamp);
+                calculateDashboardTotals();
+                renderTable();
+            };
+        }
+
+        /* ==========================================================================
+           3. WEB SPEECH API & VOICE NAVIGATION LOGIC
+           ========================================================================== */
+        function initSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+            if (!SpeechRecognition) {
+                elements.voiceStatusText.textContent = "Speech Recognition Not Supported";
+                elements.voiceStatusIndicator.className = "w-3 h-3 rounded-full bg-rose-500";
+                showToast("Web Speech API is not supported in this browser. Use Chrome/Edge.", "error");
+                elements.voiceToggleBtn.disabled = true;
+                return;
+            }
+
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'hi-IN'; // Default to Hindi/English bilingual support
+
+            recognition.onstart = () => {
+                isListening = true;
+                updateVoiceUI();
+                showToast("Voice assistant activated! Start speaking...", "info");
+            };
+
+            recognition.onresult = (event) => {
+                let interimTranscript = '';
+                let finalTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    const transcriptPiece = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcriptPiece;
+                    } else {
+                        interimTranscript += transcriptPiece;
+                    }
+                }
+
+                if (interimTranscript) {
+                    elements.liveTranscript.textContent = `"${interimTranscript}"`;
+                }
+
+                if (finalTranscript) {
+                    const cleaned = finalTranscript.trim();
+                    elements.liveTranscript.textContent = `"${cleaned}"`;
+                    addTranscriptToHistory(cleaned);
+                    processVoiceCommandOrInput(cleaned);
+                }
+            };
+
+            recognition.onerror = (event) => {
+                console.warn('Speech recognition error:', event.error);
+                if (event.error === 'not-allowed') {
+                    showToast('Microphone access denied!', 'error');
+                    stopVoiceRecognition();
+                }
+            };
+
+            recognition.onend = () => {
+                // Auto restart if intended to be listening
+                if (isListening) {
+                    try { recognition.start(); } catch (e) {}
+                } else {
+                    updateVoiceUI();
+                }
+            };
+        }
+
+        function toggleVoiceRecognition() {
+            if (!recognition) return;
+            if (isListening) {
+                stopVoiceRecognition();
+            } else {
+                startVoiceRecognition();
+            }
+        }
+
+        function startVoiceRecognition() {
+            try {
+                isListening = true;
+                recognition.start();
+                updateVoiceUI();
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function stopVoiceRecognition() {
+            isListening = false;
+            if (recognition) {
+                try { recognition.stop(); } catch (e) {}
+            }
+            updateVoiceUI();
+            showToast("Voice Assistant Stopped", "info");
+        }
+
+        function updateVoiceUI() {
+            if (isListening) {
+                elements.voiceToggleBtn.className = "relative shrink-0 w-20 h-20 rounded-full bg-rose-600 text-white flex flex-col items-center justify-center shadow-lg mic-pulsing transition-all";
+                elements.micIcon.className = "fa-solid fa-microphone text-2xl text-amber-300";
+                elements.micText.textContent = "Listening";
+                elements.voiceStatusIndicator.className = "w-3 h-3 rounded-full bg-emerald-400 animate-pulse";
+                elements.voiceStatusText.textContent = "Voice Assistant Active";
+            } else {
+                elements.voiceToggleBtn.className = "relative shrink-0 w-20 h-20 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white flex flex-col items-center justify-center shadow-lg transition-all";
+                elements.micIcon.className = "fa-solid fa-microphone-slash text-2xl";
+                elements.micText.textContent = "Start Voice";
+                elements.voiceStatusIndicator.className = "w-3 h-3 rounded-full bg-slate-400";
+                elements.voiceStatusText.textContent = "Voice Assistant Paused";
+            }
+            updateActiveFieldBadgeUI();
+        }
+
+        function setActiveVoiceField(field) {
+            activeVoiceField = field;
+            updateActiveFieldBadgeUI();
+            // Highlight active DOM container
+            ['name', 'type', 'amount'].forEach(f => {
+                const el = document.getElementById(`fieldContainer_${f}`);
+                if (el) {
+                    if (f === field) {
+                        el.classList.add('ring-2', 'ring-amber-400', 'rounded-xl', 'p-1');
+                    } else {
+                        el.classList.remove('ring-2', 'ring-amber-400', 'rounded-xl', 'p-1');
+                    }
+                }
+            });
+        }
+
+        function updateActiveFieldBadgeUI() {
+            const labels = {
+                'name': '1. Name / Description',
+                'type': '2. Type (Credit/Debit)',
+                'amount': '3. Amount (₹)'
+            };
+            elements.activeFieldBadge.innerHTML = `<i class="fa-solid fa-bullseye"></i> ${labels[activeVoiceField] || activeVoiceField}`;
+        }
+
+        function advanceToNextVoiceField() {
+            const currentIndex = FIELD_SEQUENCE.indexOf(activeVoiceField);
+            if (currentIndex < FIELD_SEQUENCE.length - 1) {
+                setActiveVoiceField(FIELD_SEQUENCE[currentIndex + 1]);
+                showToast(`Switched to field: ${activeVoiceField.toUpperCase()}`, 'info');
+            } else {
+                showToast(`Reached last field. Say 'Save' to submit.`, 'info');
+            }
+        }
+
+        /* Command Processing Engine */
+        function processVoiceCommandOrInput(spokenText) {
+            const lower = spokenText.toLowerCase().trim();
+
+            // 1. Voice Navigation Commands
+            if (lower.includes('comma') || lower.includes('next') || lower.includes('aage') || lower.includes('agle') || lower.includes('अगला') || lower.includes('आगे')) {
+                advanceToNextVoiceField();
+                return;
+            }
+
+            // 2. Clear Buffer Command
+            if (lower === 'clear' || lower === 'hatao' || lower === 'हटाओ' || lower === 'साफ करो') {
+                clearVoiceBuffer();
+                return;
+            }
+
+            // 3. Save Entry Command
+            if (lower === 'save' || lower === 'submit' || lower === 'jama karo' || lower === 'जमा करो' || lower === 'सेव करो') {
+                handleFormSubmit(new Event('submit'));
+                return;
+            }
+
+            // 4. Type Selector Commands
+            if (lower.includes('credit') || lower.includes('jama') || lower.includes('जमा') || lower.includes('मिला')) {
+                setTransactionType('CREDIT');
+                if (activeVoiceField === 'type') advanceToNextVoiceField();
+                return;
+            }
+
+            if (lower.includes('debit') || lower.includes('kharcha') || lower.includes('udhaar') || lower.includes('खर्चा') || lower.includes('उधार')) {
+                setTransactionType('DEBIT');
+                if (activeVoiceField === 'type') advanceToNextVoiceField();
+                return;
+            }
+
+            // 5. Input Text to Current Active Field
+            if (activeVoiceField === 'name') {
+                elements.fieldName.value = (elements.fieldName.value ? elements.fieldName.value + ' ' : '') + spokenText;
+            } else if (activeVoiceField === 'amount') {
+                // Extract digits from spoken string
+                const digits = spokenText.match(/\d+(\.\d+)?/g);
+                if (digits) {
+                    elements.fieldAmount.value = digits[0];
+                } else {
+                    showToast("Could not parse number for amount", "warning");
+                }
+            }
+        }
+
+        function clearVoiceBuffer() {
+            elements.liveTranscript.textContent = '"Cleared voice transcript buffer."';
+            showToast("Voice buffer cleared", "info");
+        }
+
+        /* ==========================================================================
+           4. FORM HANDLING & DATE/TIME FORMATTING
+           ========================================================================== */
+        function setTransactionType(type) {
+            elements.fieldType.value = type;
+            if (type === 'CREDIT') {
+                elements.typeCreditBtn.className = "rounded-xl font-bold text-xs flex items-center justify-center gap-1 border-2 border-emerald-500 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition";
+                elements.typeDebitBtn.className = "rounded-xl font-bold text-xs flex items-center justify-center gap-1 border-2 border-slate-200 text-slate-600 bg-slate-50 hover:bg-slate-100 transition";
+            } else {
+                elements.typeDebitBtn.className = "rounded-xl font-bold text-xs flex items-center justify-center gap-1 border-2 border-rose-500 text-rose-700 bg-rose-50 hover:bg-rose-100 transition";
+                elements.typeCreditBtn.className = "rounded-xl font-bold text-xs flex items-center justify-center gap-1 border-2 border-slate-200 text-slate-600 bg-slate-50 hover:bg-slate-100 transition";
+            }
+        }
+
+        /* Format Date & Time: dd/mm/yyyy hh:mm:ss am/pm */
+        function formatDateTime(dateObj) {
+            const date = dateObj || new Date();
+            const dd = String(date.getDate()).padStart(2, '0');
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const yyyy = date.getFullYear();
+
+            let hours = date.getHours();
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const seconds = String(date.getSeconds()).padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+
+            hours = hours % 12;
+            hours = hours ? hours : 12; // convert 0 to 12
+            const strHours = String(hours).padStart(2, '0');
+
+            return `${dd}/${mm}/${yyyy} ${strHours}:${minutes}:${seconds} ${ampm}`;
+        }
+
+        function setCurrentTimestamp() {
+            elements.fieldDateTimeFormatted.value = formatDateTime(new Date());
+        }
+
+        /* Image File Selection and Base64 Conversion */
+        function handleImageSelection(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.size > 5 * 1024 * 1024) {
+                showToast("File size too large! Please choose an image under 5MB.", "error");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                currentImageBase64 = e.target.result;
+                elements.imagePreviewThumb.src = currentImageBase64;
+                elements.imageFileName.textContent = file.name;
+                elements.imagePreviewContainer.classList.remove('hidden');
+                elements.noImageText.classList.add('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeSelectedImage() {
+            currentImageBase64 = null;
+            elements.fieldImageInput.value = '';
+            elements.imagePreviewContainer.classList.add('hidden');
+            elements.noImageText.classList.remove('hidden');
+        }
+
+        /* Save / Submit Form Data */
+        function handleFormSubmit(event) {
+            event.preventDefault();
+
+            const name = elements.fieldName.value.trim();
+            const amount = parseFloat(elements.fieldAmount.value);
+            const type = elements.fieldType.value;
+            const datetimeStr = elements.fieldDateTimeFormatted.value;
+            const editId = elements.editEntryId.value;
+
+            if (!name) {
+                showToast("Please enter or speak a valid Name/Description.", "warning");
+                setActiveVoiceField('name');
+                return;
+            }
+
+            if (isNaN(amount) || amount <= 0) {
+                showToast("Please enter or speak a valid positive Amount.", "warning");
+                setActiveVoiceField('amount');
+                return;
+            }
+
+            const transactionObj = {
+                id: editId ? editId : 'trans_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+                ledgerId: activeLedgerId,
+                name: name,
+                type: type, // 'CREDIT' or 'DEBIT'
+                amount: amount,
+                dateTimeStr: datetimeStr,
+                timestamp: editId ? (allTransactions.find(t=>t.id===editId)?.timestamp || Date.now()) : Date.now(),
+                imageData: currentImageBase64
+            };
+
+            // Save to IndexedDB
+            const tx = db.transaction(['transactions'], 'readwrite');
+            const store = tx.objectStore('transactions');
+
+            store.put(transactionObj);
+
+            tx.oncomplete = () => {
+                showToast(editId ? "Entry updated successfully!" : "New transaction saved!", "success");
+                resetForm();
+                loadTransactionsForActiveLedger();
+            };
+
+            tx.onerror = () => {
+                showToast("Error saving transaction to storage.", "error");
+            };
+        }
+
+        function resetForm() {
+            elements.editEntryId.value = '';
+            elements.fieldName.value = '';
+            elements.fieldAmount.value = '';
+            setTransactionType('CREDIT');
+            removeSelectedImage();
+            setCurrentTimestamp();
+            setActiveVoiceField('name');
+            elements.formHeading.innerHTML = `<i class="fa-solid fa-square-plus text-indigo-600"></i><span>New Transaction Entry</span>`;
+        }
+
+        function editTransaction(id) {
+            const trans = allTransactions.find(t => t.id === id);
+            if (!trans) return;
+
+            elements.editEntryId.value = trans.id;
+            elements.fieldName.value = trans.name;
+            elements.fieldAmount.value = trans.amount;
+            setTransactionType(trans.type);
+            elements.fieldDateTimeFormatted.value = trans.dateTimeStr;
+
+            if (trans.imageData) {
+                currentImageBase64 = trans.imageData;
+                elements.imagePreviewThumb.src = trans.imageData;
+                elements.imageFileName.textContent = 'Existing Attachment';
+                elements.imagePreviewContainer.classList.remove('hidden');
+                elements.noImageText.classList.add('hidden');
+            } else {
+                removeSelectedImage();
+            }
+
+            elements.formHeading.innerHTML = `<i class="fa-solid fa-pen-to-square text-amber-500"></i><span>Edit Transaction Entry</span>`;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            showToast("Editing entry. Make changes and click Save.", "info");
+        }
+
+        function deleteTransaction(id) {
+            if (!confirm("Are you sure you want to delete this transaction entry?")) return;
+
+            const tx = db.transaction(['transactions'], 'readwrite');
+            const store = tx.objectStore('transactions');
+            store.delete(id);
+
+            tx.oncomplete = () => {
+                showToast("Transaction deleted", "info");
+                loadTransactionsForActiveLedger();
+            };
+        }
+
+        /* ==========================================================================
+           5. DASHBOARD CALCULATIONS & TABLE RENDERING
+           ========================================================================== */
+        function calculateDashboardTotals() {
+            let totalCredit = 0;
+            let totalDebit = 0;
+
+            allTransactions.forEach(t => {
+                if (t.type === 'CREDIT') {
+                    totalCredit += t.amount;
+                } else {
+                    totalDebit += t.amount;
+                }
+            });
+
+            const netBalance = totalCredit - totalDebit;
+
+            elements.totalBalance.textContent = `₹${netBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+            elements.totalCredit.textContent = `₹${totalCredit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+            elements.totalDebit.textContent = `₹${totalDebit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+
+            if (netBalance > 0) {
+                elements.balanceStatusBadge.textContent = "Positive Balance";
+                elements.balanceStatusBadge.className = "inline-block mt-2 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800";
+            } else if (netBalance < 0) {
+                elements.balanceStatusBadge.textContent = "Negative Deficit";
+                elements.balanceStatusBadge.className = "inline-block mt-2 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800";
+            } else {
+                elements.balanceStatusBadge.textContent = "Zero Balance";
+                elements.balanceStatusBadge.className = "inline-block mt-2 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600";
+            }
+        }
+
+        function renderTable() {
+            const searchTerm = elements.searchInput.value.toLowerCase().trim();
+            const filterType = elements.filterType.value;
+
+            // Filter transactions
+            const filtered = allTransactions.filter(t => {
+                const matchesSearch = t.name.toLowerCase().includes(searchTerm) || t.amount.toString().includes(searchTerm);
+                const matchesType = filterType === 'ALL' || t.type === filterType;
+                return matchesSearch && matchesType;
+            });
+
+            elements.entryCountBadge.textContent = `${filtered.length} entries`;
+            elements.transactionTableBody.innerHTML = '';
+
+            if (filtered.length === 0) {
+                elements.emptyTableState.classList.remove('hidden');
+                return;
+            } else {
+                elements.emptyTableState.classList.add('hidden');
+            }
+
+            // Calculate Running Balances across full list up to each row
+            let runningBalance = 0;
+            const rowsHtml = [];
+
+            allTransactions.forEach((t) => {
+                if (t.type === 'CREDIT') runningBalance += t.amount;
+                else runningBalance -= t.amount;
+
+                // Check if included in current filter
+                if (filtered.some(item => item.id === t.id)) {
+                    const isCredit = t.type === 'CREDIT';
+                    
+                    const row = document.createElement('tr');
+                    row.className = "hover:bg-slate-50 transition border-b border-slate-100";
+
+                    row.innerHTML = `
+                        <td class="p-3.5 text-center">
+                            ${t.imageData 
+                                ? `<img src="${t.imageData}" class="w-9 h-9 object-cover rounded-lg mx-auto border cursor-pointer shadow-sm hover:scale-105 transition" onclick="openImageModal('${t.imageData}', '${escapeHtml(t.name)}')">` 
+                                : `<span class="text-slate-300"><i class="fa-solid fa-image-slash"></i></span>`}
+                        </td>
+                        <td class="p-3.5 font-mono text-[11px] text-slate-500 whitespace-nowrap">${t.dateTimeStr}</td>
+                        <td class="p-3.5 font-semibold text-slate-800">${escapeHtml(t.name)}</td>
+                        <td class="p-3.5 text-right font-bold text-emerald-600">
+                            ${isCredit ? `+₹${t.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : '-'}
+                        </td>
+                        <td class="p-3.5 text-right font-bold text-rose-600">
+                            ${!isCredit ? `-₹${t.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : '-'}
+                        </td>
+                        <td class="p-3.5 text-right font-bold text-slate-800">
+                            ₹${t.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                        </td>
+                        <td class="p-3.5 text-right font-mono font-semibold ${runningBalance >= 0 ? 'text-slate-700' : 'text-rose-600'}">
+                            ₹${runningBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                        </td>
+                        <td class="p-3.5 text-center whitespace-nowrap">
+                            <div class="flex items-center justify-center gap-1">
+                                <button onclick="editTransaction('${t.id}')" class="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition" title="Edit Entry">
+                                    <i class="fa-solid fa-pen-to-square text-sm"></i>
+                                </button>
+                                <button onclick="deleteTransaction('${t.id}')" class="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Delete Entry">
+                                    <i class="fa-solid fa-trash-can text-sm"></i>
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    elements.transactionTableBody.appendChild(row);
+                }
+            });
+        }
+
+        /* ==========================================================================
+           6. MISTAKE CORRECTION PANEL & TRANSCRIPT HISTORY
+           ========================================================================== */
+        function addTranscriptToHistory(text) {
+            transcriptHistory.unshift({ text, id: Date.now() });
+            if (transcriptHistory.length > 20) transcriptHistory.pop();
+            renderTranscriptHistory();
+        }
+
+        function renderTranscriptHistory() {
+            if (transcriptHistory.length === 0) {
+                elements.transcriptHistoryList.innerHTML = `
+                    <div class="text-center py-10 text-slate-400 italic">
+                        <i class="fa-solid fa-comment-dots text-2xl mb-2 text-slate-300 block"></i>
+                        Spoken history phrases will appear here for easy editing.
+                    </div>`;
+                return;
+            }
+
+            elements.transcriptHistoryList.innerHTML = '';
+            transcriptHistory.forEach(item => {
+                const div = document.createElement('div');
+                div.className = "bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl p-2.5 flex items-center justify-between gap-2 group transition";
+                div.innerHTML = `
+                    <span class="font-medium text-slate-700 break-all select-all">${escapeHtml(item.text)}</span>
+                    <div class="flex items-center gap-1 shrink-0">
+                        <button onclick="useTranscriptText('${escapeHtml(item.text)}')" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-[10px] font-bold transition">
+                            Use in Active
+                        </button>
+                    </div>
+                `;
+                elements.transcriptHistoryList.appendChild(div);
+            });
+        }
+
+        function useTranscriptText(text) {
+            if (activeVoiceField === 'name') {
+                elements.fieldName.value = text;
+            } else if (activeVoiceField === 'amount') {
+                const digits = text.match(/\d+(\.\d+)?/g);
+                if (digits) elements.fieldAmount.value = digits[0];
+            }
+            showToast(`Inserted phrase into ${activeVoiceField.toUpperCase()}`, 'info');
+        }
+
+        function clearTranscriptHistory() {
+            transcriptHistory = [];
+            renderTranscriptHistory();
+        }
+
+        /* ==========================================================================
+           7. MULTI-PAGE / LEDGER MANAGEMENT MODALS
+           ========================================================================== */
+        function openAddLedgerModal() {
+            document.getElementById('newLedgerInput').value = '';
+            document.getElementById('ledgerModal').classList.remove('hidden');
+            renderLedgerManageList();
+        }
+
+        function closeLedgerModal() {
+            document.getElementById('ledgerModal').classList.add('hidden');
+        }
+
+        function saveLedgerFromModal() {
+            const input = document.getElementById('newLedgerInput').value.trim();
+            if (!input) {
+                showToast("Please enter a ledger name", "warning");
+                return;
+            }
+
+            const newLedger = {
+                id: 'ledger_' + Date.now(),
+                name: input,
+                createdAt: Date.now()
+            };
+
+            const tx = db.transaction(['ledgers'], 'readwrite');
+            tx.objectStore('ledgers').add(newLedger);
+
+            tx.oncomplete = () => {
+                showToast("New ledger created!", "success");
+                loadLedgers();
+                activeLedgerId = newLedger.id;
+                closeLedgerModal();
+            };
+        }
+
+        function renderLedgerManageList() {
+            const container = document.getElementById('ledgerManageList');
+            container.innerHTML = '';
+            ledgersList.forEach(l => {
+                const li = document.createElement('li');
+                li.className = "flex items-center justify-between p-2 bg-slate-50 border rounded-lg text-xs font-medium";
+                li.innerHTML = `
+                    <span class="truncate max-w-[200px]">${escapeHtml(l.name)} ${l.id === activeLedgerId ? '<span class="text-[10px] bg-indigo-100 text-indigo-800 px-1.5 py-0.5 rounded ml-1 font-bold">Active</span>' : ''}</span>
+                    <div class="flex items-center gap-1">
+                        ${l.id !== 'default_ledger' ? `<button onclick="deleteLedger('${l.id}')" class="text-rose-600 hover:bg-rose-100 p-1 rounded"><i class="fa-solid fa-trash"></i></button>` : ''}
+                    </div>
+                `;
+                container.appendChild(li);
+            });
+        }
+
+        function deleteLedger(ledgerId) {
+            if (!confirm("Deleting a ledger will remove all its entries. Continue?")) return;
+
+            const tx = db.transaction(['ledgers', 'transactions'], 'readwrite');
+            tx.objectStore('ledgers').delete(ledgerId);
+
+            // Also delete linked transactions
+            const transStore = tx.objectStore('transactions');
+            const index = transStore.index('ledgerId');
+            const req = index.getAllKeys(ledgerId);
+
+            req.onsuccess = () => {
+                req.result.forEach(key => transStore.delete(key));
+            };
+
+            tx.oncomplete = () => {
+                showToast("Ledger deleted", "info");
+                activeLedgerId = 'default_ledger';
+                loadLedgers();
+                renderLedgerManageList();
+            };
+        }
+
+        /* ==========================================================================
+           8. EXPORT CSV & UTILITY FUNCTIONS
+           ========================================================================== */
+        function exportLedgerCSV() {
+            if (allTransactions.length === 0) {
+                showToast("No data to export", "warning");
+                return;
+            }
+
+            let csvContent = "data:text/csv;charset=utf-8,ID,Date & Time,Name/Description,Type,Amount (INR)\n";
+
+            allTransactions.forEach(t => {
+                const row = [
+                    t.id,
+                    `"${t.dateTimeStr}"`,
+                    `"${t.name.replace(/"/g, '""')}"`,
+                    t.type,
+                    t.amount
+                ].join(",");
+                csvContent += row + "\n";
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Ledger_${getLedgerName(activeLedgerId)}_${Date.now()}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast("CSV export downloaded!", "success");
+        }
+
+        function openImageModal(imgSrc, title) {
+            document.getElementById('modalImg').src = imgSrc;
+            document.getElementById('imageModalTitle').textContent = title || 'Attachment Preview';
+            document.getElementById('imageModal').classList.remove('hidden');
+        }
+
+        function closeImageModal() {
+            document.getElementById('imageModal').classList.add('hidden');
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            const bgColors = {
+                success: 'bg-emerald-600',
+                error: 'bg-rose-600',
+                warning: 'bg-amber-500',
+                info: 'bg-indigo-600'
+            };
+
+            toast.className = `${bgColors[type] || 'bg-indigo-600'} text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center justify-between gap-3 transform transition-all duration-300 translate-y-2 opacity-0`;
+            toast.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid ${type === 'success' ? 'fa-circle-check' : type === 'error' ? 'fa-triangle-exclamation' : 'fa-info-circle'}"></i>
+                    <span>${escapeHtml(message)}</span>
+                </div>
+            `;
+
+            const container = document.getElementById('toastContainer');
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
