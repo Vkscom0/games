@@ -663,6 +663,8 @@
         // Speech Recognition state
         let recognition = null;
         let isListening = false;
+        let isMutedByTTS = false; // Flag to prevent auto-resuming mic when TTS is speaking
+        let ttsResumeTimer = null;
         let activeVoiceField = 'name'; // 'name' | 'type' | 'amount'
         let lastFocusedElement = null;
         let transcriptHistory = [];
@@ -852,7 +854,7 @@
         }
 
         /* ==========================================================================
-           2. TEXT-TO-SPEECH (TTS AUDIO FEEDBACK) ENGINE
+           2. TEXT-TO-SPEECH (TTS AUDIO FEEDBACK) ENGINE WITH ECHO GUARD
            ========================================================================== */
         function initTextToSpeechVoices() {
             if (!synth) {
@@ -873,9 +875,36 @@
             }
         }
 
+        /* Temporary pause speech recognition while TTS speaks to block echo loops */
+        function pauseMicForTTS() {
+            if (recognition && isListening && !isMutedByTTS) {
+                isMutedByTTS = true;
+                if (ttsResumeTimer) clearTimeout(ttsResumeTimer);
+                try {
+                    recognition.stop();
+                } catch (e) {}
+            }
+        }
+
+        /* Resume speech recognition after TTS finishes (+ 300ms audio buffer) */
+        function resumeMicAfterTTS() {
+            if (ttsResumeTimer) clearTimeout(ttsResumeTimer);
+            ttsResumeTimer = setTimeout(() => {
+                if (isListening && isMutedByTTS) {
+                    isMutedByTTS = false;
+                    try {
+                        recognition.start();
+                    } catch (e) {}
+                }
+            }, 300); // 300ms guard buffer to allow trailing speaker output to fade
+        }
+
         function speakText(textToSpeak, force = false) {
             if (!synth) return;
             if (!ttsEnabled && !force) return;
+
+            // Pause mic recognition before speaking aloud to prevent self-transcription loop
+            pauseMicForTTS();
 
             synth.cancel();
 
@@ -896,12 +925,14 @@
                 if (elements.ttsSpeakingIndicator) {
                     elements.ttsSpeakingIndicator.classList.add('hidden');
                 }
+                resumeMicAfterTTS();
             };
 
             utterance.onerror = () => {
                 if (elements.ttsSpeakingIndicator) {
                     elements.ttsSpeakingIndicator.classList.add('hidden');
                 }
+                resumeMicAfterTTS();
             };
 
             synth.speak(utterance);
@@ -970,13 +1001,16 @@
             recognition.lang = 'hi-IN';
 
             recognition.onstart = () => {
-                isListening = true;
-                updateVoiceUI();
-                playAudioBeep('start');
-                speakText("Voice mic chalu hai, bolo.");
+                if (!isMutedByTTS) {
+                    isListening = true;
+                    updateVoiceUI();
+                }
             };
 
             recognition.onresult = (event) => {
+                // Ignore recognized audio if TTS is currently active
+                if (isMutedByTTS || (synth && synth.speaking)) return;
+
                 let interim = '';
                 let finalStr = '';
 
@@ -1011,9 +1045,10 @@
             };
 
             recognition.onend = () => {
-                if (isListening) {
+                // Only restart if user enabled mic and TTS is not muting recognition
+                if (isListening && !isMutedByTTS) {
                     try { recognition.start(); } catch (err) {}
-                } else {
+                } else if (!isMutedByTTS) {
                     updateVoiceUI();
                 }
             };
@@ -1051,17 +1086,22 @@
                 return;
             }
             isListening = true;
+            isMutedByTTS = false;
             try {
                 recognition.start();
                 showToast("Voice assistant listening...", "info");
             } catch (e) {
                 console.log(e);
             }
+            playAudioBeep('start');
+            speakText("Voice mic chalu hai, bolo.");
             updateVoiceUI();
         }
 
         function stopVoice() {
             isListening = false;
+            isMutedByTTS = false;
+            if (ttsResumeTimer) clearTimeout(ttsResumeTimer);
             if (recognition) {
                 try { recognition.stop(); } catch (e) {}
             }
@@ -1072,7 +1112,7 @@
         }
 
         function updateVoiceUI() {
-            if (isListening) {
+            if (isListening && !isMutedByTTS) {
                 elements.voiceToggleBtn.className = "relative shrink-0 w-20 h-20 rounded-full bg-rose-600 hover:bg-rose-500 text-white flex flex-col items-center justify-center shadow-xl transition-all mic-active-pulse border-2 border-rose-300";
                 elements.micIcon.className = "fa-solid fa-microphone text-2xl text-amber-300";
                 elements.micText.textContent = "Listening";
@@ -1083,7 +1123,7 @@
                 elements.micIcon.className = "fa-solid fa-microphone-slash text-2xl";
                 elements.micText.textContent = "Start Voice";
                 elements.voiceStatusDot.className = "w-3 h-3 rounded-full bg-slate-400";
-                elements.voiceStatusText.textContent = "Voice Assistant Paused";
+                elements.voiceStatusText.textContent = isMutedByTTS ? "Voice Paused (App Speaking)" : "Voice Assistant Paused";
             }
             highlightActiveFieldUI();
         }
