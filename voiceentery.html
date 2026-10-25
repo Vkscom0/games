@@ -1,1916 +1,283 @@
+Claude
+
+
+Voice khata · HTML
 <!DOCTYPE html>
-<html lang="hi" class="h-full bg-slate-100">
+<html lang="hi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Voice Ledger Pro - Voice & Speech Output Transaction App</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        
-        .mic-active-pulse {
-            animation: pulse-ring 1.6s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
-        }
-        @keyframes pulse-ring {
-            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-            70% { box-shadow: 0 0 0 18px rgba(239, 68, 68, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-        }
-
-        .speaking-pulse {
-            animation: speak-pulse 1.2s ease-in-out infinite alternate;
-        }
-        @keyframes speak-pulse {
-            0% { transform: scale(1); opacity: 0.8; }
-            100% { transform: scale(1.05); opacity: 1; }
-        }
-
-        .field-highlight {
-            border-color: #6366f1 !important;
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.3) !important;
-            background-color: #ffffff !important;
-        }
-
-        /* Animated Sound Wave Bars */
-        .sound-wave-bar {
-            display: inline-block;
-            width: 3px;
-            height: 12px;
-            background-color: #f59e0b;
-            border-radius: 2px;
-            animation: wave 1s ease-in-out infinite alternate;
-        }
-        .sound-wave-bar:nth-child(2) { animation-delay: 0.2s; height: 18px; }
-        .sound-wave-bar:nth-child(3) { animation-delay: 0.4s; height: 14px; }
-        .sound-wave-bar:nth-child(4) { animation-delay: 0.1s; height: 20px; }
-        .sound-wave-bar:nth-child(5) { animation-delay: 0.3s; height: 10px; }
-        @keyframes wave {
-            0% { height: 6px; }
-            100% { height: 22px; }
-        }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Voice Khata</title>
+<style>
+:root{--bg:#eef2f6;--card:#fff;--ink:#14213d;--mut:#5b6b82;--line:#d5dde8;--cr:#0a8f3c;--dr:#d62828;--ac:#1d4ed8}
+@media (prefers-color-scheme:dark){:root{--bg:#0e1522;--card:#17233a;--ink:#e8eef8;--mut:#9fb0c8;--line:#2b3b57;--cr:#3ddc7a;--dr:#ff6b6b;--ac:#6ea0ff}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 system-ui,"Segoe UI",Roboto,sans-serif}
+header{position:sticky;top:0;z-index:5;background:var(--ink);color:var(--bg);padding:10px 14px}
+@media (prefers-color-scheme:dark){header{background:#0a101c;color:#e8eef8}}
+.bal{font-size:28px;font-weight:700}
+.bal small{display:block;font-size:12px;font-weight:400;opacity:.8}
+.sub{display:flex;gap:16px;font-size:13px;margin-top:2px}
+main{max-width:980px;margin:0 auto;padding:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+select,input,button{font:inherit;color:var(--ink)}
+select,input[type=text],input[type=number]{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:9px;min-width:0}
+button{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:9px 12px;cursor:pointer}
+button.p{background:var(--ac);color:#fff;border-color:var(--ac)}
+button.cr.on{background:var(--cr);color:#fff;border-color:var(--cr)}
+button.dr.on{background:var(--dr);color:#fff;border-color:var(--dr)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--ac);outline-offset:1px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:10px}
+label{display:block;font-size:12px;color:var(--mut);margin-bottom:3px}
+.f{border-radius:10px}
+.f input{width:100%}
+.f.act input,.f.act .tg{box-shadow:0 0 0 3px var(--ac);border-radius:8px}
+.tg{display:flex;gap:6px}.tg button{flex:1}
+#mic{background:var(--dr);color:#fff;border-color:var(--dr);font-weight:600}
+#mic.live{animation:pl 1.2s infinite}
+@keyframes pl{50%{box-shadow:0 0 0 8px rgba(214,40,40,.25)}}
+@media (prefers-reduced-motion:reduce){#mic.live{animation:none}}
+#heard{min-height:20px;color:var(--mut);font-size:13px;margin-top:8px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.chip{padding:4px 10px;border-radius:99px;font-size:13px}
+.wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:720px}
+th,td{padding:8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{font-size:12px;color:var(--mut)}
+td.n{text-align:right;font-variant-numeric:tabular-nums}
+.c{color:var(--cr);font-weight:600}.d{color:var(--dr);font-weight:600}
+img.th{width:42px;height:42px;object-fit:cover;border-radius:6px;cursor:pointer;display:block}
+details summary{cursor:pointer;font-weight:600}
+.fx{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px dashed var(--line)}
+#lb{position:fixed;inset:0;background:rgba(0,0,0,.8);display:none;align-items:center;justify-content:center;z-index:20}
+#lb img{max-width:92%;max-height:92%;border-radius:8px}
+.note{font-size:12px;color:var(--mut);margin-top:6px}
+</style>
 </head>
-<body class="min-h-full flex flex-col text-slate-800">
-
-    <!-- Toast Container -->
-    <div id="toastContainer" class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full"></div>
-
-    <!-- Custom Modal Dialog -->
-    <div id="customDialogModal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 text-center">
-            <div id="dialogIconBox" class="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center text-xl bg-amber-100 text-amber-600">
-                <i class="fa-solid fa-triangle-exclamation"></i>
-            </div>
-            <h3 id="dialogTitle" class="font-bold text-slate-800 text-base mb-1">Confirmation</h3>
-            <p id="dialogMessage" class="text-xs text-slate-500 mb-6">Are you sure you want to proceed?</p>
-            <div class="flex gap-3 justify-center">
-                <button id="dialogCancelBtn" onclick="closeCustomDialog(false)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-4 py-2.5 rounded-xl transition w-full">
-                    Cancel
-                </button>
-                <button id="dialogConfirmBtn" onclick="closeCustomDialog(true)" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow transition w-full">
-                    Confirm
-                </button>
-            </div>
-        </div>
+<body>
+<header>
+  <div class="bal"><small id="pgname">Page</small><span id="bal">0.00</span></div>
+  <div class="sub"><span>Credit: <b id="tc" class="c">0</b></span><span>Debit: <b id="td" class="d">0</b></span></div>
+</header>
+<main>
+  <div class="card row">
+    <select id="pages" aria-label="Page"></select>
+    <button id="addp">+ Naya page</button>
+    <button id="renp">Rename</button>
+    <button id="delp">Delete page</button>
+  </div>
+ 
+  <div class="card">
+    <div class="row">
+      <button id="mic">🎤 Voice shuru</button>
+      <select id="lang" aria-label="Bhasha">
+        <option value="hi-IN">Hindi</option><option value="en-IN">English (India)</option><option value="pa-IN">Punjabi</option>
+      </select>
+      <span id="edmode" style="display:none" class="c">Edit mode</span>
     </div>
-
-    <!-- Image Modal Lightbox -->
-    <div id="imageModal" class="fixed inset-0 z-50 hidden bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-xl w-full overflow-hidden shadow-2xl relative">
-            <div class="p-4 bg-slate-900 text-white flex justify-between items-center">
-                <h3 class="font-bold text-sm tracking-wide" id="imageModalTitle">Receipt / Bill Preview</h3>
-                <button onclick="closeImageModal()" class="text-slate-400 hover:text-white p-1">
-                    <i class="fa-solid fa-xmark text-xl"></i>
-                </button>
-            </div>
-            <div class="p-4 flex justify-center items-center bg-slate-100 max-h-[75vh]">
-                <img id="modalImg" src="" alt="Attachment" class="max-h-[65vh] object-contain rounded-xl shadow-md">
-            </div>
-        </div>
+    <div id="heard">Bolo: naam → "next" → credit/debit → "next" → rakam → "next" (entry save). "comma" bhi chalega.</div>
+ 
+    <div class="grid">
+      <div class="f"><label>Photo</label><input type="file" id="img" accept="image/*"><img id="pv" class="th" style="margin-top:6px;display:none" alt=""></div>
+      <div class="f"><label>Date &amp; time (dd/mm/yyyy hh:mm:ss am/pm)</label><input type="text" id="dt"></div>
+      <div class="f" data-k="name"><label>Naam</label><input type="text" id="name" list="nl" autocomplete="off"><datalist id="nl"></datalist></div>
+      <div class="f" data-k="type"><label>Credit / Debit</label>
+        <div class="tg"><button class="cr on" id="bc" type="button">Credit</button><button class="dr" id="bd" type="button">Debit</button></div></div>
+      <div class="f" data-k="amt"><label>Amount</label><input type="number" id="amt" inputmode="decimal" step="0.01"></div>
     </div>
-
-    <!-- Multi-Ledger Management Modal -->
-    <div id="ledgerModal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
-            <div class="flex justify-between items-center mb-4 border-b pb-3">
-                <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
-                    <i class="fa-solid fa-book-bookmark text-indigo-600"></i>
-                    <span>Manage Ledger Pages (खाता पेज)</span>
-                </h3>
-                <button onclick="closeLedgerModal()" class="text-slate-400 hover:text-slate-600 p-1">
-                    <i class="fa-solid fa-xmark text-xl"></i>
-                </button>
-            </div>
-            
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-xs font-bold uppercase text-slate-600 mb-1">New Ledger Page Name</label>
-                    <div class="flex gap-2">
-                        <input type="text" id="newLedgerInput" placeholder="e.g. Shop Daily, Personal, Office" class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                        <button onclick="saveNewLedger()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-xl text-xs shrink-0 shadow transition">
-                            Add Page
-                        </button>
-                    </div>
-                </div>
-
-                <hr class="border-slate-100">
-
-                <div>
-                    <h4 class="text-xs font-bold uppercase text-slate-500 mb-2">Existing Pages</h4>
-                    <ul id="ledgerManageList" class="space-y-2 max-h-52 overflow-y-auto pr-1"></ul>
-                </div>
-            </div>
-        </div>
+    <div class="row" style="margin-top:10px">
+      <button class="p" id="save">Save entry</button>
+      <button id="cancel" style="display:none">Cancel edit</button>
     </div>
-
-    <!-- Interactive Help & Voice Command Cheat Sheet Modal -->
-    <div id="helpModal" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
-            <div class="flex justify-between items-center mb-4 border-b pb-3">
-                <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
-                    <i class="fa-solid fa-circle-question text-amber-500"></i>
-                    <span>Voice Commands & Interactive Guide (सहायता निर्देश)</span>
-                </h3>
-                <button onclick="closeHelpModal()" class="text-slate-400 hover:text-slate-600 p-1">
-                    <i class="fa-solid fa-xmark text-xl"></i>
-                </button>
-            </div>
-
-            <!-- Voice Commands Reference Table -->
-            <div class="space-y-4">
-                <div class="bg-amber-50 p-4 rounded-xl border border-amber-200">
-                    <h4 class="font-extrabold text-xs text-amber-900 uppercase tracking-wider mb-2 flex items-center gap-2">
-                        <i class="fa-solid fa-microphone text-amber-600"></i> Voice Command Cheat Sheet (बोलने वाले कमांड)
-                    </h4>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                        <div class="bg-white p-2.5 rounded-lg border border-amber-200 font-semibold">
-                            <span class="text-indigo-600 font-bold block">"Next" / "Agla" / "Aage"</span>
-                            Moves selection cursor to next field.
-                        </div>
-                        <div class="bg-white p-2.5 rounded-lg border border-amber-200 font-semibold">
-                            <span class="text-emerald-600 font-bold block">"Jama" / "Credit" / "Plus"</span>
-                            Sets transaction type to Credit.
-                        </div>
-                        <div class="bg-white p-2.5 rounded-lg border border-amber-200 font-semibold">
-                            <span class="text-rose-600 font-bold block">"Kharcha" / "Debit" / "Minus"</span>
-                            Sets transaction type to Debit.
-                        </div>
-                        <div class="bg-white p-2.5 rounded-lg border border-amber-200 font-semibold">
-                            <span class="text-indigo-600 font-bold block">"Save" / "Submit" / "Jama Karo"</span>
-                            Saves the current transaction into table.
-                        </div>
-                        <div class="bg-white p-2.5 rounded-lg border border-amber-200 font-semibold">
-                            <span class="text-amber-700 font-bold block">"Comma" / "Komma"</span>
-                            Inserts a comma ( , ) into current text field.
-                        </div>
-                        <div class="bg-white p-2.5 rounded-lg border border-amber-200 font-semibold">
-                            <span class="text-indigo-700 font-bold block">"Sunao" / "Read" / "Boliye"</span>
-                            Reads aloud current form state via Speech Synthesis.
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Mic Permission Troubleshooting -->
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs space-y-2">
-                    <h4 class="font-bold text-slate-800 text-sm flex items-center gap-2">
-                        <i class="fa-solid fa-headset text-indigo-600"></i> Microphone Troubleshooting (माइक नहीं चल रहा?)
-                    </h4>
-                    <ol class="list-decimal list-inside space-y-1 text-slate-600">
-                        <li>Click <strong>"Request Mic Access"</strong> button in the voice status bar.</li>
-                        <li>Ensure browser site permissions allow Microphone access (HTTPS/Localhost).</li>
-                        <li>If using Chrome/Edge/Brave, check address bar mic icon to set to 'Allow'.</li>
-                        <li>If speech input is unavailable, use the <strong>Voice Input Simulator</strong> buttons below!</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
+    <div class="chips" id="chips"></div>
+    <div class="note" id="vnote"></div>
+  </div>
+ 
+  <details class="card">
+    <summary>Galti sudhaar list (voice ne galat suna to yahan sahi karo)</summary>
+    <div class="row" style="margin-top:10px">
+      <input type="text" id="fa" placeholder="Galat suna hua (jaise: raahul)">
+      <input type="text" id="fb" placeholder="Sahi (jaise: Rahul)">
+      <button id="fadd">Add</button>
     </div>
-
-    <!-- Header -->
-    <header class="bg-slate-900 text-white shadow-xl sticky top-0 z-30 border-b border-slate-800">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4">
-            <div class="flex items-center gap-3">
-                <div class="bg-indigo-600 p-2.5 rounded-2xl shadow-md text-amber-300">
-                    <i class="fa-solid fa-microphone-lines text-2xl"></i>
-                </div>
-                <div>
-                    <h1 class="font-extrabold text-xl tracking-wide flex items-center gap-2">
-                        Voice Ledger Pro
-                        <span class="text-[10px] bg-amber-400 text-slate-950 font-black px-2 py-0.5 rounded-full uppercase">Voice + Speech Output</span>
-                    </h1>
-                    <p class="text-xs text-slate-400">Offline Voice Recognition & Audio Text-To-Speech (Awaaz Feedback)</p>
-                </div>
-            </div>
-
-            <div class="flex items-center gap-3">
-                <!-- Help & Tutorial Trigger Button -->
-                <button onclick="openHelpModal()" class="bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition">
-                    <i class="fa-solid fa-circle-question text-amber-400"></i> Help & Guides
-                </button>
-
-                <!-- Audio TTS Mute Toggle -->
-                <button id="ttsToggleBtn" onclick="toggleTTSSpeech()" class="bg-amber-500/20 border border-amber-400/40 text-amber-300 hover:bg-amber-500/30 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 transition">
-                    <i id="ttsIcon" class="fa-solid fa-volume-high text-amber-400"></i>
-                    <span id="ttsBtnText">Voice Output: ON</span>
-                </button>
-
-                <!-- Active Ledger Switcher -->
-                <div class="flex items-center gap-2 bg-slate-800/80 p-1.5 rounded-2xl border border-slate-700">
-                    <i class="fa-solid fa-book-open text-amber-400 ml-2 text-sm"></i>
-                    <span class="text-xs font-semibold text-slate-300 hidden sm:inline">Active Page:</span>
-                    <select id="ledgerSelect" onchange="switchLedger(this.value)" class="bg-slate-950 text-white text-xs font-bold rounded-xl px-3 py-2 border border-slate-600 focus:outline-none cursor-pointer">
-                    </select>
-                    <button onclick="openLedgerModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow transition">
-                        <i class="fa-solid fa-gear"></i> <span class="hidden md:inline">Manage</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <!-- Main Container -->
-    <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full space-y-6">
-
-        <!-- Stat Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <!-- Total Balance -->
-            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex items-center justify-between relative overflow-hidden">
-                <div class="absolute left-0 top-0 bottom-0 w-2 bg-indigo-600"></div>
-                <div>
-                    <p class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Total Balance (कुल balance)</p>
-                    <h2 id="totalBalance" class="text-3xl font-black text-slate-800">₹0.00</h2>
-                    <span id="balanceBadge" class="inline-block mt-2 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600">Neutral</span>
-                </div>
-                <div class="flex flex-col items-end gap-2">
-                    <div class="h-12 w-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
-                        <i class="fa-solid fa-wallet text-xl"></i>
-                    </div>
-                    <button onclick="readAloudSummary()" class="text-[11px] bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold px-2.5 py-1 rounded-lg transition flex items-center gap-1">
-                        <i class="fa-solid fa-volume-high"></i> Sunao
-                    </button>
-                </div>
-            </div>
-
-            <!-- Total Credit -->
-            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex items-center justify-between relative overflow-hidden">
-                <div class="absolute left-0 top-0 bottom-0 w-2 bg-emerald-500"></div>
-                <div>
-                    <p class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Total Credit (कुल जमा)</p>
-                    <h2 id="totalCredit" class="text-3xl font-black text-emerald-600">₹0.00</h2>
-                    <p class="text-xs text-slate-400 mt-2"><i class="fa-solid fa-arrow-down-left text-emerald-500 mr-1"></i>Credit Inflow</p>
-                </div>
-                <div class="h-14 w-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
-                    <i class="fa-solid fa-circle-arrow-down text-2xl"></i>
-                </div>
-            </div>
-
-            <!-- Total Debit -->
-            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex items-center justify-between relative overflow-hidden">
-                <div class="absolute left-0 top-0 bottom-0 w-2 bg-rose-500"></div>
-                <div>
-                    <p class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Total Debit (कुल खर्चा)</p>
-                    <h2 id="totalDebit" class="text-3xl font-black text-rose-600">₹0.00</h2>
-                    <p class="text-xs text-slate-400 mt-2"><i class="fa-solid fa-arrow-up-right text-rose-500 mr-1"></i>Debit Outflow</p>
-                </div>
-                <div class="h-14 w-14 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-600">
-                    <i class="fa-solid fa-circle-arrow-up text-2xl"></i>
-                </div>
-            </div>
-        </div>
-
-        <!-- Interactive Guided Voice Demos & Tutorial Step Bar -->
-        <div class="bg-amber-50 rounded-2xl p-5 border-2 border-amber-300 shadow-sm">
-            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 mb-3">
-                <div class="flex items-center gap-2 text-amber-900">
-                    <i class="fa-solid fa-wand-magic-sparkles text-xl text-amber-600"></i>
-                    <div>
-                        <h3 class="font-extrabold text-base">Interactive Guided Voice Demos & Simulator</h3>
-                        <p class="text-xs text-amber-800">Click a demo step below to test voice recognition, phrase insertion, and text-to-speech feedback live.</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Guided Interactive Tutorial Steps -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 mb-4">
-                <button onclick="runStepDemo(1)" class="bg-white hover:bg-amber-100/80 border border-amber-300 p-3 rounded-xl text-left text-xs shadow-sm transition flex flex-col justify-between">
-                    <div>
-                        <span class="text-amber-800 font-bold flex items-center gap-1 mb-1">
-                            <span class="bg-amber-600 text-white w-4 h-4 rounded-full inline-flex items-center justify-center text-[10px]">1</span>
-                            Full Sentence Voice Command
-                        </span>
-                        <span class="font-mono text-[11px] text-slate-600 block">"Ramesh Kumar jama 5000 next save"</span>
-                    </div>
-                    <span class="text-[10px] text-indigo-600 font-bold mt-2">Run Step 1 &rarr;</span>
-                </button>
-
-                <button onclick="runStepDemo(2)" class="bg-white hover:bg-amber-100/80 border border-amber-300 p-3 rounded-xl text-left text-xs shadow-sm transition flex flex-col justify-between">
-                    <div>
-                        <span class="text-amber-800 font-bold flex items-center gap-1 mb-1">
-                            <span class="bg-amber-600 text-white w-4 h-4 rounded-full inline-flex items-center justify-center text-[10px]">2</span>
-                            Field Navigation ("agla")
-                        </span>
-                        <span class="font-mono text-[11px] text-slate-600 block">"Kirana Store" &rarr; "agla" &rarr; "1200 kharcha"</span>
-                    </div>
-                    <span class="text-[10px] text-indigo-600 font-bold mt-2">Run Step 2 &rarr;</span>
-                </button>
-
-                <button onclick="runStepDemo(3)" class="bg-white hover:bg-amber-100/80 border border-amber-300 p-3 rounded-xl text-left text-xs shadow-sm transition flex flex-col justify-between">
-                    <div>
-                        <span class="text-amber-800 font-bold flex items-center gap-1 mb-1">
-                            <span class="bg-amber-600 text-white w-4 h-4 rounded-full inline-flex items-center justify-center text-[10px]">3</span>
-                            Phrase Click-Insertion Demo
-                        </span>
-                        <span class="font-mono text-[11px] text-slate-600 block">Inject phrase history to focused input</span>
-                    </div>
-                    <span class="text-[10px] text-indigo-600 font-bold mt-2">Run Step 3 &rarr;</span>
-                </button>
-
-                <button onclick="runStepDemo(4)" class="bg-white hover:bg-amber-100/80 border border-amber-300 p-3 rounded-xl text-left text-xs shadow-sm transition flex flex-col justify-between">
-                    <div>
-                        <span class="text-amber-800 font-bold flex items-center gap-1 mb-1">
-                            <span class="bg-amber-600 text-white w-4 h-4 rounded-full inline-flex items-center justify-center text-[10px]">4</span>
-                            Voice Read Form ("sunao")
-                        </span>
-                        <span class="font-mono text-[11px] text-slate-600 block">Reads out current values aloud</span>
-                    </div>
-                    <span class="text-[10px] text-indigo-600 font-bold mt-2">Run Step 4 &rarr;</span>
-                </button>
-            </div>
-
-            <!-- Custom Simulator Bar -->
-            <div class="flex flex-col sm:flex-row gap-2">
-                <input type="text" id="simulatedVoiceInput" placeholder="Type custom voice command e.g. 'Suresh Patel credit 4500 next save'" class="flex-grow bg-white border border-amber-300 rounded-xl px-3.5 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500">
-                <button onclick="simulateVoiceFromInput()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-5 py-2 rounded-xl text-xs shadow transition shrink-0 flex items-center justify-center gap-1.5">
-                    <i class="fa-solid fa-play"></i> Simulate Voice Input
-                </button>
-            </div>
-        </div>
-
-        <!-- Voice Recognition & Audio Feedback Panel -->
-        <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-2xl p-5 shadow-xl text-white border border-indigo-900/60 relative">
-            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
-                
-                <!-- Mic Button & Status Controls -->
-                <div class="flex items-center gap-5 w-full md:w-auto">
-                    <button id="voiceToggleBtn" onclick="toggleVoice()" class="relative shrink-0 w-20 h-20 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white flex flex-col items-center justify-center shadow-xl transition-all transform active:scale-95 focus:outline-none border-2 border-indigo-400">
-                        <i id="micIcon" class="fa-solid fa-microphone text-2xl"></i>
-                        <span id="micText" class="text-[10px] font-black uppercase mt-1">Start Voice</span>
-                    </button>
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <span id="voiceStatusDot" class="w-3 h-3 rounded-full bg-slate-400"></span>
-                            <h3 id="voiceStatusText" class="font-bold text-base text-slate-100">Voice Recognition Ready</h3>
-                        </div>
-                        <p class="text-xs text-slate-300 mt-1 max-w-md">
-                            Speak commands: <span class="bg-indigo-900 text-amber-300 px-1.5 py-0.5 rounded font-mono text-[11px]">"next" / "agla"</span>, 
-                            <span class="bg-indigo-900 text-amber-300 px-1.5 py-0.5 rounded font-mono text-[11px]">"jama" / "kharcha"</span>, 
-                            <span class="bg-indigo-900 text-amber-300 px-1.5 py-0.5 rounded font-mono text-[11px]">"save"</span>,
-                            <span class="bg-indigo-900 text-amber-300 px-1.5 py-0.5 rounded font-mono text-[11px]">"sunao"</span>.
-                        </p>
-                        <!-- Explicit Mic Permission Request Link -->
-                        <button onclick="requestExplicitMicAccess()" class="mt-2 text-[11px] text-amber-300 hover:text-amber-200 font-bold underline flex items-center gap-1">
-                            <i class="fa-solid fa-key text-xs"></i> Request Mic Permission / Fix Access
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Voice Cursor Badge & TTS Animation -->
-                <div class="w-full md:w-auto flex flex-col items-start md:items-end gap-2">
-                    <div id="ttsSpeakingIndicator" class="hidden flex items-center gap-2 bg-amber-500/20 text-amber-300 border border-amber-400/40 px-3 py-1 rounded-xl text-xs font-bold speaking-pulse">
-                        <div class="flex items-center gap-1">
-                            <span class="sound-wave-bar"></span>
-                            <span class="sound-wave-bar"></span>
-                            <span class="sound-wave-bar"></span>
-                            <span class="sound-wave-bar"></span>
-                            <span class="sound-wave-bar"></span>
-                        </div>
-                        <span>App is speaking out loud...</span>
-                    </div>
-
-                    <div class="flex flex-col items-start md:items-end">
-                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Active Field Target:</span>
-                        <span id="activeVoiceFieldBadge" class="bg-amber-400 text-slate-950 font-black px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 shadow-md">
-                            <i class="fa-solid fa-crosshairs"></i> 1. Name / Description
-                        </span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Live Speech Transcript Box -->
-            <div class="mt-4 bg-slate-950/80 border border-slate-800 rounded-xl p-3 flex items-center justify-between gap-3">
-                <div class="flex items-center gap-3 overflow-hidden">
-                    <i class="fa-solid fa-quote-left text-indigo-400 text-sm shrink-0"></i>
-                    <p id="liveTranscript" class="text-xs font-semibold text-amber-200 italic truncate">"Click Start Voice or Demo buttons above to test speech..."</p>
-                </div>
-                <div class="flex items-center gap-1">
-                    <button onclick="speakCurrentTranscript()" class="text-[11px] bg-indigo-700 hover:bg-indigo-600 text-white px-2.5 py-1 rounded-lg shrink-0 border border-indigo-500 transition flex items-center gap-1" title="Read phrase aloud">
-                        <i class="fa-solid fa-volume-high"></i> Read
-                    </button>
-                    <button onclick="clearVoiceBuffer()" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-lg shrink-0 border border-slate-700 transition" title="Clear buffer">
-                        <i class="fa-solid fa-eraser"></i> Clear
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            <!-- Entry Form Panel (2 Columns) -->
-            <div class="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-                <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-100">
-                    <h3 class="font-bold text-base text-slate-800 flex items-center gap-2" id="formHeading">
-                        <i class="fa-solid fa-pen-to-square text-indigo-600"></i>
-                        <span>Transaction Form (लेन-देन फॉर्म)</span>
-                    </h3>
-                    <div class="flex items-center gap-2">
-                        <button type="button" onclick="readAloudFormState()" class="text-xs text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition font-bold flex items-center gap-1">
-                            <i class="fa-solid fa-volume-high"></i> Read Form
-                        </button>
-                        <button type="button" onclick="resetForm()" class="text-xs text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition font-medium">
-                            <i class="fa-solid fa-rotate-left mr-1"></i> Reset
-                        </button>
-                    </div>
-                </div>
-
-                <form id="transactionForm" onsubmit="handleFormSubmit(event)" class="space-y-4">
-                    <input type="hidden" id="editEntryId" value="">
-
-                    <!-- Row 1: Name & Type -->
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <!-- Name Field -->
-                        <div class="sm:col-span-2">
-                            <label class="block text-xs font-bold uppercase text-slate-600 mb-1 flex justify-between">
-                                <span>1. Name / Description (नाम / विवरण)</span>
-                                <span class="text-indigo-600 font-semibold text-[10px]">Target Field 1</span>
-                            </label>
-                            <input type="text" id="fieldName" required placeholder="e.g. Shop Sale, Grocery, Ramesh" 
-                                class="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-medium focus:outline-none transition">
-                        </div>
-
-                        <!-- Type Selector -->
-                        <div>
-                            <label class="block text-xs font-bold uppercase text-slate-600 mb-1">
-                                2. Type (जमा / खर्चा)
-                            </label>
-                            <div class="grid grid-cols-2 gap-2 h-[42px]">
-                                <button type="button" id="typeCreditBtn" onclick="setTransactionType('CREDIT')" 
-                                    class="rounded-xl font-bold text-xs flex items-center justify-center gap-1 border-2 border-emerald-500 text-emerald-700 bg-emerald-50 transition shadow-sm">
-                                    <i class="fa-solid fa-arrow-down-left"></i> Credit
-                                </button>
-                                <button type="button" id="typeDebitBtn" onclick="setTransactionType('DEBIT')" 
-                                    class="rounded-xl font-bold text-xs flex items-center justify-center gap-1 border-2 border-slate-200 text-slate-600 bg-slate-50 transition">
-                                    <i class="fa-solid fa-arrow-up-right"></i> Debit
-                                </button>
-                            </div>
-                            <input type="hidden" id="fieldType" value="CREDIT">
-                        </div>
-                    </div>
-
-                    <!-- Row 2: Amount & Formatted DateTime -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <!-- Amount Field -->
-                        <div>
-                            <label class="block text-xs font-bold uppercase text-slate-600 mb-1 flex justify-between">
-                                <span>3. Amount (राशि ₹)</span>
-                                <span class="text-indigo-600 font-semibold text-[10px]">Target Field 3</span>
-                            </label>
-                            <div class="relative">
-                                <span class="absolute left-3.5 top-2.5 font-bold text-slate-400">₹</span>
-                                <input type="number" step="0.01" min="0" id="fieldAmount" required placeholder="0.00" 
-                                    class="w-full border border-slate-300 rounded-xl pl-8 pr-3.5 py-2.5 text-sm font-bold text-slate-800 focus:outline-none transition">
-                            </div>
-                        </div>
-
-                        <!-- Date & Time Input -->
-                        <div>
-                            <label class="block text-xs font-bold uppercase text-slate-600 mb-1">
-                                4. Date & Time Format
-                            </label>
-                            <div class="flex gap-2">
-                                <input type="text" id="fieldDateTime" readonly placeholder="DD/MM/YYYY HH:MM:SS AM/PM" class="w-full bg-slate-100 border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-700 cursor-not-allowed">
-                                <button type="button" onclick="refreshFormTimestamp()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-2 rounded-xl text-xs font-bold transition shrink-0" title="Set to Now">
-                                    Now
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Row 3: Receipt Attachment -->
-                    <div>
-                        <label class="block text-xs font-bold uppercase text-slate-600 mb-1">
-                            5. Receipt / Bill Photo Attachment
-                        </label>
-                        <div class="flex items-center gap-4 bg-slate-50 p-3 border border-slate-200 rounded-xl">
-                            <input type="file" id="fieldImageInput" accept="image/*" capture="environment" onchange="handleImageFileSelect(event)" class="hidden">
-                            <label for="fieldImageInput" class="cursor-pointer bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 shadow-sm transition">
-                                <i class="fa-solid fa-camera text-indigo-600"></i> Choose File / Camera
-                            </label>
-
-                            <!-- Thumbnail Preview -->
-                            <div id="imagePreviewBox" class="hidden flex items-center gap-3">
-                                <div class="relative">
-                                    <img id="imagePreviewThumb" src="" alt="Thumbnail" class="w-10 h-10 object-cover rounded-lg border border-indigo-200 cursor-pointer shadow-sm" onclick="openImageModal(this.src, 'Selected Receipt Image')">
-                                    <button type="button" onclick="removeAttachedImage()" class="absolute -top-2 -right-2 bg-rose-600 text-white rounded-full w-4 h-4 text-[9px] flex items-center justify-center shadow">
-                                        <i class="fa-solid fa-xmark"></i>
-                                    </button>
-                                </div>
-                                <span id="imageFileName" class="text-xs text-slate-500 font-mono truncate max-w-[140px]"></span>
-                            </div>
-                            <span id="noImageText" class="text-xs text-slate-400 italic">No receipt image attached</span>
-                        </div>
-                    </div>
-
-                    <!-- Submit Button -->
-                    <div class="pt-2">
-                        <button type="submit" id="saveBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-3 px-6 rounded-xl shadow-lg transition flex items-center justify-center gap-2 text-sm tracking-wide">
-                            <i class="fa-solid fa-circle-check text-lg"></i>
-                            <span>Save Transaction (सेव करें)</span>
-                        </button>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Spoken History List & Direct Click-to-Insert Panel -->
-            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col h-[520px] lg:h-auto">
-                <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-100">
-                    <h3 class="font-bold text-slate-800 text-xs uppercase tracking-wider flex items-center gap-2">
-                        <i class="fa-solid fa-list-ul text-amber-500"></i>
-                        <span>Spoken Phrase History</span>
-                    </h3>
-                    <span class="text-[10px] bg-indigo-100 text-indigo-800 font-extrabold px-2 py-0.5 rounded-full">Click to Insert</span>
-                </div>
-                
-                <p class="text-[11px] text-slate-500 mb-3">
-                    Click any spoken phrase below or hit <span class="font-bold text-indigo-600">"Insert"</span> to inject it directly into your focused input field!
-                </p>
-
-                <!-- Scrollable Voice History -->
-                <div id="transcriptHistoryList" class="flex-grow overflow-y-auto space-y-2 pr-1 text-xs">
-                    <div class="text-center py-12 text-slate-400 italic">
-                        <i class="fa-solid fa-microphone-slash text-2xl mb-2 text-slate-300 block"></i>
-                        Spoken voice phrases will appear here automatically.
-                    </div>
-                </div>
-
-                <div class="mt-3 pt-3 border-t border-slate-100">
-                    <button onclick="clearTranscriptHistory()" class="w-full text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2 rounded-lg transition">
-                        <i class="fa-solid fa-trash-can mr-1"></i> Clear Phrase History
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Ledger Entries Table -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-            
-            <!-- Table Action Toolbar -->
-            <div class="p-4 border-b border-slate-100 flex flex-col md:flex-row gap-4 justify-between items-center bg-slate-50/60">
-                <div class="flex items-center gap-2 w-full md:w-auto">
-                    <i class="fa-solid fa-table-list text-indigo-600 text-lg"></i>
-                    <h3 class="font-bold text-slate-800 text-base">Transactions Ledger Table</h3>
-                    <span id="entryCountBadge" class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-0.5 rounded-full ml-1">0 entries</span>
-                </div>
-
-                <!-- Filters & Search -->
-                <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
-                    <!-- Search Input -->
-                    <div class="relative flex-grow md:w-64">
-                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
-                        <input type="text" id="searchInput" oninput="renderTable()" placeholder="Search name or amount..." class="w-full bg-white border border-slate-300 rounded-xl pl-8 pr-3 py-1.5 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                    </div>
-
-                    <!-- Type Filter Dropdown -->
-                    <select id="filterType" onchange="renderTable()" class="bg-white border border-slate-300 text-xs font-semibold rounded-xl px-3 py-1.5 focus:outline-none">
-                        <option value="ALL">All Types</option>
-                        <option value="CREDIT">Credit Only</option>
-                        <option value="DEBIT">Debit Only</option>
-                    </select>
-
-                    <!-- Import CSV Input & Button -->
-                    <input type="file" id="csvFileInput" accept=".csv" onchange="importCSV(event)" class="hidden">
-                    <button onclick="document.getElementById('csvFileInput').click()" class="bg-slate-700 hover:bg-slate-800 text-white px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow transition">
-                        <i class="fa-solid fa-file-import"></i> Import CSV
-                    </button>
-
-                    <!-- Export CSV Button -->
-                    <button onclick="exportCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow transition">
-                        <i class="fa-solid fa-file-csv"></i> Export CSV
-                    </button>
-                </div>
-            </div>
-
-            <!-- Table Container -->
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs border-collapse">
-                    <thead>
-                        <tr class="bg-slate-100/90 text-slate-600 font-bold uppercase tracking-wider border-b border-slate-200">
-                            <th class="p-3.5 text-center w-14">Receipt</th>
-                            <th class="p-3.5 whitespace-nowrap">Date & Time</th>
-                            <th class="p-3.5">Name / Description</th>
-                            <th class="p-3.5 text-right">Credit (+)</th>
-                            <th class="p-3.5 text-right">Debit (-)</th>
-                            <th class="p-3.5 text-right">Amount (₹)</th>
-                            <th class="p-3.5 text-right">Running Total</th>
-                            <th class="p-3.5 text-center w-28">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="transactionTableBody" class="divide-y divide-slate-100 font-medium text-slate-700">
-                        <!-- Dynamic Rows -->
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Empty Table Placeholder -->
-            <div id="emptyTableState" class="p-12 text-center text-slate-400">
-                <i class="fa-solid fa-receipt text-4xl mb-3 text-slate-300 block"></i>
-                <p class="font-bold text-sm text-slate-600">No transactions recorded in this ledger page yet.</p>
-                <p class="text-xs mt-1">Click a demo preset above or use voice input to add entries.</p>
-            </div>
-        </div>
-
-    </main>
-
-    <!-- Footer -->
-    <footer class="bg-white border-t border-slate-200 mt-8 py-4 text-center text-xs text-slate-500 font-medium">
-        <p>Voice Ledger Pro &copy; 2026 — Speech Recognition & Audio Text-To-Speech (TTS) Engine</p>
-    </footer>
-
-    <!-- JS Application Logic -->
-    <script>
-        /* ==========================================================================
-           1. APPLICATION STATE & INDEXEDDB INITIALIZATION
-           ========================================================================== */
-        const DB_NAME = 'VoiceLedgerProDB';
-        const DB_VERSION = 1;
-        let db = null;
-
-        let activeLedgerId = 'default_ledger';
-        let ledgersList = [];
-        let allTransactions = [];
-        let currentAttachedImageBase64 = null;
-
-        // Speech Recognition state
-        let recognition = null;
-        let isListening = false;
-        let isMutedByTTS = false; // Flag to prevent auto-resuming mic when TTS is speaking
-        let ttsResumeTimer = null;
-        let activeVoiceField = 'name'; // 'name' | 'type' | 'amount'
-        let lastFocusedElement = null;
-        let transcriptHistory = [];
-        let pendingDialogResolver = null;
-
-        // Speech Synthesis (Text-to-Speech / TTS) State
-        let ttsEnabled = true;
-        let selectedHindiVoice = null;
-        const synth = window.speechSynthesis;
-
-        // HTML DOM Cache
-        const elements = {
-            totalBalance: document.getElementById('totalBalance'),
-            totalCredit: document.getElementById('totalCredit'),
-            totalDebit: document.getElementById('totalDebit'),
-            balanceBadge: document.getElementById('balanceBadge'),
-            ledgerSelect: document.getElementById('ledgerSelect'),
-            voiceToggleBtn: document.getElementById('voiceToggleBtn'),
-            micIcon: document.getElementById('micIcon'),
-            micText: document.getElementById('micText'),
-            voiceStatusDot: document.getElementById('voiceStatusDot'),
-            voiceStatusText: document.getElementById('voiceStatusText'),
-            activeVoiceFieldBadge: document.getElementById('activeVoiceFieldBadge'),
-            liveTranscript: document.getElementById('liveTranscript'),
-            editEntryId: document.getElementById('editEntryId'),
-            fieldName: document.getElementById('fieldName'),
-            fieldType: document.getElementById('fieldType'),
-            fieldAmount: document.getElementById('fieldAmount'),
-            fieldDateTime: document.getElementById('fieldDateTime'),
-            typeCreditBtn: document.getElementById('typeCreditBtn'),
-            typeDebitBtn: document.getElementById('typeDebitBtn'),
-            fieldImageInput: document.getElementById('fieldImageInput'),
-            imagePreviewBox: document.getElementById('imagePreviewBox'),
-            imagePreviewThumb: document.getElementById('imagePreviewThumb'),
-            imageFileName: document.getElementById('imageFileName'),
-            noImageText: document.getElementById('noImageText'),
-            transactionTableBody: document.getElementById('transactionTableBody'),
-            emptyTableState: document.getElementById('emptyTableState'),
-            entryCountBadge: document.getElementById('entryCountBadge'),
-            searchInput: document.getElementById('searchInput'),
-            filterType: document.getElementById('filterType'),
-            transcriptHistoryList: document.getElementById('transcriptHistoryList'),
-            formHeading: document.getElementById('formHeading'),
-            simulatedVoiceInput: document.getElementById('simulatedVoiceInput'),
-            ttsSpeakingIndicator: document.getElementById('ttsSpeakingIndicator'),
-            ttsToggleBtn: document.getElementById('ttsToggleBtn'),
-            ttsIcon: document.getElementById('ttsIcon'),
-            ttsBtnText: document.getElementById('ttsBtnText')
-        };
-
-        window.addEventListener('DOMContentLoaded', () => {
-            initIndexedDB();
-            initSpeechEngine();
-            initTextToSpeechVoices();
-            setupFormFieldFocusEvents();
-            refreshFormTimestamp();
-
-            // Track last focused input for spoken phrase direct insertion
-            document.addEventListener('focusin', (e) => {
-                if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
-                    lastFocusedElement = e.target;
-                }
-            });
-        });
-
-        /* Web Audio API Sound Feedback Generator */
-        function playAudioBeep(type = 'success') {
-            try {
-                const AudioCtx = window.AudioContext || window.webkitAudioContext;
-                if (!AudioCtx) return;
-                const ctx = new AudioCtx();
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-
-                if (type === 'start') {
-                    osc.frequency.setValueAtTime(440, ctx.currentTime);
-                    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
-                } else if (type === 'save') {
-                    osc.frequency.setValueAtTime(520, ctx.currentTime);
-                    osc.frequency.exponentialRampToValueAtTime(1040, ctx.currentTime + 0.2);
-                } else {
-                    osc.frequency.setValueAtTime(300, ctx.currentTime);
-                    osc.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.15);
-                }
-
-                gain.gain.setValueAtTime(0.15, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
-
-                osc.start();
-                osc.stop(ctx.currentTime + 0.2);
-            } catch (e) {
-                // Audio synth fallback
-            }
-        }
-
-        /* IndexedDB Storage Initialization */
-        function initIndexedDB() {
-            const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-            request.onupgradeneeded = (e) => {
-                const dbRef = e.target.result;
-
-                if (!dbRef.objectStoreNames.contains('ledgers')) {
-                    const ledgerStore = dbRef.createObjectStore('ledgers', { keyPath: 'id' });
-                    ledgerStore.createIndex('name', 'name', { unique: false });
-                }
-
-                if (!dbRef.objectStoreNames.contains('transactions')) {
-                    const transStore = dbRef.createObjectStore('transactions', { keyPath: 'id' });
-                    transStore.createIndex('ledgerId', 'ledgerId', { unique: false });
-                    transStore.createIndex('timestamp', 'timestamp', { unique: false });
-                }
-            };
-
-            request.onsuccess = (e) => {
-                db = e.target.result;
-                loadLedgersFromDB();
-            };
-
-            request.onerror = () => {
-                showToast("Failed to initialize IndexedDB storage.", "error");
-            };
-        }
-
-        function loadLedgersFromDB() {
-            const tx = db.transaction(['ledgers'], 'readonly');
-            const store = tx.objectStore('ledgers');
-            const getAll = store.getAll();
-
-            getAll.onsuccess = () => {
-                ledgersList = getAll.result || [];
-                if (ledgersList.length === 0) {
-                    const defaultLedger = { id: 'default_ledger', name: 'Main Account Page', createdAt: Date.now() };
-                    const addTx = db.transaction(['ledgers'], 'readwrite');
-                    addTx.objectStore('ledgers').add(defaultLedger);
-                    addTx.oncomplete = () => {
-                        ledgersList = [defaultLedger];
-                        renderLedgerDropdown();
-                        loadTransactionsForActiveLedger();
-                    };
-                } else {
-                    renderLedgerDropdown();
-                    loadTransactionsForActiveLedger();
-                }
-            };
-        }
-
-        function renderLedgerDropdown() {
-            elements.ledgerSelect.innerHTML = '';
-            ledgersList.forEach(l => {
-                const opt = document.createElement('option');
-                opt.value = l.id;
-                opt.textContent = l.name;
-                if (l.id === activeLedgerId) opt.selected = true;
-                elements.ledgerSelect.appendChild(opt);
-            });
-        }
-
-        function switchLedger(ledgerId) {
-            activeLedgerId = ledgerId;
-            loadTransactionsForActiveLedger();
-            showToast(`Switched to ledger page: ${getLedgerName(ledgerId)}`, 'info');
-            speakText(`Switched to ledger page ${getLedgerName(ledgerId)}`);
-        }
-
-        function getLedgerName(id) {
-            const l = ledgersList.find(item => item.id === id);
-            return l ? l.name : 'Ledger';
-        }
-
-        function loadTransactionsForActiveLedger() {
-            if (!db) return;
-            const tx = db.transaction(['transactions'], 'readonly');
-            const store = tx.objectStore('transactions');
-            const index = store.index('ledgerId');
-            const req = index.getAll(activeLedgerId);
-
-            req.onsuccess = () => {
-                allTransactions = req.result || [];
-                allTransactions.sort((a, b) => a.timestamp - b.timestamp);
-                updateDashboardTotals();
-                renderTable();
-            };
-        }
-
-        /* ==========================================================================
-           2. TEXT-TO-SPEECH (TTS AUDIO FEEDBACK) ENGINE WITH ECHO GUARD
-           ========================================================================== */
-        function initTextToSpeechVoices() {
-            if (!synth) {
-                console.warn("Text-to-Speech API not supported in this browser.");
-                return;
-            }
-
-            function loadVoices() {
-                const voices = synth.getVoices();
-                selectedHindiVoice = voices.find(v => v.lang.includes('hi') || v.lang.includes('hi-IN')) ||
-                                     voices.find(v => v.lang.includes('en-IN')) ||
-                                     voices[0];
-            }
-
-            loadVoices();
-            if (speechSynthesis.onvoiceschanged !== undefined) {
-                speechSynthesis.onvoiceschanged = loadVoices;
-            }
-        }
-
-        /* Temporary pause speech recognition while TTS speaks to block echo loops */
-        function pauseMicForTTS() {
-            if (recognition && isListening && !isMutedByTTS) {
-                isMutedByTTS = true;
-                if (ttsResumeTimer) clearTimeout(ttsResumeTimer);
-                try {
-                    recognition.stop();
-                } catch (e) {}
-            }
-        }
-
-        /* Resume speech recognition after TTS finishes (+ 300ms audio buffer) */
-        function resumeMicAfterTTS() {
-            if (ttsResumeTimer) clearTimeout(ttsResumeTimer);
-            ttsResumeTimer = setTimeout(() => {
-                if (isListening && isMutedByTTS) {
-                    isMutedByTTS = false;
-                    try {
-                        recognition.start();
-                    } catch (e) {}
-                }
-            }, 300); // 300ms guard buffer to allow trailing speaker output to fade
-        }
-
-        function speakText(textToSpeak, force = false) {
-            if (!synth) return;
-            if (!ttsEnabled && !force) return;
-
-            // Pause mic recognition before speaking aloud to prevent self-transcription loop
-            pauseMicForTTS();
-
-            synth.cancel();
-
-            const utterance = new SpeechSynthesisUtterance(textToSpeak);
-            if (selectedHindiVoice) {
-                utterance.voice = selectedHindiVoice;
-            }
-            utterance.rate = 1.0;
-            utterance.pitch = 1.0;
-
-            utterance.onstart = () => {
-                if (elements.ttsSpeakingIndicator) {
-                    elements.ttsSpeakingIndicator.classList.remove('hidden');
-                }
-            };
-
-            utterance.onend = () => {
-                if (elements.ttsSpeakingIndicator) {
-                    elements.ttsSpeakingIndicator.classList.add('hidden');
-                }
-                resumeMicAfterTTS();
-            };
-
-            utterance.onerror = () => {
-                if (elements.ttsSpeakingIndicator) {
-                    elements.ttsSpeakingIndicator.classList.add('hidden');
-                }
-                resumeMicAfterTTS();
-            };
-
-            synth.speak(utterance);
-        }
-
-        function toggleTTSSpeech() {
-            ttsEnabled = !ttsEnabled;
-            if (ttsEnabled) {
-                elements.ttsToggleBtn.className = "bg-amber-500/20 border border-amber-400/40 text-amber-300 hover:bg-amber-500/30 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 transition";
-                elements.ttsIcon.className = "fa-solid fa-volume-high text-amber-400";
-                elements.ttsBtnText.textContent = "Voice Output: ON";
-                showToast("Voice feedback enabled", "info");
-                speakText("Awaaz feedback chalu kar diya gaya hai", true);
-            } else {
-                elements.ttsToggleBtn.className = "bg-slate-800 border border-slate-700 text-slate-400 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 transition";
-                elements.ttsIcon.className = "fa-solid fa-volume-xmark text-slate-500";
-                elements.ttsBtnText.textContent = "Voice Output: OFF";
-                synth.cancel();
-                showToast("Voice feedback muted", "info");
-            }
-        }
-
-        function readAloudSummary() {
-            const creditStr = elements.totalCredit.textContent;
-            const debitStr = elements.totalDebit.textContent;
-            const balanceStr = elements.totalBalance.textContent;
-            speakText(`Aapka Total Credit ${creditStr} hai, Total Debit ${debitStr} hai, aur Net Balance ${balanceStr} hai.`, true);
-        }
-
-        function readAloudFormState() {
-            const name = elements.fieldName.value || "Khali hai";
-            const type = elements.fieldType.value === 'CREDIT' ? 'Jama Credit' : 'Kharcha Debit';
-            const amount = elements.fieldAmount.value ? `${elements.fieldAmount.value} Rupey` : "Khali hai";
-            speakText(`Form status: Name ${name}. Type ${type}. Amount ${amount}.`, true);
-        }
-
-        function speakTransactionRow(id) {
-            const item = allTransactions.find(t => t.id === id);
-            if (!item) return;
-            const typeText = item.type === 'CREDIT' ? 'Jama' : 'Kharcha';
-            speakText(`Transaction detail: ${item.name}, ${typeText} ${item.amount} Rupey. Date ${item.dateTimeStr}`, true);
-        }
-
-        function speakCurrentTranscript() {
-            const text = elements.liveTranscript.textContent.replace(/"/g, '');
-            if (text) {
-                speakText(text, true);
-            }
-        }
-
-        /* ==========================================================================
-           3. SPEECH RECOGNITION & CONTINUOUS MIC LISTENING ENGINE
-           ========================================================================== */
-        function initSpeechEngine() {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-            if (!SpeechRecognition) {
-                elements.voiceStatusText.textContent = "Web Speech API Unavailable (Use Demos)";
-                elements.voiceToggleBtn.classList.add('opacity-70');
-                return;
-            }
-
-            recognition = new SpeechRecognition();
-            recognition.continuous = true;
-            recognition.interimResults = true;
-            recognition.lang = 'hi-IN';
-
-            recognition.onstart = () => {
-                if (!isMutedByTTS) {
-                    isListening = true;
-                    updateVoiceUI();
-                }
-            };
-
-            recognition.onresult = (event) => {
-                // Ignore recognized audio if TTS is currently active
-                if (isMutedByTTS || (synth && synth.speaking)) return;
-
-                let interim = '';
-                let finalStr = '';
-
-                for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    const text = event.results[i][0].transcript;
-                    if (event.results[i].isFinal) {
-                        finalStr += text;
-                    } else {
-                        interim += text;
-                    }
-                }
-
-                if (interim) {
-                    elements.liveTranscript.textContent = `"${interim}"`;
-                }
-
-                if (finalStr) {
-                    const cleanText = finalStr.trim();
-                    elements.liveTranscript.textContent = `"${cleanText}"`;
-                    addTranscriptHistoryItem(cleanText);
-                    parseVoiceInput(cleanText);
-                }
-            };
-
-            recognition.onerror = (e) => {
-                console.warn("Speech API Notice:", e.error);
-                if (e.error === 'not-allowed') {
-                    showToast("Microphone access blocked. Click Request Mic Access or use Demos!", "error");
-                    speakText("Microphone access blocked hai.");
-                    stopVoice();
-                }
-            };
-
-            recognition.onend = () => {
-                // Only restart if user enabled mic and TTS is not muting recognition
-                if (isListening && !isMutedByTTS) {
-                    try { recognition.start(); } catch (err) {}
-                } else if (!isMutedByTTS) {
-                    updateVoiceUI();
-                }
-            };
-        }
-
-        function requestExplicitMicAccess() {
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                navigator.mediaDevices.getUserMedia({ audio: true })
-                    .then(stream => {
-                        showToast("Microphone permission granted!", "success");
-                        speakText("Microphone access mil gaya hai");
-                        stream.getTracks().forEach(track => track.stop());
-                        startVoice();
-                    })
-                    .catch(err => {
-                        showToast("Mic permission denied by browser settings.", "error");
-                        openHelpModal();
-                    });
-            } else {
-                showToast("Media devices API unavailable in browser", "warning");
-            }
-        }
-
-        function toggleVoice() {
-            if (isListening) {
-                stopVoice();
-            } else {
-                startVoice();
-            }
-        }
-
-        function startVoice() {
-            if (!recognition) {
-                showToast("Web Speech API not supported. Using Simulator mode!", "warning");
-                return;
-            }
-            isListening = true;
-            isMutedByTTS = false;
-            try {
-                recognition.start();
-                showToast("Voice assistant listening...", "info");
-            } catch (e) {
-                console.log(e);
-            }
-            playAudioBeep('start');
-            speakText("Voice mic chalu hai, bolo.");
-            updateVoiceUI();
-        }
-
-        function stopVoice() {
-            isListening = false;
-            isMutedByTTS = false;
-            if (ttsResumeTimer) clearTimeout(ttsResumeTimer);
-            if (recognition) {
-                try { recognition.stop(); } catch (e) {}
-            }
-            playAudioBeep('stop');
-            updateVoiceUI();
-            showToast("Voice assistant paused", "info");
-            speakText("Voice recognition pause ho gaya.");
-        }
-
-        function updateVoiceUI() {
-            if (isListening && !isMutedByTTS) {
-                elements.voiceToggleBtn.className = "relative shrink-0 w-20 h-20 rounded-full bg-rose-600 hover:bg-rose-500 text-white flex flex-col items-center justify-center shadow-xl transition-all mic-active-pulse border-2 border-rose-300";
-                elements.micIcon.className = "fa-solid fa-microphone text-2xl text-amber-300";
-                elements.micText.textContent = "Listening";
-                elements.voiceStatusDot.className = "w-3 h-3 rounded-full bg-emerald-400 animate-pulse";
-                elements.voiceStatusText.textContent = "Voice Assistant Active";
-            } else {
-                elements.voiceToggleBtn.className = "relative shrink-0 w-20 h-20 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white flex flex-col items-center justify-center shadow-xl transition-all border-2 border-indigo-400";
-                elements.micIcon.className = "fa-solid fa-microphone-slash text-2xl";
-                elements.micText.textContent = "Start Voice";
-                elements.voiceStatusDot.className = "w-3 h-3 rounded-full bg-slate-400";
-                elements.voiceStatusText.textContent = isMutedByTTS ? "Voice Paused (App Speaking)" : "Voice Assistant Paused";
-            }
-            highlightActiveFieldUI();
-        }
-
-        /* Focus Handlers for Input Navigation */
-        function setupFormFieldFocusEvents() {
-            elements.fieldName.addEventListener('focus', () => setTargetVoiceField('name'));
-            elements.fieldAmount.addEventListener('focus', () => setTargetVoiceField('amount'));
-        }
-
-        function setTargetVoiceField(field) {
-            activeVoiceField = field;
-            highlightActiveFieldUI();
-        }
-
-        function highlightActiveFieldUI() {
-            elements.fieldName.classList.remove('field-highlight');
-            elements.fieldAmount.classList.remove('field-highlight');
-
-            const labels = {
-                'name': '1. Name / Description',
-                'type': '2. Type (Credit/Debit)',
-                'amount': '3. Amount (₹)'
-            };
-
-            elements.activeVoiceFieldBadge.innerHTML = `<i class="fa-solid fa-crosshairs"></i> ${labels[activeVoiceField] || activeVoiceField}`;
-
-            if (activeVoiceField === 'name') elements.fieldName.classList.add('field-highlight');
-            if (activeVoiceField === 'amount') elements.fieldAmount.classList.add('field-highlight');
-        }
-
-        function advanceToNextVoiceField() {
-            if (activeVoiceField === 'name') {
-                setTargetVoiceField('type');
-                showToast("Target: TYPE (Say Jama/Credit or Kharcha/Debit)", "info");
-                speakText("Agla field Type hai. Jama ya Kharcha bolo.");
-            } else if (activeVoiceField === 'type') {
-                setTargetVoiceField('amount');
-                elements.fieldAmount.focus();
-                showToast("Target: AMOUNT (Say numbers)", "info");
-                speakText("Agla field Amount hai. Rupey bolo.");
-            } else if (activeVoiceField === 'amount') {
-                showToast("All fields filled. Say 'SAVE' to submit entry.", "info");
-                speakText("Sabhi fields bhar gaye hain. Save bolo transaction save karne ke liye.");
-            }
-        }
-
-        /* NATURAL LANGUAGE VOICE COMMAND PARSER */
-        function parseVoiceInput(spokenText) {
-            const raw = spokenText.trim();
-            if (!raw) return;
-
-            const lower = raw.toLowerCase();
-
-            if (lower.includes('boliye') || lower.includes('sunao') || lower.includes('read') || lower.includes('सुनाओ') || lower.includes('बोलिए')) {
-                readAloudFormState();
-                return;
-            }
-
-            let isTypeMatch = lower.includes('jama') || lower.includes('credit') || lower.includes('kharcha') || lower.includes('debit');
-            let isAmountMatch = /\d+/.test(lower);
-
-            if (isTypeMatch && isAmountMatch && (lower.includes('next') || lower.includes('save') || lower.includes('aage'))) {
-                parseFullVoiceSentence(raw);
-                return;
-            }
-
-            if (lower === 'next' || lower === 'aage' || lower === 'agla' || lower === 'अगला' || lower === 'आगे') {
-                advanceToNextVoiceField();
-                return;
-            }
-
-            if (lower === 'comma' || lower === 'komma' || lower === 'कोमा') {
-                if (activeVoiceField === 'name') {
-                    elements.fieldName.value += ', ';
-                    speakText("Comma laga diya gaya");
-                }
-                return;
-            }
-
-            if (lower === 'clear' || lower === 'reset' || lower === 'saaf karo' || lower === 'हटाओ') {
-                resetForm();
-                showToast("Form cleared by voice command", "info");
-                speakText("Form saaf kar diya gaya");
-                return;
-            }
-
-            if (lower === 'save' || lower === 'submit' || lower === 'jama karo' || lower === 'सेव करो') {
-                handleFormSubmit(new Event('submit'));
-                return;
-            }
-
-            if (lower.includes('credit') || lower.includes('jama') || lower.includes('plus') || lower.includes('जमा')) {
-                setTransactionType('CREDIT');
-                showToast("Type set to CREDIT", "info");
-                speakText("Credit Jama select hua");
-                if (activeVoiceField === 'type') advanceToNextVoiceField();
-                return;
-            }
-
-            if (lower.includes('debit') || lower.includes('kharcha') || lower.includes('minus') || lower.includes('खर्चा')) {
-                setTransactionType('DEBIT');
-                showToast("Type set to DEBIT", "info");
-                speakText("Debit Kharcha select hua");
-                if (activeVoiceField === 'type') advanceToNextVoiceField();
-                return;
-            }
-
-            if (activeVoiceField === 'name') {
-                elements.fieldName.value = (elements.fieldName.value ? elements.fieldName.value + ' ' : '') + raw;
-                speakText(`Naam: ${raw}`);
-            } else if (activeVoiceField === 'amount') {
-                const numberMatch = raw.match(/\d+(\.\d+)?/g);
-                if (numberMatch) {
-                    elements.fieldAmount.value = numberMatch[0];
-                    speakText(`Amount: ${numberMatch[0]} rupey`);
-                }
-            }
-        }
-
-        function parseFullVoiceSentence(sentence) {
-            let tokens = sentence.split(' ');
-            let nameParts = [];
-            let detectedType = 'CREDIT';
-            let detectedAmount = '';
-            let shouldSave = sentence.toLowerCase().includes('save');
-
-            for (let token of tokens) {
-                let lowerToken = token.toLowerCase();
-
-                if (['jama', 'credit', 'plus', 'जमा'].includes(lowerToken)) {
-                    detectedType = 'CREDIT';
-                } else if (['kharcha', 'debit', 'minus', 'खर्चा'].includes(lowerToken)) {
-                    detectedType = 'DEBIT';
-                } else if (/^\d+(\.\d+)?$/.test(token)) {
-                    detectedAmount = token;
-                } else if (!['next', 'aage', 'agla', 'save', 'submit'].includes(lowerToken)) {
-                    nameParts.push(token);
-                }
-            }
-
-            const parsedName = nameParts.join(' ');
-            if (parsedName) elements.fieldName.value = parsedName;
-            setTransactionType(detectedType);
-            if (detectedAmount) elements.fieldAmount.value = detectedAmount;
-
-            showToast("Parsed full sentence & filled form!", "success");
-            const typeWord = detectedType === 'CREDIT' ? 'Jama' : 'Kharcha';
-            speakText(`Voice command: ${parsedName || 'Entry'}, ${typeWord} ${detectedAmount || ''} rupey.`);
-
-            if (shouldSave) {
-                setTimeout(() => {
-                    handleFormSubmit(new Event('submit'));
-                }, 800);
-            }
-        }
-
-        /* Guided Interactive Demos */
-        function runStepDemo(stepNum) {
-            if (stepNum === 1) {
-                runVoiceDemoPreset("Ramesh Kumar jama 5000 next save");
-            } else if (stepNum === 2) {
-                resetForm();
-                elements.fieldName.value = "Kirana Store Grocery";
-                setTargetVoiceField('name');
-                showToast("Step 2: Filled Name. Now advancing using 'agla' command...", "info");
-                speakText("Step 2: Name Kirana Store. Ab agla bol rahe hain.");
-                setTimeout(() => {
-                    parseVoiceInput("agla");
-                    setTimeout(() => {
-                        parseVoiceInput("1200 kharcha");
-                    }, 1000);
-                }, 1200);
-            } else if (stepNum === 3) {
-                addTranscriptHistoryItem("Electricity Bill 2450");
-                elements.fieldName.focus();
-                injectSpokenText("Electricity Bill 2450");
-                showToast("Step 3: Direct Phrase Injection into active field completed!", "success");
-            } else if (stepNum === 4) {
-                readAloudFormState();
-            }
-        }
-
-        function runVoiceDemoPreset(spokenPhrase) {
-            elements.simulatedVoiceInput.value = spokenPhrase;
-            simulateVoiceFromInput();
-        }
-
-        function simulateVoiceFromInput() {
-            const val = elements.simulatedVoiceInput.value.trim();
-            if (!val) {
-                showToast("Please enter a voice phrase to simulate", "warning");
-                return;
-            }
-            elements.liveTranscript.textContent = `"${val}"`;
-            addTranscriptHistoryItem(val);
-            parseVoiceInput(val);
-        }
-
-        function clearVoiceBuffer() {
-            elements.liveTranscript.textContent = '"Buffer cleared."';
-        }
-
-        /* ==========================================================================
-           4. FORM HANDLING, DATE FORMATTING & ATTACHMENTS
-           ========================================================================== */
-        function setTransactionType(type) {
-            elements.fieldType.value = type;
-            if (type === 'CREDIT') {
-                elements.typeCreditBtn.className = "rounded-xl font-bold text-xs flex items-center justify-center gap-1 border-2 border-emerald-500 text-emerald-700 bg-emerald-50 transition shadow-sm";
-                elements.typeDebitBtn.className = "rounded-xl font-bold text-xs flex items-center justify-center gap-1 border-2 border-slate-200 text-slate-600 bg-slate-50 transition";
-            } else {
-                elements.typeDebitBtn.className = "rounded-xl font-bold text-xs flex items-center justify-center gap-1 border-2 border-rose-500 text-rose-700 bg-rose-50 transition shadow-sm";
-                elements.typeCreditBtn.className = "rounded-xl font-bold text-xs flex items-center justify-center gap-1 border-2 border-slate-200 text-slate-600 bg-slate-50 transition";
-            }
-        }
-
-        /* Format: DD/MM/YYYY HH:MM:SS AM/PM */
-        function getFormattedCurrentDateTime(dObj = new Date()) {
-            const dd = String(dObj.getDate()).padStart(2, '0');
-            const mm = String(dObj.getMonth() + 1).padStart(2, '0');
-            const yyyy = dObj.getFullYear();
-
-            let hours = dObj.getHours();
-            const minutes = String(dObj.getMinutes()).padStart(2, '0');
-            const seconds = String(dObj.getSeconds()).padStart(2, '0');
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-
-            hours = hours % 12;
-            hours = hours ? hours : 12;
-            const strHours = String(hours).padStart(2, '0');
-
-            return `${dd}/${mm}/${yyyy} ${strHours}:${minutes}:${seconds} ${ampm}`;
-        }
-
-        function refreshFormTimestamp() {
-            elements.fieldDateTime.value = getFormattedCurrentDateTime();
-        }
-
-        function handleImageFileSelect(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            if (file.size > 5 * 1024 * 1024) {
-                showToast("File size too large (>5MB). Choose a smaller photo.", "error");
-                speakText("Photo ka size bada hai");
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                currentAttachedImageBase64 = e.target.result;
-                elements.imagePreviewThumb.src = currentAttachedImageBase64;
-                elements.imageFileName.textContent = file.name;
-                elements.imagePreviewBox.classList.remove('hidden');
-                elements.noImageText.classList.add('hidden');
-                speakText("Bill photo attach kar di gayi hai");
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function removeAttachedImage() {
-            currentAttachedImageBase64 = null;
-            elements.fieldImageInput.value = '';
-            elements.imagePreviewBox.classList.add('hidden');
-            elements.noImageText.classList.remove('hidden');
-        }
-
-        function handleFormSubmit(e) {
-            if (e && e.preventDefault) e.preventDefault();
-
-            const name = elements.fieldName.value.trim();
-            const amount = parseFloat(elements.fieldAmount.value);
-            const type = elements.fieldType.value;
-            const datetimeStr = elements.fieldDateTime.value;
-            const editId = elements.editEntryId.value;
-
-            if (!name) {
-                showToast("Please enter or speak a Name / Description.", "warning");
-                speakText("Kripya Naam bolo ya likho.");
-                setTargetVoiceField('name');
-                elements.fieldName.focus();
-                return;
-            }
-
-            if (isNaN(amount) || amount <= 0) {
-                showToast("Please enter or speak a valid Amount.", "warning");
-                speakText("Kripya sahi Amount bolo ya likho.");
-                setTargetVoiceField('amount');
-                elements.fieldAmount.focus();
-                return;
-            }
-
-            const transactionObj = {
-                id: editId ? editId : 'trans_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
-                ledgerId: activeLedgerId,
-                name: name,
-                type: type,
-                amount: amount,
-                dateTimeStr: datetimeStr,
-                timestamp: editId ? (allTransactions.find(t=>t.id===editId)?.timestamp || Date.now()) : Date.now(),
-                imageData: currentAttachedImageBase64
-            };
-
-            const tx = db.transaction(['transactions'], 'readwrite');
-            const store = tx.objectStore('transactions');
-            store.put(transactionObj);
-
-            tx.oncomplete = () => {
-                const msg = editId ? "Entry update ho gayi hai!" : "Transaction successfully save ho gayi hai!";
-                playAudioBeep('save');
-                showToast(msg, "success");
-                speakText(msg);
-                resetForm();
-                loadTransactionsForActiveLedger();
-            };
-        }
-
-        function resetForm() {
-            elements.editEntryId.value = '';
-            elements.fieldName.value = '';
-            elements.fieldAmount.value = '';
-            setTransactionType('CREDIT');
-            removeAttachedImage();
-            refreshFormTimestamp();
-            setTargetVoiceField('name');
-            elements.formHeading.innerHTML = `<i class="fa-solid fa-pen-to-square text-indigo-600"></i><span>Transaction Form (लेन-देन फॉर्म)</span>`;
-        }
-
-        function editTransaction(id) {
-            const item = allTransactions.find(t => t.id === id);
-            if (!item) return;
-
-            elements.editEntryId.value = item.id;
-            elements.fieldName.value = item.name;
-            elements.fieldAmount.value = item.amount;
-            setTransactionType(item.type);
-            elements.fieldDateTime.value = item.dateTimeStr;
-
-            if (item.imageData) {
-                currentAttachedImageBase64 = item.imageData;
-                elements.imagePreviewThumb.src = item.imageData;
-                elements.imageFileName.textContent = 'Attached Receipt';
-                elements.imagePreviewBox.classList.remove('hidden');
-                elements.noImageText.classList.add('hidden');
-            } else {
-                removeAttachedImage();
-            }
-
-            elements.formHeading.innerHTML = `<i class="fa-solid fa-pen-to-square text-amber-500"></i><span>Edit Transaction</span>`;
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            showToast("Editing transaction...", "info");
-            speakText(`Editing entry for ${item.name}`);
-        }
-
-        async function deleteTransaction(id) {
-            const item = allTransactions.find(t => t.id === id);
-            const confirmed = await openCustomDialog("Delete Transaction", `Are you sure you want to delete "${item ? item.name : ''}"?`);
-            if (!confirmed) return;
-
-            const tx = db.transaction(['transactions'], 'readwrite');
-            tx.objectStore('transactions').delete(id);
-
-            tx.oncomplete = () => {
-                showToast("Transaction deleted", "info");
-                speakText("Transaction delete ho gaya");
-                loadTransactionsForActiveLedger();
-            };
-        }
-
-        /* ==========================================================================
-           5. DASHBOARD CALCULATIONS & TABLE RENDER
-           ========================================================================== */
-        function updateDashboardTotals() {
-            let totalCredit = 0;
-            let totalDebit = 0;
-
-            allTransactions.forEach(t => {
-                if (t.type === 'CREDIT') totalCredit += t.amount;
-                else totalDebit += t.amount;
-            });
-
-            const netBalance = totalCredit - totalDebit;
-
-            elements.totalBalance.textContent = `₹${netBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
-            elements.totalCredit.textContent = `₹${totalCredit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
-            elements.totalDebit.textContent = `₹${totalDebit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
-
-            if (netBalance > 0) {
-                elements.balanceBadge.textContent = "Positive Balance";
-                elements.balanceBadge.className = "inline-block mt-2 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800";
-            } else if (netBalance < 0) {
-                elements.balanceBadge.textContent = "Negative Deficit";
-                elements.balanceBadge.className = "inline-block mt-2 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800";
-            } else {
-                elements.balanceBadge.textContent = "Zero Balance";
-                elements.balanceBadge.className = "inline-block mt-2 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600";
-            }
-        }
-
-        function renderTable() {
-            const searchTerm = elements.searchInput.value.toLowerCase().trim();
-            const filterType = elements.filterType.value;
-
-            const filtered = allTransactions.filter(t => {
-                const matchSearch = t.name.toLowerCase().includes(searchTerm) || t.amount.toString().includes(searchTerm);
-                const matchType = filterType === 'ALL' || t.type === filterType;
-                return matchSearch && matchType;
-            });
-
-            elements.entryCountBadge.textContent = `${filtered.length} entries`;
-            elements.transactionTableBody.innerHTML = '';
-
-            if (filtered.length === 0) {
-                elements.emptyTableState.classList.remove('hidden');
-                return;
-            } else {
-                elements.emptyTableState.classList.add('hidden');
-            }
-
-            let runningBalance = 0;
-
-            allTransactions.forEach((t) => {
-                if (t.type === 'CREDIT') runningBalance += t.amount;
-                else runningBalance -= t.amount;
-
-                if (filtered.some(item => item.id === t.id)) {
-                    const isCredit = t.type === 'CREDIT';
-                    const row = document.createElement('tr');
-                    row.className = "hover:bg-slate-50 transition border-b border-slate-100";
-
-                    row.innerHTML = `
-                        <td class="p-3.5 text-center">
-                            ${t.imageData 
-                                ? `<img src="${t.imageData}" class="w-8 h-8 object-cover rounded-lg mx-auto border cursor-pointer hover:scale-105 transition shadow-sm" onclick="openImageModal('${t.imageData}', '${escapeHtml(t.name)}')">`
-                                : `<span class="text-slate-300"><i class="fa-solid fa-image-slash"></i></span>`}
-                        </td>
-                        <td class="p-3.5 font-mono text-[11px] text-slate-500 whitespace-nowrap">${t.dateTimeStr}</td>
-                        <td class="p-3.5 font-bold text-slate-800">${escapeHtml(t.name)}</td>
-                        <td class="p-3.5 text-right font-black text-emerald-600">
-                            ${isCredit ? `+₹${t.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : '-'}
-                        </td>
-                        <td class="p-3.5 text-right font-black text-rose-600">
-                            ${!isCredit ? `-₹${t.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : '-'}
-                        </td>
-                        <td class="p-3.5 text-right font-bold text-slate-800">
-                            ₹${t.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                        </td>
-                        <td class="p-3.5 text-right font-mono font-bold ${runningBalance >= 0 ? 'text-slate-700' : 'text-rose-600'}">
-                            ₹${runningBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                        </td>
-                        <td class="p-3.5 text-center whitespace-nowrap">
-                            <div class="flex items-center justify-center gap-1">
-                                <button onclick="speakTransactionRow('${t.id}')" class="p-1.5 text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition" title="Speak Out Loud">
-                                    <i class="fa-solid fa-volume-high"></i>
-                                </button>
-                                <button onclick="editTransaction('${t.id}')" class="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition" title="Edit">
-                                    <i class="fa-solid fa-pen-to-square"></i>
-                                </button>
-                                <button onclick="deleteTransaction('${t.id}')" class="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Delete">
-                                    <i class="fa-solid fa-trash-can"></i>
-                                </button>
-                            </div>
-                        </td>
-                    `;
-                    elements.transactionTableBody.appendChild(row);
-                }
-            });
-        }
-
-        /* ==========================================================================
-           6. SPOKEN PHRASE HISTORY & DIRECT CLICK-TO-INSERT LOGIC
-           ========================================================================== */
-        function addTranscriptHistoryItem(text) {
-            transcriptHistory.unshift({ text, id: Date.now() });
-            if (transcriptHistory.length > 20) transcriptHistory.pop();
-            renderTranscriptHistory();
-        }
-
-        function renderTranscriptHistory() {
-            if (transcriptHistory.length === 0) {
-                elements.transcriptHistoryList.innerHTML = `
-                    <div class="text-center py-12 text-slate-400 italic">
-                        <i class="fa-solid fa-microphone-slash text-2xl mb-2 text-slate-300 block"></i>
-                        Spoken voice phrases will appear here automatically.
-                    </div>`;
-                return;
-            }
-
-            elements.transcriptHistoryList.innerHTML = '';
-            transcriptHistory.forEach(item => {
-                const div = document.createElement('div');
-                div.className = "bg-slate-50 hover:bg-indigo-50/60 border border-slate-200 hover:border-indigo-300 rounded-xl p-2.5 flex items-center justify-between gap-2 transition cursor-pointer";
-                div.onclick = (e) => {
-                    // Prevent triggering double insert if user clicked button specifically
-                    if (e.target.tagName !== 'BUTTON' && !e.target.closest('button')) {
-                        injectSpokenText(item.text);
-                    }
-                };
-
-                div.innerHTML = `
-                    <span class="font-medium text-slate-800 break-all select-none">${escapeHtml(item.text)}</span>
-                    <div class="flex items-center gap-1 shrink-0">
-                        <button onclick="speakText('${escapeHtml(item.text)}', true)" class="text-amber-600 hover:bg-amber-100 p-1.5 rounded-lg text-xs" title="Hear phrase">
-                            <i class="fa-solid fa-volume-high"></i>
-                        </button>
-                        <button onclick="injectSpokenText('${escapeHtml(item.text)}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold transition shadow-sm flex items-center gap-1">
-                            <i class="fa-solid fa-circle-plus"></i> Insert
-                        </button>
-                    </div>
-                `;
-                elements.transcriptHistoryList.appendChild(div);
-            });
-        }
-
-        function injectSpokenText(text) {
-            let target = lastFocusedElement || elements.fieldName;
-
-            if (target === elements.fieldName || activeVoiceField === 'name') {
-                elements.fieldName.value = text;
-                elements.fieldName.focus();
-            } else if (target === elements.fieldAmount || activeVoiceField === 'amount') {
-                const nums = text.match(/\d+(\.\d+)?/g);
-                if (nums) elements.fieldAmount.value = nums[0];
-                else elements.fieldAmount.value = text;
-                elements.fieldAmount.focus();
-            } else if (target === elements.searchInput) {
-                elements.searchInput.value = text;
-                renderTable();
-            } else {
-                target.value = text;
-            }
-
-            showToast(`Inserted phrase directly into active field!`, 'success');
-            speakText(`Phrase inserted into active input field.`);
-        }
-
-        function clearTranscriptHistory() {
-            transcriptHistory = [];
-            renderTranscriptHistory();
-        }
-
-        /* ==========================================================================
-           7. MULTI-LEDGER MANAGEMENT & HELP MODAL LOGIC
-           ========================================================================== */
-        function openLedgerModal() {
-            document.getElementById('newLedgerInput').value = '';
-            document.getElementById('ledgerModal').classList.remove('hidden');
-            renderLedgerManageList();
-        }
-
-        function closeLedgerModal() {
-            document.getElementById('ledgerModal').classList.add('hidden');
-        }
-
-        function openHelpModal() {
-            document.getElementById('helpModal').classList.remove('hidden');
-        }
-
-        function closeHelpModal() {
-            document.getElementById('helpModal').classList.add('hidden');
-        }
-
-        function saveNewLedger() {
-            const input = document.getElementById('newLedgerInput').value.trim();
-            if (!input) {
-                showToast("Please enter a page name", "warning");
-                return;
-            }
-
-            const newLedger = {
-                id: 'ledger_' + Date.now(),
-                name: input,
-                createdAt: Date.now()
-            };
-
-            const tx = db.transaction(['ledgers'], 'readwrite');
-            tx.objectStore('ledgers').add(newLedger);
-
-            tx.oncomplete = () => {
-                showToast("New ledger page added!", "success");
-                speakText(`Naya ledger page ${input} ban gaya`);
-                loadLedgersFromDB();
-                activeLedgerId = newLedger.id;
-                closeLedgerModal();
-            };
-        }
-
-        function renderLedgerManageList() {
-            const list = document.getElementById('ledgerManageList');
-            list.innerHTML = '';
-            ledgersList.forEach(l => {
-                const li = document.createElement('li');
-                li.className = "flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold gap-2";
-                li.innerHTML = `
-                    <span class="truncate font-bold text-slate-800 flex-grow">${escapeHtml(l.name)} ${l.id === activeLedgerId ? '<span class="text-[10px] bg-indigo-100 text-indigo-800 px-1.5 py-0.5 rounded-full ml-1">Active</span>' : ''}</span>
-                    <div class="flex items-center gap-1 shrink-0">
-                        <button onclick="renameLedgerPage('${l.id}')" class="text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 p-1.5 rounded-lg transition" title="Rename Page">
-                            <i class="fa-solid fa-pen"></i>
-                        </button>
-                        ${l.id !== 'default_ledger' ? `<button onclick="deleteLedgerPage('${l.id}')" class="text-rose-600 hover:bg-rose-100 p-1.5 rounded-lg transition" title="Delete Page"><i class="fa-solid fa-trash"></i></button>` : ''}
-                    </div>
-                `;
-                list.appendChild(li);
-            });
-        }
-
-        async function renameLedgerPage(id) {
-            const currentLedger = ledgersList.find(l => l.id === id);
-            if (!currentLedger) return;
-            
-            const newName = prompt("Enter new ledger page name:", currentLedger.name);
-            if (!newName || !newName.trim()) return;
-
-            currentLedger.name = newName.trim();
-            const tx = db.transaction(['ledgers'], 'readwrite');
-            tx.objectStore('ledgers').put(currentLedger);
-
-            tx.oncomplete = () => {
-                showToast("Ledger page renamed!", "success");
-                loadLedgersFromDB();
-                renderLedgerManageList();
-            };
-        }
-
-        async function deleteLedgerPage(id) {
-            const confirmed = await openCustomDialog("Delete Ledger Page", "All transactions in this page will be permanently removed. Continue?");
-            if (!confirmed) return;
-
-            const tx = db.transaction(['ledgers', 'transactions'], 'readwrite');
-            tx.objectStore('ledgers').delete(id);
-            
-            // Delete all transactions under this ledger
-            const transStore = tx.objectStore('transactions');
-            const index = transStore.index('ledgerId');
-            const req = index.getAllKeys(id);
-
-            req.onsuccess = () => {
-                req.result.forEach(key => transStore.delete(key));
-            };
-
-            tx.oncomplete = () => {
-                showToast("Ledger page deleted", "info");
-                activeLedgerId = 'default_ledger';
-                loadLedgersFromDB();
-                renderLedgerManageList();
-            };
-        }
-
-        /* ==========================================================================
-           8. EXPORT / IMPORT CSV & MODAL UTILITIES
-           ========================================================================== */
-        function exportCSV() {
-            if (allTransactions.length === 0) {
-                showToast("No data to export", "warning");
-                return;
-            }
-
-            let csv = "ID,Date & Time,Name/Description,Type,Amount (INR)\n";
-            allTransactions.forEach(t => {
-                csv += `"${t.id}","${t.dateTimeStr}","${t.name.replace(/"/g, '""')}",${t.type},${t.amount}\n`;
-            });
-
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.setAttribute("href", url);
-            link.setAttribute("download", `Ledger_${getLedgerName(activeLedgerId)}_${Date.now()}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            showToast("CSV file exported successfully!", "success");
-            speakText("CSV file export ho gayi");
-        }
-
-        function importCSV(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const text = e.target.result;
-                const lines = text.split('\n');
-                let count = 0;
-
-                const tx = db.transaction(['transactions'], 'readwrite');
-                const store = tx.objectStore('transactions');
-
-                for (let i = 1; i < lines.length; i++) {
-                    const line = lines[i].trim();
-                    if (!line) continue;
-
-                    const parts = line.split(',');
-                    if (parts.length >= 5) {
-                        const name = parts[2].replace(/^"|"$/g, '').trim();
-                        const type = parts[3].trim().toUpperCase();
-                        const amount = parseFloat(parts[4]);
-
-                        if (name && (type === 'CREDIT' || type === 'DEBIT') && !isNaN(amount)) {
-                            const newEntry = {
-                                id: 'trans_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
-                                ledgerId: activeLedgerId,
-                                name: name,
-                                type: type,
-                                amount: amount,
-                                dateTimeStr: parts[1].replace(/^"|"$/g, '').trim() || getFormattedCurrentDateTime(),
-                                timestamp: Date.now() + count
-                            };
-                            store.add(newEntry);
-                            count++;
-                        }
-                    }
-                }
-
-                tx.oncomplete = () => {
-                    showToast(`Imported ${count} transactions successfully!`, "success");
-                    speakText(`${count} transactions import ho gaye`);
-                    loadTransactionsForActiveLedger();
-                };
-            };
-            reader.readAsText(file);
-        }
-
-        /* Custom Dialog Promise Helper */
-        function openCustomDialog(title, message) {
-            return new Promise((resolve) => {
-                pendingDialogResolver = resolve;
-                document.getElementById('dialogTitle').textContent = title;
-                document.getElementById('dialogMessage').textContent = message;
-                document.getElementById('customDialogModal').classList.remove('hidden');
-            });
-        }
-
-        function closeCustomDialog(result) {
-            document.getElementById('customDialogModal').classList.add('hidden');
-            if (pendingDialogResolver) {
-                pendingDialogResolver(result);
-                pendingDialogResolver = null;
-            }
-        }
-
-        function openImageModal(src, title) {
-            document.getElementById('modalImg').src = src;
-            document.getElementById('imageModalTitle').textContent = title || 'Receipt Preview';
-            document.getElementById('imageModal').classList.remove('hidden');
-        }
-
-        function closeImageModal() {
-            document.getElementById('imageModal').classList.add('hidden');
-        }
-
-        function showToast(message, type = 'info') {
-            const toast = document.createElement('div');
-            const bgColors = {
-                success: 'bg-emerald-600',
-                error: 'bg-rose-600',
-                warning: 'bg-amber-500',
-                info: 'bg-indigo-600'
-            };
-
-            toast.className = `${bgColors[type] || 'bg-indigo-600'} text-white text-xs font-bold px-4 py-3 rounded-xl shadow-xl flex items-center justify-between gap-3 transform transition-all duration-300 translate-y-2 opacity-0`;
-            toast.innerHTML = `
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid ${type === 'success' ? 'fa-circle-check' : type === 'error' ? 'fa-triangle-exclamation' : 'fa-info-circle'}"></i>
-                    <span>${escapeHtml(message)}</span>
-                </div>
-            `;
-
-            const container = document.getElementById('toastContainer');
-            container.appendChild(toast);
-
-            setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
-            setTimeout(() => {
-                toast.classList.add('opacity-0', 'translate-y-2');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
-
-        function escapeHtml(str) {
-            if (!str) return '';
-            return String(str)
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
-    </script>
+    <div id="fxl" style="margin-top:8px"></div>
+  </details>
+ 
+  <div class="card wrap">
+    <table>
+      <thead><tr><th>Photo</th><th>Date &amp; time</th><th>Naam</th><th>Credit/Debit</th><th class="n">Amount</th><th class="n">Total</th><th>Action</th></tr></thead>
+      <tbody id="tb"></tbody>
+    </table>
+    <div id="empty" class="note" style="padding:10px">Abhi koi entry nahi. Mic dabao aur bolna shuru karo.</div>
+  </div>
+</main>
+<div id="lb"><img alt=""></div>
+ 
+<script>
+const $=id=>document.getElementById(id);
+let db,pageId=null,pages=[],fixes=[],editId=null,editImg='',img='',type='credit',dirty=false,field='name',rec=null,listening=false;
+const ORDER=['name','type','amt'];
+ 
+/* ---------- IndexedDB ---------- */
+const openDB=()=>new Promise((ok,no)=>{const r=indexedDB.open('voicekhata',1);
+  r.onupgradeneeded=()=>{const d=r.result;d.createObjectStore('pages',{keyPath:'id',autoIncrement:true});
+    d.createObjectStore('entries',{keyPath:'id',autoIncrement:true}).createIndex('page','page');
+    d.createObjectStore('fixes',{keyPath:'from'});};
+  r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error);});
+const q=(st,mode,fn)=>new Promise((ok,no)=>{const t=db.transaction(st,mode);const rq=fn(t.objectStore(st));t.oncomplete=()=>ok(rq&&rq.result);t.onerror=()=>no(t.error);});
+ 
+/* ---------- date helpers ---------- */
+const p2=n=>String(n).padStart(2,'0');
+function fmt(ts){const d=new Date(ts);let h=d.getHours();const ap=h>=12?'PM':'AM';h=h%12||12;
+  return `${p2(d.getDate())}/${p2(d.getMonth()+1)}/${d.getFullYear()} ${p2(h)}:${p2(d.getMinutes())}:${p2(d.getSeconds())} ${ap}`;}
+function parseDT(s){const m=s.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2}):(\d{2})\s*(am|pm)$/i);
+  if(!m)return null;let h=+m[4]%12;if(m[7].toLowerCase()==='pm')h+=12;
+  const d=new Date(+m[3],+m[2]-1,+m[1],h,+m[5],+m[6]);return isNaN(d)?null:d.getTime();}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const money=n=>n.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+ 
+/* ---------- pages ---------- */
+async function loadPages(){
+  pages=await q('pages','readonly',s=>s.getAll());
+  if(!pages.length){await q('pages','readwrite',s=>s.add({name:'Main'}));pages=await q('pages','readonly',s=>s.getAll());}
+  let saved=null;try{saved=+localStorage.getItem('vk_page')}catch(e){}
+  if(!pages.find(p=>p.id===pageId))pageId=pages.find(p=>p.id===saved)?saved:pages[0].id;
+  $('pages').innerHTML=pages.map(p=>`<option value="${p.id}" ${p.id===pageId?'selected':''}>${esc(p.name)}</option>`).join('');
+  await render();
+}
+$('pages').onchange=e=>{pageId=+e.target.value;try{localStorage.setItem('vk_page',pageId)}catch(x){}resetForm();render();};
+$('addp').onclick=async()=>{const n=prompt('Naye page ka naam:');if(!n||!n.trim())return;
+  pageId=await q('pages','readwrite',s=>s.add({name:n.trim()}));await loadPages();};
+$('renp').onclick=async()=>{const p=pages.find(x=>x.id===pageId);const n=prompt('Naya naam:',p.name);if(!n||!n.trim())return;
+  await q('pages','readwrite',s=>s.put({id:p.id,name:n.trim()}));await loadPages();};
+$('delp').onclick=async()=>{if(pages.length<2){alert('Kam se kam ek page rehna chahiye.');return;}
+  if(!confirm('Is page ki saari entries delete ho jayengi. Pakka?'))return;
+  const es=await q('entries','readonly',s=>s.index('page').getAll(pageId));
+  for(const e of es)await q('entries','readwrite',s=>s.delete(e.id));
+  await q('pages','readwrite',s=>s.delete(pageId));pageId=null;resetForm();await loadPages();};
+ 
+/* ---------- render ---------- */
+async function render(){
+  const es=(await q('entries','readonly',s=>s.index('page').getAll(pageId))).sort((a,b)=>a.ts-b.ts||a.id-b.id);
+  $('pgname').textContent=(pages.find(p=>p.id===pageId)||{}).name+' — Balance';
+  let tot=0,tc=0,td=0;
+  $('tb').innerHTML=es.map(e=>{
+    if(e.type==='credit'){tot+=e.amt;tc+=e.amt}else{tot-=e.amt;td+=e.amt}
+    return `<tr><td>${e.img?`<img class="th" src="${e.img}" data-z alt="">`:'—'}</td>
+    <td>${fmt(e.ts)}</td><td>${esc(e.name)}</td>
+    <td class="${e.type==='credit'?'c':'d'}">${e.type==='credit'?'Credit':'Debit'}</td>
+    <td class="n ${e.type==='credit'?'c':'d'}">${money(e.amt)}</td><td class="n">${money(tot)}</td>
+    <td><button data-e="${e.id}">Edit</button> <button data-d="${e.id}">Delete</button></td></tr>`;}).join('');
+  $('empty').style.display=es.length?'none':'block';
+  $('bal').textContent='₹ '+money(tot);$('bal').className=tot<0?'d':'';
+  $('tc').textContent=money(tc);$('td').textContent=money(td);
+  const names=[...new Set(es.map(e=>e.name))].reverse();
+  $('nl').innerHTML=names.map(n=>`<option value="${esc(n)}">`).join('');
+  $('chips').innerHTML=names.slice(0,12).map(n=>`<button class="chip" data-n="${esc(n)}">${esc(n)}</button>`).join('');
+}
+$('tb').onclick=async e=>{
+  const t=e.target;
+  if(t.dataset.z!==undefined){$('lb').firstElementChild.src=t.src;$('lb').style.display='flex';}
+  if(t.dataset.d&&confirm('Ye entry delete karein?')){await q('entries','readwrite',s=>s.delete(+t.dataset.d));if(editId==+t.dataset.d)resetForm();render();}
+  if(t.dataset.e){const x=await q('entries','readonly',s=>s.get(+t.dataset.e));
+    editId=x.id;$('name').value=x.name;$('amt').value=x.amt;setType(x.type);$('dt').value=fmt(x.ts);dirty=true;
+    editImg=img=x.img||'';showPv();$('save').textContent='Update entry';$('cancel').style.display='';$('edmode').style.display='';
+    scrollTo({top:0,behavior:'smooth'});}
+};
+$('lb').onclick=()=>$('lb').style.display='none';
+$('chips').onclick=e=>{if(e.target.dataset.n){$('name').value=e.target.dataset.n;setField('type');}};
+ 
+/* ---------- form ---------- */
+function setType(t){type=t;$('bc').classList.toggle('on',t==='credit');$('bd').classList.toggle('on',t==='debit');}
+$('bc').onclick=()=>setType('credit');$('bd').onclick=()=>setType('debit');
+function setField(f){field=f;document.querySelectorAll('.f[data-k]').forEach(d=>d.classList.toggle('act',d.dataset.k===f));}
+['name','amt'].forEach(k=>$(k).addEventListener('focus',()=>setField(k)));
+$('dt').addEventListener('input',()=>dirty=true);
+function showPv(){$('pv').style.display=img?'block':'none';$('pv').src=img||'';}
+$('img').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{const i=new Image();i.onload=()=>{const k=Math.min(1,640/Math.max(i.width,i.height));
+    const c=document.createElement('canvas');c.width=i.width*k;c.height=i.height*k;c.getContext('2d').drawImage(i,0,0,c.width,c.height);
+    img=c.toDataURL('image/jpeg',.72);showPv();};i.src=r.result;};r.readAsDataURL(f);};
+function resetForm(){editId=null;editImg=img='';dirty=false;$('name').value='';$('amt').value='';$('img').value='';setType('credit');showPv();
+  $('save').textContent='Save entry';$('cancel').style.display='none';$('edmode').style.display='none';tick();setField('name');}
+$('cancel').onclick=resetForm;
+function tick(){if(!dirty&&editId==null)$('dt').value=fmt(Date.now());}
+setInterval(tick,1000);
+ 
+async function save(){
+  const name=$('name').value.trim(),amt=parseFloat($('amt').value);
+  if(!name){say('Naam khali hai.');setField('name');$('name').focus();return false;}
+  if(!(amt>0)){say('Amount sahi daalo.');setField('amt');$('amt').focus();return false;}
+  let ts=Date.now();
+  if(dirty||editId!=null){ts=parseDT($('dt').value);if(!ts){say('Date format: dd/mm/yyyy hh:mm:ss am/pm');return false;}}
+  const rec={page:pageId,ts,name,type,amt,img};
+  if(editId!=null)rec.id=editId;
+  await q('entries','readwrite',s=>s.put(rec));
+  resetForm();await render();say('Entry save ho gayi ✔');return true;
+}
+$('save').onclick=save;
+ 
+/* ---------- galti sudhaar list ---------- */
+async function loadFixes(){fixes=await q('fixes','readonly',s=>s.getAll());
+  $('fxl').innerHTML=fixes.map(f=>`<div class="fx"><span>${esc(f.from)} → <b>${esc(f.to)}</b></span><button data-x="${esc(f.from)}">Hatao</button></div>`).join('')||'<div class="note">Abhi khali.</div>';}
+$('fadd').onclick=async()=>{const a=$('fa').value.trim().toLowerCase(),b=$('fb').value.trim();if(!a||!b)return;
+  await q('fixes','readwrite',s=>s.put({from:a,to:b}));$('fa').value=$('fb').value='';loadFixes();};
+$('fxl').onclick=async e=>{if(e.target.dataset.x){await q('fixes','readwrite',s=>s.delete(e.target.dataset.x));loadFixes();}};
+const applyFix=t=>{fixes.forEach(f=>{t=t.replace(new RegExp('(^|\\s)'+f.from.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?=\\s|$)','gi'),'$1'+f.to);});return t;};
+ 
+/* ---------- voice ---------- */
+const say=t=>$('heard').textContent=t;
+const SEP=/((?<![\p{L}\p{M}])(?:comma|next|agla|agle|aage|save|सेव|अगला|अगले|आगे|कॉमा|कौमा|कमा|नेक्स्ट|ਅਗਲਾ)(?![\p{L}\p{M}])|,)/giu;
+const HI='०१२३४५६७८९';
+function amountFrom(s){
+  s=s.replace(/[०-९]/g,c=>HI.indexOf(c));
+  const m=s.replace(/,/g,'').match(/\d+(\.\d+)?/);if(!m)return null;let n=parseFloat(m[0]);
+  if(/lakh|lac|लाख/i.test(s))n*=100000;else if(/hazaar|hazar|thousand|हज़ार|हजार|ਹਜ਼ਾਰ|\bk\b/i.test(s))n*=1000;else if(/\bsau\b|hundred|सौ/i.test(s))n*=100;
+  return n;}
+function typeFrom(s){
+  if(/credit|jama|jmaa|aaya|mila|mile|received|क्रेडिट|जमा|आया|मिला|मिले|ਜਮ੍ਹਾ|ਕ੍ਰੈਡਿਟ/i.test(s))return'credit';
+  if(/debit|udhar|udhaar|diya|gaya|gayi|paid|डेबिट|उधार|दिया|गया|गए|ਡੈਬਿਟ|ਉਧਾਰ/i.test(s))return'debit';return null;}
+function put(text){
+  text=text.trim();if(!text)return;
+  if(field==='name'){const v=applyFix(text);$('name').value=v.replace(/(^|\s)\S/g,c=>c.toUpperCase());}
+  else if(field==='type'){const t=typeFrom(text);if(t)setType(t);}
+  else if(field==='amt'){const n=amountFrom(text);if(n!=null)$('amt').value=n;}
+}
+async function next(){
+  const i=ORDER.indexOf(field);
+  if(i<ORDER.length-1)setField(ORDER[i+1]);else await save();
+}
+async function handle(txt){
+  const parts=txt.split(SEP).filter(x=>x!==undefined);
+  // split with capture group returns separators too; detect them by regex test
+  for(const p of parts){
+    if(!p)continue;
+    const isSep=/^(comma|next|agla|agle|aage|save|सेव|अगला|अगले|आगे|कॉमा|कौमा|कमा|नेक्स्ट|ਅਗਲਾ|,)$/i.test(p.trim());
+    if(isSep)await next();else put(p);
+  }
+}
+function startVoice(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){say('Is browser mein voice support nahi hai. Chrome (Android/PC) use karo.');return;}
+  rec=new SR();rec.lang=$('lang').value;rec.continuous=true;rec.interimResults=true;
+  rec.onresult=e=>{let interim='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const t=e.results[i][0].transcript;
+      if(e.results[i].isFinal){say('Suna: '+t);handle(t);}else interim+=t;}
+    if(interim)say('… '+interim);};
+  rec.onerror=e=>{if(e.error==='not-allowed'||e.error==='service-not-allowed'){listening=false;say('Mic ki permission do.');}
+    else if(e.error==='network'){$('vnote').textContent='Offline voice ke liye phone mein Hindi/English offline speech pack install karo (Google app → Settings → Voice → Offline speech recognition). Tab tak naam/amount type kar sakte ho.';}};
+  rec.onend=()=>{if(listening){try{rec.start()}catch(e){}}else{$('mic').classList.remove('live');$('mic').textContent='🎤 Voice shuru';}};
+  listening=true;rec.start();$('mic').classList.add('live');$('mic').textContent='⏹ Voice band';setField(field);
+}
+$('mic').onclick=()=>{if(listening){listening=false;rec&&rec.stop();}else startVoice();};
+$('lang').onchange=()=>{if(listening){listening=false;rec.stop();setTimeout(startVoice,400);}};
+ 
+/* ---------- init ---------- */
+(async()=>{db=await openDB();await loadFixes();await loadPages();resetForm();})();
+</script>
 </body>
 </html>
+ 
+Claude finished the response
