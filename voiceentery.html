@@ -125,7 +125,7 @@
                 </div>
             </div>
 
-            <!-- Active Ledger Page Switcher -->
+            <!-- Active Ledger Page Switcher & Controls -->
             <div class="flex items-center gap-2 bg-slate-800/80 p-1.5 rounded-2xl border border-slate-700">
                 <i class="fa-solid fa-book-open text-amber-400 ml-2 text-sm"></i>
                 <span class="text-xs font-semibold text-slate-300 hidden sm:inline">Active Page:</span>
@@ -195,22 +195,22 @@
                 </span>
             </div>
 
-            <!-- Preset Buttons -->
+            <!-- Quick Voice Simulation Preset Buttons -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 mb-4">
                 <button onclick="runVoiceDemoPreset('Ramesh Kumar jama 5000 next save')" class="bg-white hover:bg-amber-100/60 text-slate-800 border border-amber-300 p-2.5 rounded-xl text-left text-xs font-semibold shadow-sm transition flex flex-col">
-                    <span class="text-amber-800 font-bold flex items-center gap-1"><i class="fa-solid fa-bolt text-amber-500"></i> Credit Scenario 1</span>
+                    <span class="text-amber-800 font-bold flex items-center gap-1"><i class="fa-solid fa-bolt text-amber-500"></i> Say: Ramesh Kumar 5000 Jama</span>
                     <span class="font-mono text-[11px] text-slate-600 mt-0.5">"Ramesh Kumar jama 5000 next save"</span>
                 </button>
-                <button onclick="runVoiceDemoPreset('Kirana Store kharcha 1250 next save')" class="bg-white hover:bg-amber-100/60 text-slate-800 border border-amber-300 p-2.5 rounded-xl text-left text-xs font-semibold shadow-sm transition flex flex-col">
-                    <span class="text-rose-700 font-bold flex items-center gap-1"><i class="fa-solid fa-bolt text-amber-500"></i> Debit Scenario 2</span>
-                    <span class="font-mono text-[11px] text-slate-600 mt-0.5">"Kirana Store kharcha 1250 next save"</span>
+                <button onclick="runVoiceDemoPreset('Kirana Store kharcha 1200 next save')" class="bg-white hover:bg-amber-100/60 text-slate-800 border border-amber-300 p-2.5 rounded-xl text-left text-xs font-semibold shadow-sm transition flex flex-col">
+                    <span class="text-rose-700 font-bold flex items-center gap-1"><i class="fa-solid fa-bolt text-amber-500"></i> Say: Grocery Store 1200 Kharcha</span>
+                    <span class="font-mono text-[11px] text-slate-600 mt-0.5">"Kirana Store kharcha 1200 next save"</span>
                 </button>
-                <button onclick="runVoiceDemoPreset('Office Sale credit 18500 next save')" class="bg-white hover:bg-amber-100/60 text-slate-800 border border-amber-300 p-2.5 rounded-xl text-left text-xs font-semibold shadow-sm transition flex flex-col">
-                    <span class="text-amber-800 font-bold flex items-center gap-1"><i class="fa-solid fa-bolt text-amber-500"></i> Credit Scenario 3</span>
-                    <span class="font-mono text-[11px] text-slate-600 mt-0.5">"Office Sale credit 18500 next save"</span>
+                <button onclick="runVoiceDemoPreset('Salary Credit 45000 next save')" class="bg-white hover:bg-amber-100/60 text-slate-800 border border-amber-300 p-2.5 rounded-xl text-left text-xs font-semibold shadow-sm transition flex flex-col">
+                    <span class="text-amber-800 font-bold flex items-center gap-1"><i class="fa-solid fa-bolt text-amber-500"></i> Say: Salary Credit 45000</span>
+                    <span class="font-mono text-[11px] text-slate-600 mt-0.5">"Salary Credit 45000 next save"</span>
                 </button>
                 <button onclick="runVoiceDemoPreset('Electric Bill debit 850 next save')" class="bg-white hover:bg-amber-100/60 text-slate-800 border border-amber-300 p-2.5 rounded-xl text-left text-xs font-semibold shadow-sm transition flex flex-col">
-                    <span class="text-rose-700 font-bold flex items-center gap-1"><i class="fa-solid fa-bolt text-amber-500"></i> Debit Scenario 4</span>
+                    <span class="text-rose-700 font-bold flex items-center gap-1"><i class="fa-solid fa-bolt text-amber-500"></i> Say: Electric Bill 850 Kharcha</span>
                     <span class="font-mono text-[11px] text-slate-600 mt-0.5">"Electric Bill debit 850 next save"</span>
                 </button>
             </div>
@@ -1260,35 +1260,33 @@
             list.innerHTML = '';
             ledgersList.forEach(l => {
                 const li = document.createElement('li');
-                li.className = "flex items-center justify-between p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold";
+                li.className = "flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold gap-2";
                 li.innerHTML = `
-                    <span class="truncate max-w-[200px]">${escapeHtml(l.name)} ${l.id === activeLedgerId ? '<span class="text-[10px] bg-indigo-100 text-indigo-800 px-1.5 py-0.5 rounded-full ml-1">Active</span>' : ''}</span>
-                    <div class="flex items-center gap-1">
-                        ${l.id !== 'default_ledger' ? `<button onclick="deleteLedgerPage('${l.id}')" class="text-rose-600 hover:bg-rose-100 p-1 rounded-lg transition"><i class="fa-solid fa-trash"></i></button>` : ''}
+                    <span class="truncate font-bold text-slate-800 flex-grow">${escapeHtml(l.name)} ${l.id === activeLedgerId ? '<span class="text-[10px] bg-indigo-100 text-indigo-800 px-1.5 py-0.5 rounded-full ml-1">Active</span>' : ''}</span>
+                    <div class="flex items-center gap-1 shrink-0">
+                        <button onclick="renameLedgerPage('${l.id}')" class="text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 p-1.5 rounded-lg transition" title="Rename Ledger Page">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        ${l.id !== 'default_ledger' ? `<button onclick="deleteLedgerPage('${l.id}')" class="text-rose-600 hover:bg-rose-100 p-1.5 rounded-lg transition" title="Delete Ledger Page"><i class="fa-solid fa-trash"></i></button>` : ''}
                     </div>
                 `;
                 list.appendChild(li);
             });
         }
 
-        async function deleteLedgerPage(id) {
-            const confirmed = await openCustomDialog("Delete Ledger Page", "Deleting this page removes all associated entries. Proceed?");
-            if (!confirmed) return;
+        async function renameLedgerPage(id) {
+            const currentLedger = ledgersList.find(l => l.id === id);
+            if (!currentLedger) return;
+            
+            const newName = prompt("Enter new ledger page name:", currentLedger.name);
+            if (!newName || !newName.trim()) return;
 
-            const tx = db.transaction(['ledgers', 'transactions'], 'readwrite');
-            tx.objectStore('ledgers').delete(id);
-
-            const transStore = tx.objectStore('transactions');
-            const index = transStore.index('ledgerId');
-            const req = index.getAllKeys(id);
-
-            req.onsuccess = () => {
-                req.result.forEach(k => transStore.delete(k));
-            };
+            currentLedger.name = newName.trim();
+            const tx = db.transaction(['ledgers'], 'readwrite');
+            tx.objectStore('ledgers').put(currentLedger);
 
             tx.oncomplete = () => {
-                showToast("Ledger page deleted", "info");
-                activeLedgerId = 'default_ledger';
+                showToast("Ledger page renamed!", "success");
                 loadLedgersFromDB();
                 renderLedgerManageList();
             };
