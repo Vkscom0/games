@@ -1,0 +1,301 @@
+Claude
+
+
+Voice khata · HTML
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Voice Khata</title>
+<style>
+:root{--bg:#eef2f6;--card:#fff;--ink:#14213d;--mut:#5b6b82;--line:#d5dde8;--cr:#0a8f3c;--dr:#d62828;--ac:#1d4ed8}
+@media (prefers-color-scheme:dark){:root{--bg:#0e1522;--card:#17233a;--ink:#e8eef8;--mut:#9fb0c8;--line:#2b3b57;--cr:#3ddc7a;--dr:#ff6b6b;--ac:#6ea0ff}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 system-ui,"Segoe UI",Roboto,sans-serif}
+header{position:sticky;top:0;z-index:5;background:var(--ink);color:var(--bg);padding:10px 14px}
+@media (prefers-color-scheme:dark){header{background:#0a101c;color:#e8eef8}}
+.bal{font-size:28px;font-weight:700}
+.bal small{display:block;font-size:12px;font-weight:400;opacity:.8}
+.sub{display:flex;gap:16px;font-size:13px;margin-top:2px}
+main{max-width:980px;margin:0 auto;padding:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+select,input,button{font:inherit;color:var(--ink)}
+select,input[type=text],input[type=number]{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:9px;min-width:0}
+button{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:9px 12px;cursor:pointer}
+button.p{background:var(--ac);color:#fff;border-color:var(--ac)}
+button.cr.on{background:var(--cr);color:#fff;border-color:var(--cr)}
+button.dr.on{background:var(--dr);color:#fff;border-color:var(--dr)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--ac);outline-offset:1px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:10px}
+label{display:block;font-size:12px;color:var(--mut);margin-bottom:3px}
+.f{border-radius:10px}
+.f input{width:100%}
+.f.act input,.f.act .tg{box-shadow:0 0 0 3px var(--ac);border-radius:8px}
+.tg{display:flex;gap:6px}.tg button{flex:1}
+#mic{background:var(--dr);color:#fff;border-color:var(--dr);font-weight:600}
+#mic.live{animation:pl 1.2s infinite}
+@keyframes pl{50%{box-shadow:0 0 0 8px rgba(214,40,40,.25)}}
+@media (prefers-reduced-motion:reduce){#mic.live{animation:none}}
+#heard{min-height:20px;color:var(--mut);font-size:13px;margin-top:8px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.chip{padding:4px 10px;border-radius:99px;font-size:13px}
+.wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:720px}
+th,td{padding:8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{font-size:12px;color:var(--mut)}
+td.n{text-align:right;font-variant-numeric:tabular-nums}
+.c{color:var(--cr);font-weight:600}.d{color:var(--dr);font-weight:600}
+img.th{width:42px;height:42px;object-fit:cover;border-radius:6px;cursor:pointer;display:block}
+details summary{cursor:pointer;font-weight:600}
+.fx{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px dashed var(--line)}
+#lb{position:fixed;inset:0;background:rgba(0,0,0,.8);display:none;align-items:center;justify-content:center;z-index:20}
+#lb img{max-width:92%;max-height:92%;border-radius:8px}
+.note{font-size:12px;color:var(--mut);margin-top:6px}
+</style>
+</head>
+<body>
+<header>
+  <div class="bal"><small id="pgname">Page</small><span id="bal">0.00</span></div>
+  <div class="sub"><span>Credit: <b id="tc" class="c">0</b></span><span>Debit: <b id="td" class="d">0</b></span></div>
+</header>
+<main>
+  <div class="card row">
+    <select id="pages" aria-label="Page"></select>
+    <button id="addp">+ Naya page</button>
+    <button id="renp">Rename</button>
+    <button id="delp">Delete page</button>
+  </div>
+ 
+  <div class="card">
+    <div class="row">
+      <button id="mic">🎤 Voice shuru</button>
+      <select id="lang" aria-label="Bhasha">
+        <option value="hi-IN">Hindi</option><option value="en-IN">English (India)</option><option value="pa-IN">Punjabi</option>
+      </select>
+      <label style="display:flex;gap:5px;align-items:center;margin:0;font-size:13px"><input type="checkbox" id="hf" checked> Voice se dobara start (entry ke baad "start" bolo)</label>
+      <span id="edmode" style="display:none" class="c">Edit mode</span>
+    </div>
+    <div id="heard">Bolo: naam → "next" → credit/debit → "next" → rakam → "next" (entry save). "comma" bhi chalega. Rokne ke liye "band" bolo.</div>
+ 
+    <div class="grid">
+      <div class="f"><label>Photo</label><input type="file" id="img" accept="image/*"><img id="pv" class="th" style="margin-top:6px;display:none" alt=""></div>
+      <div class="f"><label>Date &amp; time (dd/mm/yyyy hh:mm:ss am/pm)</label><input type="text" id="dt"></div>
+      <div class="f" data-k="name"><label>Naam</label><input type="text" id="name" list="nl" autocomplete="off"><datalist id="nl"></datalist></div>
+      <div class="f" data-k="type"><label>Credit / Debit</label>
+        <div class="tg"><button class="cr on" id="bc" type="button">Credit</button><button class="dr" id="bd" type="button">Debit</button></div></div>
+      <div class="f" data-k="amt"><label>Amount</label><input type="number" id="amt" inputmode="decimal" step="0.01"></div>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button class="p" id="save">Save entry</button>
+      <button id="cancel" style="display:none">Cancel edit</button>
+    </div>
+    <div class="chips" id="chips"></div>
+    <div class="note" id="vnote"></div>
+  </div>
+ 
+  <details class="card">
+    <summary>Galti sudhaar list (voice ne galat suna to yahan sahi karo)</summary>
+    <div class="row" style="margin-top:10px">
+      <input type="text" id="fa" placeholder="Galat suna hua (jaise: raahul)">
+      <input type="text" id="fb" placeholder="Sahi (jaise: Rahul)">
+      <button id="fadd">Add</button>
+    </div>
+    <div id="fxl" style="margin-top:8px"></div>
+  </details>
+ 
+  <div class="card wrap">
+    <table>
+      <thead><tr><th>Photo</th><th>Date &amp; time</th><th>Naam</th><th>Credit/Debit</th><th class="n">Amount</th><th class="n">Total</th><th>Action</th></tr></thead>
+      <tbody id="tb"></tbody>
+    </table>
+    <div id="empty" class="note" style="padding:10px">Abhi koi entry nahi. Mic dabao aur bolna shuru karo.</div>
+  </div>
+</main>
+<div id="lb"><img alt=""></div>
+ 
+<script>
+const $=id=>document.getElementById(id);
+let db,pageId=null,pages=[],fixes=[],editId=null,editImg='',img='',type='credit',dirty=false,field='name',rec=null,listening=false,mode='entry';
+const ORDER=['name','type','amt'];
+ 
+/* ---------- IndexedDB ---------- */
+const openDB=()=>new Promise((ok,no)=>{const r=indexedDB.open('voicekhata',1);
+  r.onupgradeneeded=()=>{const d=r.result;d.createObjectStore('pages',{keyPath:'id',autoIncrement:true});
+    d.createObjectStore('entries',{keyPath:'id',autoIncrement:true}).createIndex('page','page');
+    d.createObjectStore('fixes',{keyPath:'from'});};
+  r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error);});
+const q=(st,mode,fn)=>new Promise((ok,no)=>{const t=db.transaction(st,mode);const rq=fn(t.objectStore(st));t.oncomplete=()=>ok(rq&&rq.result);t.onerror=()=>no(t.error);});
+ 
+/* ---------- date helpers ---------- */
+const p2=n=>String(n).padStart(2,'0');
+function fmt(ts){const d=new Date(ts);let h=d.getHours();const ap=h>=12?'PM':'AM';h=h%12||12;
+  return `${p2(d.getDate())}/${p2(d.getMonth()+1)}/${d.getFullYear()} ${p2(h)}:${p2(d.getMinutes())}:${p2(d.getSeconds())} ${ap}`;}
+function parseDT(s){const m=s.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2}):(\d{2})\s*(am|pm)$/i);
+  if(!m)return null;let h=+m[4]%12;if(m[7].toLowerCase()==='pm')h+=12;
+  const d=new Date(+m[3],+m[2]-1,+m[1],h,+m[5],+m[6]);return isNaN(d)?null:d.getTime();}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const money=n=>n.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+ 
+/* ---------- pages ---------- */
+async function loadPages(){
+  pages=await q('pages','readonly',s=>s.getAll());
+  if(!pages.length){await q('pages','readwrite',s=>s.add({name:'Main'}));pages=await q('pages','readonly',s=>s.getAll());}
+  let saved=null;try{saved=+localStorage.getItem('vk_page')}catch(e){}
+  if(!pages.find(p=>p.id===pageId))pageId=pages.find(p=>p.id===saved)?saved:pages[0].id;
+  $('pages').innerHTML=pages.map(p=>`<option value="${p.id}" ${p.id===pageId?'selected':''}>${esc(p.name)}</option>`).join('');
+  await render();
+}
+$('pages').onchange=e=>{pageId=+e.target.value;try{localStorage.setItem('vk_page',pageId)}catch(x){}resetForm();render();};
+$('addp').onclick=async()=>{const n=prompt('Naye page ka naam:');if(!n||!n.trim())return;
+  pageId=await q('pages','readwrite',s=>s.add({name:n.trim()}));await loadPages();};
+$('renp').onclick=async()=>{const p=pages.find(x=>x.id===pageId);const n=prompt('Naya naam:',p.name);if(!n||!n.trim())return;
+  await q('pages','readwrite',s=>s.put({id:p.id,name:n.trim()}));await loadPages();};
+$('delp').onclick=async()=>{if(pages.length<2){alert('Kam se kam ek page rehna chahiye.');return;}
+  if(!confirm('Is page ki saari entries delete ho jayengi. Pakka?'))return;
+  const es=await q('entries','readonly',s=>s.index('page').getAll(pageId));
+  for(const e of es)await q('entries','readwrite',s=>s.delete(e.id));
+  await q('pages','readwrite',s=>s.delete(pageId));pageId=null;resetForm();await loadPages();};
+ 
+/* ---------- render ---------- */
+async function render(){
+  const es=(await q('entries','readonly',s=>s.index('page').getAll(pageId))).sort((a,b)=>a.ts-b.ts||a.id-b.id);
+  $('pgname').textContent=(pages.find(p=>p.id===pageId)||{}).name+' — Balance';
+  let tot=0,tc=0,td=0;
+  $('tb').innerHTML=es.map(e=>{
+    if(e.type==='credit'){tot+=e.amt;tc+=e.amt}else{tot-=e.amt;td+=e.amt}
+    return `<tr><td>${e.img?`<img class="th" src="${e.img}" data-z alt="">`:'—'}</td>
+    <td>${fmt(e.ts)}</td><td>${esc(e.name)}</td>
+    <td class="${e.type==='credit'?'c':'d'}">${e.type==='credit'?'Credit':'Debit'}</td>
+    <td class="n ${e.type==='credit'?'c':'d'}">${money(e.amt)}</td><td class="n">${money(tot)}</td>
+    <td><button data-e="${e.id}">Edit</button> <button data-d="${e.id}">Delete</button></td></tr>`;}).join('');
+  $('empty').style.display=es.length?'none':'block';
+  $('bal').textContent='₹ '+money(tot);$('bal').className=tot<0?'d':'';
+  $('tc').textContent=money(tc);$('td').textContent=money(td);
+  const names=[...new Set(es.map(e=>e.name))].reverse();
+  $('nl').innerHTML=names.map(n=>`<option value="${esc(n)}">`).join('');
+  $('chips').innerHTML=names.slice(0,12).map(n=>`<button class="chip" data-n="${esc(n)}">${esc(n)}</button>`).join('');
+}
+$('tb').onclick=async e=>{
+  const t=e.target;
+  if(t.dataset.z!==undefined){$('lb').firstElementChild.src=t.src;$('lb').style.display='flex';}
+  if(t.dataset.d&&confirm('Ye entry delete karein?')){await q('entries','readwrite',s=>s.delete(+t.dataset.d));if(editId==+t.dataset.d)resetForm();render();}
+  if(t.dataset.e){const x=await q('entries','readonly',s=>s.get(+t.dataset.e));
+    editId=x.id;$('name').value=x.name;$('amt').value=x.amt;setType(x.type);$('dt').value=fmt(x.ts);dirty=true;
+    editImg=img=x.img||'';showPv();$('save').textContent='Update entry';$('cancel').style.display='';$('edmode').style.display='';
+    scrollTo({top:0,behavior:'smooth'});}
+};
+$('lb').onclick=()=>$('lb').style.display='none';
+$('chips').onclick=e=>{if(e.target.dataset.n){$('name').value=e.target.dataset.n;setField('type');}};
+ 
+/* ---------- form ---------- */
+function setType(t){type=t;$('bc').classList.toggle('on',t==='credit');$('bd').classList.toggle('on',t==='debit');}
+$('bc').onclick=()=>setType('credit');$('bd').onclick=()=>setType('debit');
+function setField(f){field=f;document.querySelectorAll('.f[data-k]').forEach(d=>d.classList.toggle('act',d.dataset.k===f));}
+['name','amt'].forEach(k=>$(k).addEventListener('focus',()=>setField(k)));
+$('dt').addEventListener('input',()=>dirty=true);
+function showPv(){$('pv').style.display=img?'block':'none';$('pv').src=img||'';}
+$('img').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{const i=new Image();i.onload=()=>{const k=Math.min(1,640/Math.max(i.width,i.height));
+    const c=document.createElement('canvas');c.width=i.width*k;c.height=i.height*k;c.getContext('2d').drawImage(i,0,0,c.width,c.height);
+    img=c.toDataURL('image/jpeg',.72);showPv();};i.src=r.result;};r.readAsDataURL(f);};
+function resetForm(){editId=null;editImg=img='';dirty=false;$('name').value='';$('amt').value='';$('img').value='';setType('credit');showPv();
+  $('save').textContent='Save entry';$('cancel').style.display='none';$('edmode').style.display='none';tick();setField('name');}
+$('cancel').onclick=resetForm;
+function tick(){if(!dirty&&editId==null)$('dt').value=fmt(Date.now());}
+setInterval(tick,1000);
+ 
+async function save(){
+  const name=$('name').value.trim(),amt=parseFloat($('amt').value);
+  if(!name){say('Naam khali hai.');setField('name');$('name').focus();return false;}
+  if(!(amt>0)){say('Amount sahi daalo.');setField('amt');$('amt').focus();return false;}
+  let ts=Date.now();
+  if(dirty||editId!=null){ts=parseDT($('dt').value);if(!ts){say('Date format: dd/mm/yyyy hh:mm:ss am/pm');return false;}}
+  const rec={page:pageId,ts,name,type,amt,img};
+  if(editId!=null)rec.id=editId;
+  await q('entries','readwrite',s=>s.put(rec));
+  resetForm();await render();say('Entry save ho gayi ✔');if(listening)afterSave();return true;
+}
+$('save').onclick=save;
+ 
+/* ---------- galti sudhaar list ---------- */
+async function loadFixes(){fixes=await q('fixes','readonly',s=>s.getAll());
+  $('fxl').innerHTML=fixes.map(f=>`<div class="fx"><span>${esc(f.from)} → <b>${esc(f.to)}</b></span><button data-x="${esc(f.from)}">Hatao</button></div>`).join('')||'<div class="note">Abhi khali.</div>';}
+$('fadd').onclick=async()=>{const a=$('fa').value.trim().toLowerCase(),b=$('fb').value.trim();if(!a||!b)return;
+  await q('fixes','readwrite',s=>s.put({from:a,to:b}));$('fa').value=$('fb').value='';loadFixes();};
+$('fxl').onclick=async e=>{if(e.target.dataset.x){await q('fixes','readwrite',s=>s.delete(e.target.dataset.x));loadFixes();}};
+const applyFix=t=>{fixes.forEach(f=>{t=t.replace(new RegExp('(^|\\s)'+f.from.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?=\\s|$)','gi'),'$1'+f.to);});return t;};
+ 
+/* ---------- voice ---------- */
+const say=t=>$('heard').textContent=t;
+const SEP=/((?<![\p{L}\p{M}])(?:comma|next|agla|agle|aage|save|सेव|अगला|अगले|आगे|कॉमा|कौमा|कमा|नेक्स्ट|ਅਗਲਾ)(?![\p{L}\p{M}])|,)/giu;
+const HI='०१२३४५६७८९';
+function amountFrom(s){
+  s=s.replace(/[०-९]/g,c=>HI.indexOf(c));
+  const m=s.replace(/,/g,'').match(/\d+(\.\d+)?/);if(!m)return null;let n=parseFloat(m[0]);
+  if(/lakh|lac|लाख/i.test(s))n*=100000;else if(/hazaar|hazar|thousand|हज़ार|हजार|ਹਜ਼ਾਰ|\bk\b/i.test(s))n*=1000;else if(/\bsau\b|hundred|सौ/i.test(s))n*=100;
+  return n;}
+function typeFrom(s){
+  if(/credit|jama|jmaa|aaya|mila|mile|received|क्रेडिट|जमा|आया|मिला|मिले|ਜਮ੍ਹਾ|ਕ੍ਰੈਡਿਟ/i.test(s))return'credit';
+  if(/debit|udhar|udhaar|diya|gaya|gayi|paid|डेबिट|उधार|दिया|गया|गए|ਡੈਬਿਟ|ਉਧਾਰ/i.test(s))return'debit';return null;}
+function put(text){
+  text=text.trim();if(!text)return;
+  if(field==='name'){const v=applyFix(text);$('name').value=v.replace(/(^|\s)\S/g,c=>c.toUpperCase());}
+  else if(field==='type'){const t=typeFrom(text);if(t)setType(t);}
+  else if(field==='amt'){const n=amountFrom(text);if(n!=null)$('amt').value=n;}
+}
+async function next(){
+  const i=ORDER.indexOf(field);
+  if(i<ORDER.length-1)setField(ORDER[i+1]);else await save();
+}
+async function handle(txt){
+  const parts=txt.split(SEP).filter(x=>x!==undefined);
+  // split with capture group returns separators too; detect them by regex test
+  for(const p of parts){
+    if(!p)continue;
+    if(!listening||mode==='wait')break;
+    const isSep=/^(comma|next|agla|agle|aage|save|सेव|अगला|अगले|आगे|कॉमा|कौमा|कमा|नेक्स्ट|ਅਗਲਾ|,)$/i.test(p.trim());
+    if(isSep)await next();else put(p);
+  }
+}
+const STOP=/^\s*(stop|stop karo|band|band karo|bandh karo|mic band|mic off|ruko|बंद|बंद करो|माइक बंद|रुको|ਬੰਦ|ਬੰਦ ਕਰੋ)[.!\s]*$/i;
+const START=/(^|\s)(start|shuru|shuru karo|mic on|शुरू|शुरु|चालू|ਸ਼ੁਰੂ)(\s|$|[.!])/i;
+function ui(){const m=$('mic');
+  if(!listening){m.classList.remove('live');m.textContent='🎤 Voice shuru';}
+  else if(mode==='wait'){m.classList.remove('live');m.textContent='👂 "start" bolo (band: tap)';}
+  else{m.classList.add('live');m.textContent='⏹ Voice band';}}
+function stopVoice(){listening=false;mode='entry';try{rec&&rec.stop();}catch(e){}ui();}
+function afterSave(){
+  if($('hf').checked){mode='wait';ui();say('Entry save ✔ — dobara shuru karne ke liye "start" bolo, band karne ke liye "band".');}
+  else{stopVoice();say('Entry save ✔ — mic band.');}}
+function route(t){
+  say('Suna: '+t);const s=t.trim();
+  if(STOP.test(s)){stopVoice();say('Mic band.');return;}
+  if(mode==='wait'){if(START.test(s)){mode='entry';setField('name');ui();say('Bolo: naam → next → credit/debit → next → rakam → next');}return;}
+  handle(t);}
+function startVoice(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){say('Is browser mein voice support nahi hai. Chrome (Android/PC) use karo.');return;}
+  rec=new SR();rec.lang=$('lang').value;rec.continuous=true;rec.interimResults=true;
+  rec.onresult=e=>{let interim='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const t=e.results[i][0].transcript;
+      if(e.results[i].isFinal)route(t);else if(mode==='entry')interim+=t;}
+    if(interim)say('… '+interim);};
+  rec.onerror=e=>{if(e.error==='not-allowed'||e.error==='service-not-allowed'){listening=false;say('Mic ki permission do.');}
+    else if(e.error==='network'){$('vnote').textContent='Offline voice ke liye phone mein Hindi/English offline speech pack install karo (Google app → Settings → Voice → Offline speech recognition). Tab tak naam/amount type kar sakte ho.';}};
+  rec.onend=()=>{if(listening){try{rec.start()}catch(e){}}else ui();};
+  listening=true;mode='entry';rec.start();setField('name');ui();
+}
+$('mic').onclick=()=>{if(listening)stopVoice();else startVoice();};
+$('lang').onchange=()=>{if(listening){stopVoice();setTimeout(startVoice,400);}};
+ 
+/* ---------- init ---------- */
+(async()=>{db=await openDB();await loadFixes();await loadPages();resetForm();})();
+</script>
+</body>
+</html>
+ 
+Claude finished the response
+Chat shown beside the panel
