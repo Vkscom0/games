@@ -9,6 +9,12 @@ Claude
 
 
 
+
+
+
+
+
+
 Transaction entry · HTML
 <!DOCTYPE html>
 <html lang="hi">
@@ -113,17 +119,41 @@ async function seed(){
  
 /* ---------- Voice ---------- */
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-let rec=null,on=false,base='';
+let rec=null,on=false,base='',lastFinal='';
+function startRec(){
+  rec=new SR();rec.lang='hi-IN';rec.continuous=false;rec.interimResults=true;
+  rec.onresult=e=>{
+    const r=e.results[e.results.length-1];
+    const t=r[0].transcript.trim();
+    if(r.isFinal){
+      // दोहराव रोकना: वही text या पुराना text दोबारा आए तो न जोड़ें
+      if(t&&t!==lastFinal){
+        let add=t;
+        if(lastFinal&&t.startsWith(lastFinal))add=t.slice(lastFinal.length).trim();
+        if(add)base+=(base&&!base.endsWith(' ')?' ':'')+add;
+        lastFinal=t;
+      }
+      txt.value=base;
+    }else{
+      txt.value=base+(base?' ':'')+t;
+    }
+  };
+  rec.onstart=()=>{$('mic').classList.add('on');$('mic').textContent='⏹ रोको';msg.textContent='सुन रहा हूँ…';};
+  rec.onend=()=>{
+    if(on){setTimeout(()=>{if(on)try{startRec()}catch(e){}},200);} // अपने आप दोबारा चालू
+    else{$('mic').classList.remove('on');$('mic').textContent='🎤 बोलो';msg.textContent='';}
+  };
+  rec.onerror=e=>{
+    if(e.error==='no-speech'||e.error==='aborted')return;
+    on=false;msg.textContent='Mic error: '+e.error;
+  };
+  rec.start();
+}
 $('mic').onclick=()=>{
   if(!SR){msg.textContent='इस browser में voice नहीं चलता। Chrome इस्तेमाल करो या टाइप करो।';return;}
-  if(on){rec.stop();return;}
-  rec=new SR();rec.lang='hi-IN';rec.continuous=true;rec.interimResults=true;
-  base=txt.value?txt.value+' ':'';
-  rec.onresult=e=>{let s='';for(let i=0;i<e.results.length;i++)s+=e.results[i][0].transcript+' ';txt.value=base+s.trim();};
-  rec.onstart=()=>{on=true;$('mic').classList.add('on');$('mic').textContent='⏹ रोको';msg.textContent='सुन रहा हूँ…';};
-  rec.onend=()=>{on=false;$('mic').classList.remove('on');$('mic').textContent='🎤 बोलो';msg.textContent='';};
-  rec.onerror=e=>{msg.textContent='Mic error: '+e.error;};
-  rec.start();
+  if(on){on=false;rec.stop();return;}
+  on=true;base=txt.value.trim();lastFinal='';
+  startRec();
 };
  
 /* ---------- Analysis ---------- */
