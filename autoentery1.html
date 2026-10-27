@@ -1,0 +1,279 @@
+Claude
+
+
+
+
+
+
+
+
+
+
+
+
+Transaction entry · HTML
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Transaction Entry</title>
+<style>
+*{box-sizing:border-box}
+body{font-family:system-ui,Arial,sans-serif;margin:0;background:#f3f4f6;color:#111}
+.wrap{max-width:820px;margin:auto;padding:12px}
+h1{font-size:20px;margin:6px 0 12px}
+.card{background:#fff;border-radius:10px;padding:12px;margin-bottom:12px;box-shadow:0 1px 3px #0002}
+textarea,input,select{width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:15px}
+button{padding:8px 12px;border:0;border-radius:6px;background:#2563eb;color:#fff;font-size:14px;cursor:pointer}
+button.g{background:#6b7280}button.r{background:#dc2626}button.ok{background:#16a34a}
+.row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;align-items:center}
+.row>*{flex:0 0 auto}.row input,.row select{flex:1 1 120px;width:auto}
+.item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #eee}
+.item:last-child{border:0}
+.debit{color:#dc2626;font-weight:700}.credit{color:#16a34a;font-weight:700}
+.tag{font-size:12px;padding:2px 6px;border-radius:4px;color:#fff}
+.tag.debit{background:#dc2626;color:#fff}.tag.credit{background:#16a34a;color:#fff}
+.sum{display:flex;gap:10px;flex-wrap:wrap;font-weight:600}
+details summary{cursor:pointer;font-weight:600}
+.small{font-size:12px;color:#666}
+#mic.on{background:#dc2626}
+.pv{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:6px;margin-top:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>💰 Transaction Entry (आवाज़ से)</h1>
+ 
+<div class="card">
+  <textarea id="txt" rows="4" placeholder="यहाँ बोलो या लिखो… जैसे: ramesh se mujhe 500 aaye aur suresh ko 200 diye"></textarea>
+  <div class="row">
+    <button id="mic">🎤 बोलो</button>
+    <button onclick="analyze()" class="ok">🔍 Analyze</button>
+    <button class="g" onclick="txt.value='';pv.innerHTML=''">Clear</button>
+  </div>
+  <div class="small" id="msg"></div>
+  <div id="pv"></div>
+</div>
+ 
+<div class="card">
+  <div class="sum"><span class="credit" id="tc"></span><span class="debit" id="td"></span><span id="tb"></span></div>
+</div>
+ 
+<div class="card"><b>Entries</b><div id="list"></div></div>
+ 
+<div class="card">
+<details><summary>🔤 शब्द सुधार (गलत शब्द → सही शब्द)</summary>
+  <div class="small">बोलते समय जो शब्द गलत लिखा आए (जैसे ai) उसे यहाँ सही शब्द (aaye) से जोड़ दो।</div>
+  <div class="row"><input id="cw" placeholder="गलत शब्द (ai)"><input id="cr" placeholder="सही शब्द (aaye)"><button onclick="addCorr()">Add</button></div>
+  <div id="clist"></div>
+</details>
+</div>
+ 
+<div class="card">
+<details><summary>🏷️ Keywords (Credit / Debit तय करने के लिए)</summary>
+  <div class="small">phrase जितना लंबा होगा उतनी पहले पहचान होगी (mujhe aaye &gt; aaye)।</div>
+  <div class="row"><input id="kp" placeholder="phrase (mujhe aaye)"><select id="kt"><option value="credit">Credit (हरा)</option><option value="debit">Debit (लाल)</option></select><button onclick="addKw()">Add</button></div>
+  <div id="klist"></div>
+</details>
+</div>
+</div>
+ 
+<dialog id="dlg" style="border:0;border-radius:10px;padding:16px;width:min(360px,92vw)">
+  <b>Entry Edit</b>
+  <div class="row"><input id="en" placeholder="नाम"></div>
+  <div class="row"><input id="ea" type="number" placeholder="रकम"><select id="et"><option value="credit">Credit</option><option value="debit">Debit</option></select></div>
+  <div class="row"><input id="es" placeholder="बोली हुई script"></div>
+  <div class="row"><button class="ok" onclick="saveEdit()">Save</button><button class="g" onclick="dlg.close()">Cancel</button></div>
+</dialog>
+ 
+<script>
+const $=id=>document.getElementById(id);
+const txt=$('txt'),pv=$('pv'),msg=$('msg'),dlg=$('dlg');
+let db,editId=null,parsed=[];
+ 
+/* ---------- IndexedDB ---------- */
+function openDB(){return new Promise((res,rej)=>{
+  const r=indexedDB.open('txnDB',1);
+  r.onupgradeneeded=e=>{const d=e.target.result;
+    ['entries','corr','kw'].forEach(s=>d.createObjectStore(s,{keyPath:'id',autoIncrement:true}));};
+  r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});}
+const tx=(s,m)=>db.transaction(s,m).objectStore(s);
+const all=s=>new Promise(r=>{const q=tx(s,'readonly').getAll();q.onsuccess=()=>r(q.result)});
+const put=(s,o)=>new Promise(r=>{const q=tx(s,'readwrite').put(o);q.onsuccess=()=>r(q.result)});
+const del=(s,id)=>new Promise(r=>{const q=tx(s,'readwrite').delete(id);q.onsuccess=()=>r()});
+ 
+async function seed(){
+  if((await all('corr')).length===0){
+    for(const [w,r] of [['ai','aaye'],['ae','aaye'],['aye','aaye'],['आई','आए'],['die','diye'],['दीये','दिए'],['दिये','दिए']]) await put('corr',{wrong:w,right:r});
+  }
+  if((await all('kw')).length===0){
+    const k=[['mujhe aaye','credit'],['mujhe mile','credit'],['mujhe diye','credit'],['mujhe diya','credit'],['मुझे आए','credit'],['मुझे मिले','credit'],['मुझे दिए','credit'],['aaye','credit'],['mile','credit'],['received','credit'],['jama','credit'],['जमा','credit'],
+      ['use diye','debit'],['usko diye','debit'],['use diya','debit'],['उसे दिए','debit'],['उसको दिए','debit'],['diye','debit'],['diya','debit'],['दिए','debit'],['दिया','debit'],['gaye','debit'],['kharch','debit'],['खर्च','debit'],['paid','debit']];
+    for(const [p,t] of k) await put('kw',{phrase:p,type:t});
+  }
+}
+ 
+/* ---------- Voice ---------- */
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+let rec=null,on=false,base='',lastFinal='';
+function stopVoice(){on=false;try{rec&&rec.abort()}catch(e){}$('mic').classList.remove('on');$('mic').textContent='🎤 बोलो';msg.textContent='';}
+function startRec(){
+  rec=new SR();rec.lang='hi-IN';rec.continuous=false;rec.interimResults=true;
+  rec.onresult=e=>{
+    const r=e.results[e.results.length-1];
+    const t=r[0].transcript.trim();
+    if(r.isFinal){
+      // दोहराव रोकना: वही text या पुराना text दोबारा आए तो न जोड़ें
+      if(t&&t!==lastFinal){
+        let add=t;
+        if(lastFinal&&t.startsWith(lastFinal))add=t.slice(lastFinal.length).trim();
+        if(add)base+=(base&&!base.endsWith(' ')?' ':'')+add;
+        lastFinal=t;
+      }
+      txt.value=base;
+    }else{
+      txt.value=base+(base?' ':'')+t;
+    }
+  };
+  rec.onstart=()=>{$('mic').classList.add('on');$('mic').textContent='⏹ रोको';msg.textContent='सुन रहा हूँ…';};
+  rec.onend=()=>{
+    if(on){setTimeout(()=>{if(on)try{startRec()}catch(e){}},200);} // अपने आप दोबारा चालू
+    else{$('mic').classList.remove('on');$('mic').textContent='🎤 बोलो';msg.textContent='';}
+  };
+  rec.onerror=e=>{
+    if(e.error==='no-speech'||e.error==='aborted')return;
+    on=false;msg.textContent='Mic error: '+e.error;
+  };
+  rec.start();
+}
+$('mic').onclick=()=>{
+  if(!SR){msg.textContent='इस browser में voice नहीं चलता। Chrome इस्तेमाल करो या टाइप करो।';return;}
+  if(on){on=false;rec.stop();return;}
+  on=true;base=txt.value.trim();lastFinal='';
+  startRec();
+};
+ 
+/* ---------- Analysis ---------- */
+const MULT={hazar:1000,hazaar:1000,'हज़ार':1000,'हजार':1000,sau:100,'सौ':100,lakh:100000,'लाख':100000};
+const STOP=new Set(['ko','se','ne','ka','ki','ke','rupaye','rupay','rupees','rs','₹','को','से','ने','का','की','के','रुपये','रुपए','रू','mujhe','use','usko','मुझे','उसे','उसको','hai','hain','है','हैं','aur','और','phir','फिर']);
+ 
+async function analyze(){
+  stopVoice();
+  const corr=await all('corr'),kws=(await all('kw')).sort((a,b)=>b.phrase.length-a.phrase.length);
+  let t=txt.value.trim();
+  if(!t){msg.textContent='पहले कुछ बोलो या लिखो।';return;}
+  const map={};corr.forEach(c=>map[c.wrong.toLowerCase()]=c.right);
+  t=t.split(/(\s+)/).map(w=>map[w.toLowerCase()]??w).join('');
+  txt.value=t;
+  const segs=t.split(/[,।.\n]|\s(?:aur|phir|और|फिर)\s/i).map(s=>s.trim()).filter(Boolean);
+  parsed=[];
+  for(const seg of segs){
+    const low=seg.toLowerCase();
+    const k=kws.find(k=>low.includes(k.phrase.toLowerCase()));
+    const words=seg.split(/\s+/);
+    let amount=0,usedIdx=new Set();
+    for(let i=0;i<words.length;i++){
+      const n=parseFloat(words[i].replace(/[₹,]/g,''));
+      if(!isNaN(n)&&/\d/.test(words[i])){
+        amount=n;usedIdx.add(i);
+        const m=MULT[(words[i+1]||'').toLowerCase()];
+        if(m){amount*=m;usedIdx.add(i+1);}
+        break;
+      }
+    }
+    if(!amount)continue;
+    let rest=words.filter((w,i)=>!usedIdx.has(i)).join(' ');
+    if(k)rest=rest.replace(new RegExp(k.phrase.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'i'),' ');
+    const name=rest.split(/\s+/).filter(w=>w&&!STOP.has(w.toLowerCase())).join(' ')||'Unknown';
+    parsed.push({name,amount,type:k?k.type:'debit',known:!!k,script:seg});
+  }
+  renderPreview();
+}
+function renderPreview(){
+  if(!parsed.length){pv.innerHTML='<div class="small">कोई रकम नहीं मिली। रकम अंकों में बोलो/लिखो (जैसे 500)।</div>';return;}
+  pv.innerHTML='<b>Preview (बदल सकते हो):</b>'+parsed.map((p,i)=>`
+   <div class="pv">
+     <input value="${esc(p.name)}" onchange="parsed[${i}].name=this.value">
+     <input type="number" value="${p.amount}" onchange="parsed[${i}].amount=+this.value">
+     <select onchange="parsed[${i}].type=this.value">
+       <option value="credit"${p.type=='credit'?' selected':''}>Credit</option>
+       <option value="debit"${p.type=='debit'?' selected':''}>Debit</option></select>
+   </div><div class="small">🗣 ${esc(p.script||'')}</div>${p.known?'':'<div class="small" style="color:#b45309">⚠ keyword नहीं मिला, type जाँच लो</div>'}`).join('')+
+   '<div class="row"><button class="ok" onclick="saveParsed()">✔ सब Save करो</button></div>';
+}
+async function saveParsed(){
+  stopVoice();
+  for(const p of parsed) await put('entries',{name:p.name,amount:p.amount,type:p.type,script:p.script||'',date:new Date().toISOString()});
+  parsed=[];pv.innerHTML='';txt.value='';base='';lastFinal='';loadEntries();
+}
+ 
+/* ---------- Entries ---------- */
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+async function loadEntries(){
+  const asc=(await all('entries')).sort((a,b)=>a.id-b.id);
+  let c=0,d=0;
+  asc.forEach(x=>{x.type=='credit'?c+=x.amount:d+=x.amount;x.bal=c-d;});
+  const e=asc.reverse();
+  $('list').innerHTML=e.length?e.map(x=>`<div class="item"><div style="flex:1;min-width:0"><b>${esc(x.name)}</b>
+    <div class="small">${new Date(x.date).toLocaleString('en-IN')}</div>
+    ${x.script?`<div class="small">🗣 ${esc(x.script)}</div>`:''}</div>
+    <div style="text-align:right"><div class="${x.type}">${x.type=='credit'?'+':'−'} ₹${x.amount}</div>
+    <div class="small">Balance बाद में: <b class="${x.bal>=0?'credit':'debit'}">₹${x.bal}</b></div></div>
+    <div><button onclick="openEdit(${x.id})">Edit</button> <button class="r" onclick="delEntry(${x.id})">Delete</button></div></div>`).join(''):'<div class="small">अभी कोई entry नहीं।</div>';
+  $('tc').textContent='Credit: ₹'+c;$('td').textContent='Debit: ₹'+d;
+  const b=c-d;$('tb').innerHTML='Current Balance: <span class="'+(b>=0?'credit':'debit')+'">₹'+b+'</span>';
+}
+async function openEdit(id){
+  const x=(await all('entries')).find(e=>e.id===id);editId=id;
+  $('en').value=x.name;$('ea').value=x.amount;$('et').value=x.type;$('es').value=x.script||'';dlg.showModal();
+}
+async function saveEdit(){
+  const x=(await all('entries')).find(e=>e.id===editId);
+  x.name=$('en').value.trim()||'Unknown';x.amount=+$('ea').value;x.type=$('et').value;x.script=$('es').value.trim();
+  await put('entries',x);dlg.close();loadEntries();
+}
+async function delEntry(id){if(confirm('यह entry delete करें?')){await del('entries',id);loadEntries();}}
+ 
+/* ---------- Dictionary ---------- */
+async function loadCorr(){
+  const c=await all('corr');
+  $('clist').innerHTML=c.map(x=>`<div class="item"><span>${esc(x.wrong)} → <b>${esc(x.right)}</b></span>
+   <span><button onclick="editCorr(${x.id})">Edit</button> <button class="r" onclick="delCorr(${x.id})">Delete</button></span></div>`).join('');
+}
+async function addCorr(){
+  const w=$('cw').value.trim(),r=$('cr').value.trim();if(!w||!r)return;
+  await put('corr',{wrong:w,right:r});$('cw').value=$('cr').value='';loadCorr();
+}
+async function editCorr(id){
+  const x=(await all('corr')).find(e=>e.id===id);
+  const w=prompt('गलत शब्द',x.wrong);if(w===null)return;
+  const r=prompt('सही शब्द',x.right);if(r===null)return;
+  x.wrong=w.trim();x.right=r.trim();await put('corr',x);loadCorr();
+}
+async function delCorr(id){await del('corr',id);loadCorr();}
+ 
+async function loadKw(){
+  const k=(await all('kw')).sort((a,b)=>a.type.localeCompare(b.type));
+  $('klist').innerHTML=k.map(x=>`<div class="item"><span>${esc(x.phrase)} <span class="tag ${x.type}">${x.type}</span></span>
+   <span><button onclick="editKw(${x.id})">Edit</button> <button class="r" onclick="delKw(${x.id})">Delete</button></span></div>`).join('');
+}
+async function addKw(){
+  const p=$('kp').value.trim();if(!p)return;
+  await put('kw',{phrase:p,type:$('kt').value});$('kp').value='';loadKw();
+}
+async function editKw(id){
+  const x=(await all('kw')).find(e=>e.id===id);
+  const p=prompt('Phrase',x.phrase);if(p===null)return;
+  const t=prompt('Type लिखो: credit या debit',x.type);if(t===null)return;
+  x.phrase=p.trim();x.type=t.trim().toLowerCase()==='credit'?'credit':'debit';
+  await put('kw',x);loadKw();
+}
+async function delKw(id){await del('kw',id);loadKw();}
+ 
+/* ---------- Init ---------- */
+(async()=>{db=await openDB();await seed();loadEntries();loadCorr();loadKw();})();
+</script>
+</body>
+</html>
+ 
