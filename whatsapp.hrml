@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WhatsApp Sender</title>
+<style>
+  :root{
+    --bg:#eef3ee; --surface:#ffffff; --ink:#17251c; --muted:#5f7266;
+    --line:#d3ddd5; --brand:#1f7a4d; --brand-ink:#ffffff; --danger:#b3382c;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#101a14; --surface:#18251d; --ink:#e6f0e8; --muted:#93a89a;
+      --line:#2b3d32; --brand:#3fbf80; --brand-ink:#08140d; --danger:#ff8a7a; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.5 "Segoe UI",system-ui,-apple-system,sans-serif}
+  main{max-width:640px;margin:0 auto;padding:20px 16px 48px}
+  h1{font-size:1.5rem;margin:8px 0 4px}
+  h2{font-size:1.1rem;margin:28px 0 10px}
+  .sub{color:var(--muted);margin:0 0 18px}
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px}
+  label{display:block;font-weight:600;margin:12px 0 4px}
+  input[type=tel],textarea,input[type=file]{
+    width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;
+    background:var(--bg);color:var(--ink);font:inherit}
+  textarea{min-height:96px;resize:vertical}
+  input:focus-visible,textarea:focus-visible,button:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
