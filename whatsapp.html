@@ -27,3 +27,211 @@
     background:var(--bg);color:var(--ink);font:inherit}
   textarea{min-height:96px;resize:vertical}
   input:focus-visible,textarea:focus-visible,button:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+  .hint{font-size:.85rem;color:var(--muted);margin-top:4px}
+  #preview{display:none;max-width:100%;max-height:220px;border-radius:8px;margin-top:10px;border:1px solid var(--line)}
+  .row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+  button{font:inherit;font-weight:600;border-radius:8px;padding:10px 16px;cursor:pointer;
+    border:1px solid var(--brand);background:var(--brand);color:var(--brand-ink)}
+  button.alt{background:transparent;color:var(--brand)}
+  button.del{border-color:var(--danger);color:var(--danger);background:transparent;padding:6px 10px;font-size:.85rem}
+  #status{margin-top:12px;min-height:1.4em;color:var(--muted);font-size:.92rem}
+  .item{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px}
+  .item img{max-width:100%;max-height:140px;border-radius:6px;display:block;margin:8px 0}
+  .meta{font-size:.82rem;color:var(--muted)}
+  .item p{margin:6px 0;white-space:pre-wrap;word-break:break-word}
+  .empty{color:var(--muted);text-align:center;padding:20px}
+</style>
+</head>
+<body>
+<main>
+  <h1>WhatsApp par message + image bhejein</h1>
+  <p class="sub">Number, message aur photo chunein. Har message IndexedDB mein save hota hai.</p>
+
+  <div class="panel">
+    <label for="phone">WhatsApp number (country code ke saath)</label>
+    <input id="phone" type="tel" inputmode="tel" placeholder="919876543210">
+    <div class="hint">Bina + ya space ke. Jaise India: 91XXXXXXXXXX</div>
+
+    <label for="msg">Message</label>
+    <textarea id="msg" placeholder="Yahan message likhein"></textarea>
+
+    <label for="img">Image (optional)</label>
+    <input id="img" type="file" accept="image/*">
+    <img id="preview" alt="Chuni hui image ka preview">
+
+    <div class="row">
+      <button id="sendBtn">WhatsApp par bhejein</button>
+      <button id="saveBtn" class="alt">Sirf save karein</button>
+    </div>
+    <div id="status" role="status" aria-live="polite"></div>
+  </div>
+
+  <h2>Saved messages</h2>
+  <div id="list"></div>
+</main>
+
+<script>
+const DB_NAME = "wa_sender_db", STORE = "messages";
+let db, currentFile = null;
+
+const $ = id => document.getElementById(id);
+const setStatus = t => { $("status").textContent = t; };
+
+/* ---------- IndexedDB ---------- */
+function openDB(){
+  return new Promise((res, rej) => {
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = () => {
+      req.result.createObjectStore(STORE, { keyPath: "id", autoIncrement: true });
+    };
+    req.onsuccess = () => res(req.result);
+    req.onerror = () => rej(req.error);
+  });
+}
+function tx(mode){ return db.transaction(STORE, mode).objectStore(STORE); }
+function addRecord(rec){
+  return new Promise((res, rej) => {
+    const r = tx("readwrite").add(rec);
+    r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+  });
+}
+function getAll(){
+  return new Promise((res, rej) => {
+    const r = tx("readonly").getAll();
+    r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+  });
+}
+function getOne(id){
+  return new Promise((res, rej) => {
+    const r = tx("readonly").get(id);
+    r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+  });
+}
+function removeRecord(id){
+  return new Promise((res, rej) => {
+    const r = tx("readwrite").delete(id);
+    r.onsuccess = () => res(); r.onerror = () => rej(r.error);
+  });
+}
+
+/* ---------- Helpers ---------- */
+const cleanPhone = v => v.replace(/\D/g, "");
+
+function buildRecord(){
+  const phone = cleanPhone($("phone").value);
+  const message = $("msg").value.trim();
+  if (phone.length < 8){ setStatus("Sahi WhatsApp number daalein."); return null; }
+  if (!message && !currentFile){ setStatus("Message likhein ya image chunein."); return null; }
+  return { phone, message, image: currentFile, createdAt: Date.now() };
+}
+
+async function saveRecord(){
+  const rec = buildRecord();
+  if (!rec) return null;
+  rec.id = await addRecord(rec);
+  await render();
+  return rec;
+}
+
+async function sendRecord(rec){
+  const text = rec.message || "";
+  // Image ke saath: Web Share API (mobile par WhatsApp chunein)
+  if (rec.image){
+    const file = new File([rec.image], rec.image.name || "image.jpg", { type: rec.image.type });
+    if (navigator.canShare && navigator.canShare({ files: [file] })){
+      try {
+        await navigator.share({ files: [file], text });
+        setStatus("Share menu mein WhatsApp chunein aur chat select karein.");
+        return;
+      } catch (e){
+        if (e.name === "AbortError"){ setStatus("Share cancel ho gaya."); return; }
+      }
+    }
+    // Fallback: image download + text WhatsApp mein
+    const url = URL.createObjectURL(file);
+    const a = document.createElement("a");
+    a.href = url; a.download = file.name; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    setStatus("Is device par image seedhi nahi bhej sakte. Image download ho gayi, chat mein attach kar lein.");
+  }
+  window.open(`https://wa.me/${rec.phone}?text=${encodeURIComponent(text)}`, "_blank");
+}
+
+/* ---------- Render ---------- */
+async function render(){
+  const items = (await getAll()).sort((a, b) => b.createdAt - a.createdAt);
+  const list = $("list");
+  list.innerHTML = "";
+  if (!items.length){
+    list.innerHTML = '<div class="empty">Abhi koi saved message nahi hai.</div>';
+    return;
+  }
+  for (const it of items){
+    const box = document.createElement("div");
+    box.className = "item";
+
+    const meta = document.createElement("div");
+    meta.className = "meta";
+    meta.textContent = `+${it.phone} • ${new Date(it.createdAt).toLocaleString()}`;
+    box.appendChild(meta);
+
+    if (it.message){
+      const p = document.createElement("p");
+      p.textContent = it.message;
+      box.appendChild(p);
+    }
+    if (it.image){
+      const im = document.createElement("img");
+      im.alt = "Saved image";
+      im.src = URL.createObjectURL(it.image);
+      im.onload = () => URL.revokeObjectURL(im.src);
+      box.appendChild(im);
+    }
+
+    const row = document.createElement("div");
+    row.className = "row";
+    const again = document.createElement("button");
+    again.className = "alt"; again.textContent = "Dobara bhejein";
+    again.onclick = async () => sendRecord(await getOne(it.id));
+    const del = document.createElement("button");
+    del.className = "del"; del.textContent = "Delete";
+    del.onclick = async () => { await removeRecord(it.id); render(); };
+    row.append(again, del);
+    box.appendChild(row);
+    list.appendChild(box);
+  }
+}
+
+/* ---------- Events ---------- */
+$("img").addEventListener("change", e => {
+  const f = e.target.files[0];
+  const pv = $("preview");
+  if (!f){ currentFile = null; pv.style.display = "none"; return; }
+  currentFile = f;
+  pv.src = URL.createObjectURL(f);
+  pv.style.display = "block";
+});
+
+function resetForm(){
+  $("msg").value = ""; $("img").value = "";
+  currentFile = null; $("preview").style.display = "none";
+}
+
+$("saveBtn").onclick = async () => {
+  const rec = await saveRecord();
+  if (rec){ setStatus("Save ho gaya."); resetForm(); }
+};
+$("sendBtn").onclick = async () => {
+  const rec = await saveRecord();
+  if (!rec) return;
+  await sendRecord(rec);
+  resetForm();
+};
+
+(async () => {
+  try { db = await openDB(); await render(); }
+  catch (e){ setStatus("IndexedDB open nahi ho paya: " + e.message); }
+})();
+</script>
+</body>
+</html>
