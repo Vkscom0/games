@@ -94,13 +94,15 @@ dialog p{color:var(--sub);margin:0 0 4px;font-size:13px}
   <h2>Google Sheets sync</h2>
   <p>Paste your Apps Script Web app URL (ends with /exec).</p>
   <input id="url" placeholder="https://script.google.com/macros/s/.../exec">
-  <p style="margin-top:12px">Auto-reschedule overdue tasks</p>
+  <p style="margin-top:12px">Auto-move ALL overdue tasks by (days, 0 = off)</p>
   <input id="auto" type="number" min="0" placeholder="Days (0 = off)">
+  <p style="margin-top:12px">Default overdue days (for new tasks and the Move box)</p>
+  <input id="defdays" type="number" min="0" placeholder="e.g. 1">
   <div class="row"><span class="sp"></span><button class="btn" id="cancel">Cancel</button><button class="btn" id="save">Save</button></div>
 </dialog>
 
 <dialog id="due">
-  <h2>Due &amp; overdue tasks</h2>
+  <h2>Overdue tasks</h2>
   <div id="duelist"></div>
   <div class="row" style="margin-top:12px"><span class="sp"></span><button class="btn" data-a="dclose">Close</button></div>
 </dialog>
@@ -176,6 +178,7 @@ function addDays(n){
   return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
 }
 let AUTO = parseInt(store.get('gt-auto') || '0', 10);
+let DEFDAYS = Math.max(0, parseInt(store.get('gt-defdays') || '0', 10) || 0);
 function autoReschedule(){
   const p = x => String(x).padStart(2, '0');
   const ymd = d => d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
@@ -218,7 +221,7 @@ function taskHTML(t, showList){
       ${t.details ? `<div class="det">${linkify(t.details)}</div>` : ''}
       ${(t.subs || []).map(x => `<div class="sub ${x.done ? 'done' : ''}"><button class="chk sm" data-a="subtoggle" data-sid="${x.id}" aria-label="Toggle subtask">${x.done ? '&#10003;' : ''}</button><span>${esc(x.title)}</span></div>`).join('')}
       ${t.due ? `<span class="chip ${!t.done && isLate(t.due) ? 'late' : ''}">${fmtDate(t.due)}${t.auto ? ' &#8635;' : ''}</span>` : ''}
-      ${!t.done && isLate(t.due) ? `<div class="snz"><span>Move to today +</span><input class="dd" type="number" min="0" value="1" aria-label="Days"><span>days</span><button data-a="snoozen">Move</button></div>` : ''}
+      ${!t.done && isLate(t.due) ? `<div class="snz"><span>Move to today +</span><input class="dd" type="number" min="0" value="${DEFDAYS || 1}" aria-label="Days"><span>days</span><button data-a="snoozen">Move</button></div>` : ''}
     </div>
     <button class="star ${t.starred ? 'on' : ''}" data-a="star" aria-label="Star">${t.starred ? '&#9733;' : '&#9734;'}</button>
   </div>`;
@@ -326,7 +329,7 @@ document.addEventListener('click', e => {
   else if (a === 'toggle' && t) { t.done = !t.done; changed(); }
   else if (a === 'star' && t) { t.starred = !t.starred; changed(); }
   else if (a === 'edit' && t) { editing = t.id; adding = false; draft = { ...t, subs: (t.subs || []).map(x => ({ ...x })) }; render(); }
-  else if (a === 'add') { adding = true; editing = null; draft = { title: '', details: '', due: '', auto: 0, subs: [], list: cur }; render(); }
+  else if (a === 'add') { adding = true; editing = null; draft = { title: '', details: '', due: '', auto: DEFDAYS, subs: [], list: cur }; render(); }
   else if (a === 'cancel') { adding = false; editing = null; render(); }
   else if (a === 'commit') {
     const v = readForm();
@@ -376,7 +379,7 @@ document.addEventListener('keydown', e => {
 
 /* ---------- Due & overdue popup ---------- */
 function todayStr(){ const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
-function dueTasks(){ const t = todayStr(); return state.tasks.filter(x => !x.done && x.due && x.due <= t); }
+function dueTasks(){ const t = todayStr(); return state.tasks.filter(x => !x.done && x.due && x.due < t); }
 function renderDue(){
   const list = dueTasks(), today = todayStr();
   if (!list.length) { if ($('#due').open) $('#due').close(); return; }
@@ -384,7 +387,7 @@ function renderDue(){
     const days = Math.round((new Date(today + 'T12:00:00') - new Date(t.due + 'T12:00:00')) / 864e5);
     const tag = days > 0 ? `<span class="dtag">Overdue ${days} day${days > 1 ? 's' : ''}</span>` : 'Due today';
     return `<div class="drow" data-id="${t.id}"><div class="dt"><b>${esc(t.title)}</b><div class="det">${esc(t.list)} · ${tag} · ${fmtDate(t.due)}</div></div>
-      <div class="dctl"><span class="det">Today +</span><input class="dd" type="number" min="0" value="1" aria-label="Days"><span class="det">days</span><button class="btn" data-a="dmove">Move</button><button class="btn red" data-a="ddel">Delete</button></div></div>`;
+      <div class="dctl"><span class="det">Today +</span><input class="dd" type="number" min="0" value="${DEFDAYS || 1}" aria-label="Days"><span class="det">days</span><button class="btn" data-a="dmove">Move</button><button class="btn red" data-a="ddel">Delete</button></div></div>`;
   }).join('');
 }
 let dueShown = false;
@@ -395,11 +398,12 @@ function showDuePopup(){
 }
 
 /* ---------- Settings ---------- */
-$('#gear').onclick = () => { $('#url').value = SCRIPT_URL; $('#auto').value = String(AUTO); $('#dlg').showModal(); };
+$('#gear').onclick = () => { $('#url').value = SCRIPT_URL; $('#auto').value = String(AUTO); $('#defdays').value = String(DEFDAYS); $('#dlg').showModal(); };
 $('#cancel').onclick = () => $('#dlg').close();
 $('#save').onclick = async () => {
   SCRIPT_URL = $('#url').value.trim(); store.set('gt-url', SCRIPT_URL);
   AUTO = parseInt($('#auto').value, 10) || 0; store.set('gt-auto', String(AUTO));
+  DEFDAYS = Math.max(0, parseInt($('#defdays').value, 10) || 0); store.set('gt-defdays', String(DEFDAYS));
   $('#dlg').close();
   await pull(); autoReschedule();
 };
