@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tasks</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff;--fg:#202124;--sub:#5f6368;--line:#dadce0;--blue:#1a73e8;--hover:#f1f3f4;--sel:#e8f0fe;--star:#f9ab00}
+@media(prefers-color-scheme:dark){:root{--bg:#202124;--fg:#e8eaed;--sub:#9aa0a6;--line:#3c4043;--blue:#8ab4f8;--hover:#303134;--sel:#394457}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/20px Roboto,Arial,sans-serif}
+.app{max-width:640px;margin:0 auto;padding:12px 16px 80px}
+header{display:flex;align-items:center;gap:12px;height:56px}
+header h1{font:500 22px 'Google Sans',Roboto,sans-serif;margin:0;flex:1}
+.ic{border:0;background:none;color:var(--sub);width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:20px;display:grid;place-items:center}
+.ic:hover{background:var(--hover)}
+#sync{font-size:12px;color:var(--sub)}
+.tabs{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--line);scrollbar-width:none}
+.tab{border:0;background:none;color:var(--sub);font:500 14px 'Google Sans',Roboto,sans-serif;padding:10px 14px;cursor:pointer;white-space:nowrap;border-bottom:3px solid transparent}
+.tab:hover{background:var(--hover)}
+.tab.on{color:var(--blue);border-bottom-color:var(--blue)}
+.add{display:flex;align-items:center;gap:12px;border:0;background:none;color:var(--blue);font:500 14px 'Google Sans',Roboto,sans-serif;padding:14px 4px;cursor:pointer;width:100%;text-align:left}
+.add span{font-size:24px;line-height:20px;width:24px;text-align:center}
+.task{display:flex;gap:12px;padding:10px 4px;border-radius:8px;align-items:flex-start;cursor:pointer}
+.task:hover{background:var(--hover)}
+.chk{flex:none;width:20px;height:20px;margin-top:1px;border:2px solid var(--sub);border-radius:50%;background:none;cursor:pointer;padding:0;display:grid;place-items:center;color:#fff;font-size:12px;transition:all .15s}
+.chk:hover{border-color:var(--blue)}
+.done .chk{background:var(--blue);border-color:var(--blue)}
+.body{flex:1;min-width:0}
+.title{word-break:break-word}
+.done .title{text-decoration:line-through;color:var(--sub)}
+.det{color:var(--sub);font-size:13px;white-space:pre-wrap}
+.chip{display:inline-block;margin-top:4px;border:1px solid var(--line);border-radius:6px;padding:0 8px;font-size:12px;color:var(--sub)}
+.chip.late{color:#d93025;border-color:#d93025}
+.snz{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.snz button{border:1px solid var(--blue);background:none;color:var(--blue);border-radius:14px;padding:2px 10px;font:500 12px 'Google Sans',Roboto,sans-serif;cursor:pointer}
+.snz button:hover{background:var(--sel)}
+dialog select{width:100%;padding:10px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--fg);font:inherit;margin:8px 0}
+.star{flex:none;border:0;background:none;color:var(--sub);cursor:pointer;font-size:20px;line-height:20px;padding:0}
+.star.on{color:var(--star)}
+.form{border:1px solid var(--line);border-radius:8px;padding:12px;margin:8px 0;display:grid;gap:8px;box-shadow:0 1px 3px rgba(60,64,67,.3)}
+.form input,.form textarea{width:100%;border:0;border-bottom:1px solid var(--line);background:none;color:var(--fg);font:inherit;padding:6px 2px;outline:0;resize:none}
+.form input:focus,.form textarea:focus{border-bottom-color:var(--blue)}
+.form input[name=title]{font-size:16px}
+.form select{border:1px solid var(--line);border-radius:4px;background:none;color:var(--fg);font:inherit;padding:5px 6px}
+.form select option{background:var(--bg)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row .sp{flex:1}
+.btn{border:0;background:none;color:var(--blue);font:500 14px 'Google Sans',Roboto,sans-serif;padding:8px 14px;border-radius:4px;cursor:pointer}
+.btn:hover{background:var(--sel)}
+.btn.red{color:#d93025}
+.comp{display:flex;align-items:center;gap:8px;border:0;background:none;color:var(--fg);font:500 14px 'Google Sans',Roboto,sans-serif;padding:14px 4px 6px;cursor:pointer;width:100%;border-top:1px solid var(--line);margin-top:8px}
+.comp i{font-style:normal;transition:transform .15s}
+.comp.open i{transform:rotate(90deg)}
+.empty{text-align:center;color:var(--sub);padding:48px 0}
+dialog{border:0;border-radius:12px;background:var(--bg);color:var(--fg);padding:20px;width:min(440px,92vw);box-shadow:0 8px 28px rgba(0,0,0,.4)}
+dialog::backdrop{background:rgba(0,0,0,.4)}
+dialog h2{font:500 18px 'Google Sans',Roboto,sans-serif;margin:0 0 8px}
+dialog input{width:100%;padding:10px;border:1px solid var(--line);border-radius:4px;background:none;color:var(--fg);font:inherit;margin:8px 0}
+dialog p{color:var(--sub);margin:0 0 4px;font-size:13px}
+.srch{flex:1;min-width:0;max-width:240px;border:0;border-radius:8px;background:var(--hover);color:var(--fg);font:inherit;padding:8px 12px;outline:0}
+.srch:focus{box-shadow:0 0 0 2px var(--blue)}
+.sub{display:flex;gap:8px;align-items:center;margin-top:4px;font-size:13px}
+.chk.sm{width:16px;height:16px;margin:0;font-size:10px}
+.sub.done span{text-decoration:line-through;color:var(--sub)}
+.task.done .sub:not(.done) .chk{background:none;border-color:var(--sub)}
+.srow{display:flex;gap:6px;align-items:center}
+.lbl{display:inline-block;font-size:11px;color:var(--blue);background:var(--sel);border-radius:6px;padding:0 6px;margin:4px 4px 0 0}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Tasks</h1>
+    <input id="q" class="srch" type="search" placeholder="Search all tasks" autocomplete="off">
+    <span id="sync"></span>
+    <button class="ic" id="refresh" title="Sync now" aria-label="Sync now">&#8635;</button>
+    <button class="ic" id="gear" title="Settings" aria-label="Settings">&#9881;</button>
+  </header>
+  <div class="tabs" id="tabs"></div>
+  <div id="main"></div>
+</div>
+
+<dialog id="dlg">
+  <h2>Google Sheets sync</h2>
+  <p>Paste your Apps Script Web app URL (ends with /exec).</p>
+  <input id="url" placeholder="https://script.google.com/macros/s/.../exec">
+  <p style="margin-top:12px">Auto-reschedule overdue tasks</p>
+  <select id="auto">
+    <option value="0">Off</option>
+    <option value="3">Move forward 3 days</option>
+    <option value="4">Move forward 4 days</option>
+    <option value="5">Move forward 5 days</option>
+  </select>
+  <div class="row"><span class="sp"></span><button class="btn" id="cancel">Cancel</button><button class="btn" id="save">Save</button></div>
+</dialog>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const store = {
+  get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } },
+  set(k,v){ try { localStorage.setItem(k,v); } catch(e){} }
+};
+
+let state = { lists: ['My Tasks'], tasks: [] };
+try { const s = JSON.parse(store.get('gt-state')); if (s && s.lists) state = s; } catch(e){}
+let cur = store.get('gt-cur') || 'My Tasks';
+let showDone = false, editing = null, adding = false, timer = null, query = '', draft = null, dirty = false;
+let SCRIPT_URL = store.get('gt-url') || '';
+
+/* ---------- Sync with Google Sheets (Apps Script) ---------- */
+function status(t){ $('#sync').textContent = t; }
+async function pull(){
+  if (!SCRIPT_URL) return status('Not synced');
+  status('Syncing…');
+  try {
+    const r = await fetch(SCRIPT_URL);
+    const d = await r.json();
+    if (d && Array.isArray(d.tasks)) {
+      if (!d.lists || !d.lists.length) d.lists = ['My Tasks'];
+      const local = {}; state.tasks.forEach(t => local[t.id] = t);
+      const fixDue = v => {
+        v = String(v || '');
+        if (!v || /^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
+        const x = new Date(v); if (isNaN(x)) return '';
+        return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0');
+      };
+      d.tasks.forEach(t => {
+        t.due = fixDue(t.due);
+        if (t.auto === undefined && local[t.id]) t.auto = local[t.id].auto || 0;   // old Apps Script has no auto column: keep local value
+        t.auto = +t.auto || 0;
+        t.subs = d.subs ? d.subs.filter(x => String(x.taskId) === String(t.id)).map(x => ({ id: x.id || uid(), title: x.title, done: !!x.done })) : ((local[t.id] && local[t.id].subs) || []);
+        if (!d.lists.includes(t.list)) d.lists.push(t.list);
+      });
+      state = { lists: d.lists, tasks: d.tasks };
+      if (!state.lists.includes(cur) && cur !== '★') cur = state.lists[0];
+      store.set('gt-state', JSON.stringify(state));
+      render();
+    }
+    status('Synced');
+  } catch(e){ status('Sync failed'); }
+}
+async function push(){
+  store.set('gt-state', JSON.stringify(state));
+  if (!SCRIPT_URL) return;
+  status('Saving…');
+  try {
+    await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(state) });
+    dirty = false;
+    status('Synced');
+  } catch(e){ status('Sync failed'); }
+}
+function changed(){ dirty = !!SCRIPT_URL; render(); clearTimeout(timer); timer = setTimeout(push, 700); }
+
+/* ---------- Rendering ---------- */
+function fmtDate(d){
+  if (!d) return '';
+  const dt = new Date(d + 'T00:00:00');
+  return dt.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+}
+function addDays(n){
+  const d = new Date(); d.setDate(d.getDate() + n);
+  const p = x => String(x).padStart(2, '0');
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+}
+let AUTO = parseInt(store.get('gt-auto') || '0', 10);
+function autoReschedule(){
+  const p = x => String(x).padStart(2, '0');
+  const ymd = d => d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+  const today = ymd(new Date());
+  let n = 0;
+  state.tasks.forEach(t => {
+    if (t.done || !t.due || t.due >= today) return;
+    const step = +t.auto || 0;
+    if (step) {                       // per-task: keep moving forward by N days until it is no longer overdue
+      const d = new Date(t.due + 'T12:00:00');
+      while (ymd(d) < today) d.setDate(d.getDate() + step);
+      t.due = ymd(d); n++;
+    } else if (AUTO) {                // global setting from ⚙: move to today + AUTO days
+      t.due = addDays(AUTO); n++;
+    }
+  });
+  if (n) changed();
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) autoReschedule(); });
+setInterval(autoReschedule, 3600000);
+function isLate(d){ return d && new Date(d + 'T23:59:59') < new Date(); }
+
+function taskHTML(t, showList){
+  if (editing === t.id) return formHTML(draft);
+  return `<div class="task ${t.done ? 'done' : ''}" data-id="${t.id}">
+    <button class="chk" data-a="toggle" aria-label="Mark complete">${t.done ? '&#10003;' : ''}</button>
+    <div class="body" data-a="edit">
+      <div class="title">${esc(t.title)}</div>
+      ${showList ? `<span class="lbl">${esc(t.list)}</span>` : ''}
+      ${t.details ? `<div class="det">${esc(t.details)}</div>` : ''}
+      ${(t.subs || []).map(x => `<div class="sub ${x.done ? 'done' : ''}"><button class="chk sm" data-a="subtoggle" data-sid="${x.id}" aria-label="Toggle subtask">${x.done ? '&#10003;' : ''}</button><span>${esc(x.title)}</span></div>`).join('')}
+      ${t.due ? `<span class="chip ${!t.done && isLate(t.due) ? 'late' : ''}">${fmtDate(t.due)}${t.auto ? ' &#8635;' : ''}</span>` : ''}
+      ${!t.done && isLate(t.due) ? `<div class="snz"><button data-a="snooze" data-d="3">Overdue: +3 days</button><button data-a="snooze" data-d="4">+4 days</button><button data-a="snooze" data-d="5">+5 days</button></div>` : ''}
+    </div>
+    <button class="star ${t.starred ? 'on' : ''}" data-a="star" aria-label="Star">${t.starred ? '&#9733;' : '&#9734;'}</button>
+  </div>`;
+}
+function formHTML(t){
+  const opt = (v, l) => `<option value="${v}" ${(+t.auto || 0) === v ? 'selected' : ''}>${l}</option>`;
+  const lo = state.lists.map(l => `<option value="${esc(l)}" ${t.list === l ? 'selected' : ''}>${esc(l)}</option>`).join('');
+  const subs = (t.subs || []).map(x => `<div class="srow"><input class="si" data-sid="${x.id}" value="${esc(x.title)}" placeholder="Subtask" autocomplete="off"><button type="button" class="star" data-a="subdel" data-sid="${x.id}" aria-label="Delete subtask">&#10005;</button></div>`).join('');
+  return `<form class="form" id="form" onsubmit="return false">
+    <input name="title" placeholder="Title" value="${esc(t.title)}" autocomplete="off">
+    <textarea name="details" rows="2" placeholder="Details">${esc(t.details)}</textarea>
+    <div class="subs">${subs}<button type="button" class="btn" data-a="subadd">+ Add subtask</button></div>
+    <div class="row">
+      <input name="due" type="date" value="${esc(t.due)}" style="width:auto">
+      <select name="auto" title="If overdue, move the date forward automatically">
+        ${opt(0, "Overdue: don't move")}${opt(1, 'Overdue: move 1 day')}${opt(2, 'Overdue: move 2 days')}${opt(3, 'Overdue: move 3 days')}${opt(7, 'Overdue: move 1 week')}
+      </select>
+    </div>
+    <div class="row">
+      <span style="color:var(--sub)">Move to:</span><select name="list">${lo}</select>
+      ${t.id ? '<button type="button" class="btn" data-a="up" title="Move up">&#8593;</button><button type="button" class="btn" data-a="down" title="Move down">&#8595;</button>' : ''}
+    </div>
+    <div class="row">
+      <span class="sp"></span>
+      ${t.id ? '<button type="button" class="btn red" data-a="del">Delete</button>' : ''}
+      <button type="button" class="btn" data-a="cancel">Cancel</button>
+      <button type="button" class="btn" data-a="commit">Done</button>
+    </div>
+  </form>`;
+}
+function render(){
+  const lists = state.lists;
+  $('#tabs').innerHTML =
+    `<button class="tab ${cur === '★' ? 'on' : ''}" data-tab="★">&#9733; Starred</button>` +
+    lists.map(l => `<button class="tab ${cur === l ? 'on' : ''}" data-tab="${esc(l)}">${esc(l)}</button>`).join('') +
+    `<button class="tab" data-a="newlist">+ New list</button>`;
+
+  const qq = query.trim().toLowerCase();
+  if (qq) {
+    const hit = state.tasks.filter(t => [t.title, t.details, t.list, ...(t.subs || []).map(x => x.title)].join('\n').toLowerCase().includes(qq));
+    $('#main').innerHTML = hit.length
+      ? `<div class="det" style="padding:12px 4px">${hit.length} result(s) in all lists</div>` + hit.map(t => taskHTML(t, true)).join('')
+      : '<div class="empty">No matching tasks</div>';
+    return;
+  }
+  const all = state.tasks.filter(t => cur === '★' ? t.starred : t.list === cur);
+  const open = all.filter(t => !t.done), done = all.filter(t => t.done);
+  let h = '';
+  if (cur !== '★') h += adding ? formHTML(draft) : `<button class="add" data-a="add"><span>+</span>Add a task</button>`;
+  h += open.map(t => taskHTML(t)).join('');
+  if (!open.length && !done.length) h += `<div class="empty">${cur === '★' ? 'No starred tasks' : 'No tasks yet'}</div>`;
+  else if (!open.length && cur !== '★') h += `<div class="empty">All tasks complete</div>`;
+  if (done.length) {
+    h += `<button class="comp ${showDone ? 'open' : ''}" data-a="toggledone"><i>&#9656;</i>Completed (${done.length})</button>`;
+    if (showDone) h += done.map(t => taskHTML(t)).join('');
+  }
+  if (cur !== '★' && lists.length) {
+    h += `<div class="row" style="margin-top:24px"><button class="btn" data-a="rename">Rename list</button><button class="btn red" data-a="dellist">Delete list</button>${done.length ? '<button class="btn" data-a="clear">Clear completed</button>' : ''}</div>`;
+  }
+  $('#main').innerHTML = h;
+  const f = $('#form input[name=title]'); if (f) f.focus();
+}
+
+/* ---------- Actions ---------- */
+function readForm(keepEmpty){
+  const f = $('#form'), E = f.elements;
+  const prev = (draft && draft.subs) || [];
+  return {
+    title: E.title.value.trim(), details: E.details.value.trim(), due: E.due.value,
+    auto: E.due.value ? (+E.auto.value || 0) : 0, list: E.list.value,
+    subs: [...f.querySelectorAll('.si')]
+      .map(i => ({ id: i.dataset.sid, title: i.value.trim(), done: !!(prev.find(x => x.id === i.dataset.sid) || {}).done }))
+      .filter(x => keepEmpty || x.title)
+  };
+}
+function syncDraft(){ draft = { ...draft, ...readForm(true) }; }
+function moveTask(id, dir){
+  const t = state.tasks.find(x => x.id === id); if (!t) return;
+  const same = state.tasks.filter(x => x.list === t.list && x.done === t.done);
+  const o = same[same.indexOf(t) + dir]; if (!o) return;
+  const i = state.tasks.indexOf(t), j = state.tasks.indexOf(o);
+  [state.tasks[i], state.tasks[j]] = [state.tasks[j], state.tasks[i]];
+}
+document.addEventListener('click', e => {
+  const tab = e.target.closest('[data-tab]');
+  if (tab) { cur = tab.dataset.tab; store.set('gt-cur', cur); query = ''; $('#q').value = ''; adding = false; editing = null; return render(); }
+  const el = e.target.closest('[data-a]'); if (!el) return;
+  const a = el.dataset.a;
+  const row = el.closest('[data-id]');
+  const t = row && state.tasks.find(x => x.id === row.dataset.id);
+  if (a === 'snooze' && t) { t.due = addDays(+el.dataset.d); changed(); }
+  else if (a === 'toggle' && t) { t.done = !t.done; changed(); }
+  else if (a === 'star' && t) { t.starred = !t.starred; changed(); }
+  else if (a === 'edit' && t) { editing = t.id; adding = false; draft = { ...t, subs: (t.subs || []).map(x => ({ ...x })) }; render(); }
+  else if (a === 'add') { adding = true; editing = null; draft = { title: '', details: '', due: '', auto: 0, subs: [], list: cur }; render(); }
+  else if (a === 'cancel') { adding = false; editing = null; render(); }
+  else if (a === 'commit') {
+    const v = readForm();
+    if (editing) {
+      const x = state.tasks.find(x => x.id === editing);
+      if (x && v.title) { if (x.list !== v.list) status('Moved to ' + v.list); Object.assign(x, v); }
+    }
+    else if (v.title) state.tasks.unshift({ id: uid(), ...v, starred: false, done: false });
+    adding = false; editing = null; changed();
+  }
+  else if (a === 'del') { state.tasks = state.tasks.filter(x => x.id !== editing); editing = null; changed(); }
+  else if (a === 'subtoggle' && t) { const x = (t.subs || []).find(z => z.id === el.dataset.sid); if (x) { x.done = !x.done; changed(); } }
+  else if (a === 'subadd') { syncDraft(); draft.subs.push({ id: uid(), title: '', done: false }); render(); const si = [...document.querySelectorAll('.si')].pop(); if (si) si.focus(); }
+  else if (a === 'subdel') { syncDraft(); draft.subs = draft.subs.filter(x => x.id !== el.dataset.sid); render(); }
+  else if (a === 'up' || a === 'down') { syncDraft(); moveTask(editing, a === 'up' ? -1 : 1); changed(); }
+  else if (a === 'toggledone') { showDone = !showDone; render(); }
+  else if (a === 'clear') { state.tasks = state.tasks.filter(x => !(x.list === cur && x.done)); changed(); }
+  else if (a === 'newlist') {
+    const n = (prompt('New list name') || '').trim();
+    if (n && !state.lists.includes(n)) { state.lists.push(n); cur = n; changed(); }
+  }
+  else if (a === 'rename') {
+    const n = (prompt('Rename list', cur) || '').trim();
+    if (n && n !== cur && !state.lists.includes(n)) {
+      state.lists = state.lists.map(l => l === cur ? n : l);
+      state.tasks.forEach(x => { if (x.list === cur) x.list = n; });
+      cur = n; changed();
+    }
+  }
+  else if (a === 'dellist') {
+    if (state.lists.length < 2) return alert('You need at least one list.');
+    if (confirm('Delete "' + cur + '" and all its tasks?')) {
+      state.tasks = state.tasks.filter(x => x.list !== cur);
+      state.lists = state.lists.filter(l => l !== cur);
+      cur = state.lists[0]; changed();
+    }
+  }
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.classList && e.target.classList.contains('si')) { e.preventDefault(); document.querySelector('[data-a=subadd]').click(); return; }
+  if (e.key === 'Escape' && e.target.id === 'q') { query = ''; e.target.value = ''; render(); return; }
+  if (e.key === 'Enter' && e.target.name === 'title') { e.preventDefault(); document.querySelector('[data-a=commit]').click(); }
+  if (e.key === 'Escape' && (adding || editing)) { adding = false; editing = null; render(); }
+});
+
+/* ---------- Settings ---------- */
+$('#gear').onclick = () => { $('#url').value = SCRIPT_URL; $('#auto').value = String(AUTO); $('#dlg').showModal(); };
+$('#cancel').onclick = () => $('#dlg').close();
+$('#save').onclick = async () => {
+  SCRIPT_URL = $('#url').value.trim(); store.set('gt-url', SCRIPT_URL);
+  AUTO = parseInt($('#auto').value, 10) || 0; store.set('gt-auto', String(AUTO));
+  $('#dlg').close();
+  await pull(); autoReschedule();
+};
+$('#refresh').onclick = pull;
+
+$('#q').oninput = e => { query = e.target.value; adding = false; editing = null; render(); };
+document.addEventListener('visibilitychange', () => { if (!document.hidden && !dirty && !editing && !adding) pull().then(autoReschedule); });
+
+render();
+pull().then(autoReschedule);
+</script>
+</body>
+</html>
