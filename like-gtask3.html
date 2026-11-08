@@ -74,6 +74,7 @@ dialog p{color:var(--sub);margin:0 0 4px;font-size:13px}
 .dtag{color:#d93025;font-weight:500}
 .snz span{font-size:12px;color:var(--sub);align-self:center}
 #due{width:min(600px,94vw);max-height:80vh;overflow:auto}
+.lnk{color:var(--blue);text-decoration:underline;word-break:break-all}
 </style>
 </head>
 <body>
@@ -197,6 +198,16 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) auto
 setInterval(autoReschedule, 3600000);
 function isLate(d){ return d && new Date(d + 'T23:59:59') < new Date(); }
 
+function linkify(t){
+  return esc(t).replace(/(https?:\/\/|www\.)[^\s<]+/gi, m => {
+    let u = m.split(/&quot;|&lt;|&gt;/)[0];
+    const rest = m.slice(u.length);
+    const tr = u.match(/[.,;:!?)\]]+$/), tail = tr ? tr[0] : '';
+    if (tail) u = u.slice(0, -tail.length);
+    const href = /^www\./i.test(u) ? 'https://' + u : u;
+    return `<a class="lnk" href="${href}" target="_blank" rel="noopener noreferrer">${u}</a>${tail}${rest}`;
+  });
+}
 function taskHTML(t, showList){
   if (editing === t.id) return formHTML(draft);
   return `<div class="task ${t.done ? 'done' : ''}" data-id="${t.id}">
@@ -204,7 +215,7 @@ function taskHTML(t, showList){
     <div class="body" data-a="edit">
       <div class="title">${esc(t.title)}</div>
       ${showList ? `<span class="lbl">${esc(t.list)}</span>` : ''}
-      ${t.details ? `<div class="det">${esc(t.details)}</div>` : ''}
+      ${t.details ? `<div class="det">${linkify(t.details)}</div>` : ''}
       ${(t.subs || []).map(x => `<div class="sub ${x.done ? 'done' : ''}"><button class="chk sm" data-a="subtoggle" data-sid="${x.id}" aria-label="Toggle subtask">${x.done ? '&#10003;' : ''}</button><span>${esc(x.title)}</span></div>`).join('')}
       ${t.due ? `<span class="chip ${!t.done && isLate(t.due) ? 'late' : ''}">${fmtDate(t.due)}${t.auto ? ' &#8635;' : ''}</span>` : ''}
       ${!t.done && isLate(t.due) ? `<div class="snz"><span>Move to today +</span><input class="dd" type="number" min="0" value="1" aria-label="Days"><span>days</span><button data-a="snoozen">Move</button></div>` : ''}
@@ -290,7 +301,7 @@ function moveTask(id, dir){
   [state.tasks[i], state.tasks[j]] = [state.tasks[j], state.tasks[i]];
 }
 document.addEventListener('click', e => {
-  if (e.target.closest && e.target.closest('.dd')) return;
+  if (e.target.closest && e.target.closest('.dd, a.lnk')) return;
   const tab = e.target.closest('[data-tab]');
   if (tab) { cur = tab.dataset.tab; store.set('gt-cur', cur); query = ''; $('#q').value = ''; adding = false; editing = null; return render(); }
   const el = e.target.closest('[data-a]'); if (!el) return;
