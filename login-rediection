@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign up / Log in</title>
+<style>
+  :root{
+    --bg:#eef2f0; --card:#ffffff; --ink:#16231e; --muted:#5d6e67;
+    --line:#cfd9d4; --brand:#0f5c4a; --brand-ink:#ffffff; --err:#b3261e; --ok:#12633f;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0e1714; --card:#16231e; --ink:#e8f0ec; --muted:#93a59d;
+           --line:#2b3d36; --brand:#4fc7a3; --brand-ink:#08201a; --err:#ff8a80; --ok:#6fe0b0; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;display:grid;place-items:center;padding:20px;
+       background:var(--bg);color:var(--ink);font-family:"Segoe UI",system-ui,-apple-system,Roboto,sans-serif}
+  .card{width:100%;max-width:440px;background:var(--card);border:1px solid var(--line);
+        border-radius:14px;padding:28px}
+  h1{margin:0 0 4px;font-size:1.5rem}
+  .sub{margin:0 0 20px;color:var(--muted);font-size:.95rem}
+  .tabs{display:flex;gap:6px;background:var(--bg);padding:4px;border-radius:10px;margin-bottom:20px}
+  .tabs button{flex:1;border:0;background:transparent;color:var(--muted);padding:10px;
+               border-radius:8px;font:inherit;font-weight:600;cursor:pointer}
+  .tabs button[aria-selected="true"]{background:var(--card);color:var(--ink);box-shadow:0 0 0 1px var(--line)}
+  label{display:block;font-size:.88rem;font-weight:600;margin:14px 0 6px}
+  input,select,textarea{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:8px;
+        background:var(--card);color:var(--ink);font:inherit}
+  textarea{resize:vertical;min-height:80px}
+  input:focus,select:focus,textarea:focus,.tabs button:focus-visible,.submit:focus-visible{
+        outline:2px solid var(--brand);outline-offset:2px}
+  .submit{width:100%;margin-top:22px;padding:13px;border:0;border-radius:8px;background:var(--brand);
+          color:var(--brand-ink);font:inherit;font-weight:700;cursor:pointer}
+  .submit:disabled{opacity:.6;cursor:wait}
+  .msg{margin-top:14px;font-size:.92rem;min-height:1.2em}
+  .msg.err{color:var(--err)} .msg.ok{color:var(--ok)}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<main class="card">
+  <h1 id="title">Create your account</h1>
+  <p class="sub" id="sub">Fill in your details to get started.</p>
+
+  <div class="tabs" role="tablist">
+    <button type="button" role="tab" id="tab-signup" aria-selected="true">Sign up</button>
+    <button type="button" role="tab" id="tab-login" aria-selected="false">Log in</button>
+  </div>
+
+  <!-- SIGN UP -->
+  <div id="signup-form">
+    <label for="s-name">Full name</label>
+    <input id="s-name" autocomplete="name" placeholder="Your name">
+
+    <label for="s-phone">Contact number</label>
+    <input id="s-phone" type="tel" autocomplete="tel" placeholder="+91 98765 43210">
+
+    <label for="s-email">Email</label>
+    <input id="s-email" type="email" autocomplete="email" placeholder="you@example.com">
+
+    <label for="s-country">Country</label>
+    <select id="s-country"></select>
+
+    <label for="s-profile">Profile</label>
+    <textarea id="s-profile" placeholder="Write a short bio or what you do"></textarea>
+
+    <label for="s-pass">Password</label>
+    <input id="s-pass" type="password" autocomplete="new-password" placeholder="At least 6 characters">
+
+    <button class="submit" id="btn-signup" type="button">Create account</button>
+  </div>
+
+  <!-- LOGIN -->
+  <div id="login-form" class="hidden">
+    <label for="l-email">Email</label>
+    <input id="l-email" type="email" autocomplete="email" placeholder="you@example.com">
+
+    <label for="l-pass">Password</label>
+    <input id="l-pass" type="password" autocomplete="current-password" placeholder="Your password">
+
+    <button class="submit" id="btn-login" type="button">Log in</button>
+  </div>
+
+  <div class="msg" id="msg" role="status" aria-live="polite"></div>
+</main>
+
+<script>
+/* ===== STEP 1: apna Google Apps Script Web App URL yahan paste karo ===== */
+const SCRIPT_URL = "PASTE_YOUR_WEB_APP_URL_HERE";
+/* ======================================================================= */
+
+const countries = ["India","United States","United Kingdom","Canada","Australia","United Arab Emirates",
+"Saudi Arabia","Qatar","Kuwait","Oman","Bahrain","Singapore","Malaysia","Nepal","Bangladesh","Sri Lanka",
+"Pakistan","Bhutan","Afghanistan","China","Japan","South Korea","Thailand","Indonesia","Philippines","Vietnam",
+"Germany","France","Italy","Spain","Netherlands","Switzerland","Sweden","Norway","Ireland","Russia","Turkey",
+"Egypt","South Africa","Nigeria","Kenya","Brazil","Mexico","Argentina","New Zealand","Other"];
+
+const $ = id => document.getElementById(id);
+const msg = $("msg");
+
+$("s-country").innerHTML = countries.map(c => `<option${c==="India"?" selected":""}>${c}</option>`).join("");
+
+function setMode(mode){
+  const signup = mode === "signup";
+  $("signup-form").classList.toggle("hidden", !signup);
+  $("login-form").classList.toggle("hidden", signup);
+  $("tab-signup").setAttribute("aria-selected", signup);
+  $("tab-login").setAttribute("aria-selected", !signup);
+  $("title").textContent = signup ? "Create your account" : "Welcome back";
+  $("sub").textContent = signup ? "Fill in your details to get started." : "Log in with your email and password.";
+  show("");
+}
+$("tab-signup").onclick = () => setMode("signup");
+$("tab-login").onclick  = () => setMode("login");
+
+function show(text, type){ msg.textContent = text; msg.className = "msg " + (type || ""); }
+
+async function callApi(payload){
+  // text/plain avoids CORS preflight (Apps Script doesn't answer OPTIONS)
+  const res = await fetch(SCRIPT_URL, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify(payload)
+  });
+  return res.json();
+}
+
+function go(url){
+  show("Success! Redirecting…", "ok");
+  setTimeout(() => { window.location.href = url; }, 800);
+}
+
+async function run(btn, payload){
+  if (SCRIPT_URL.startsWith("PASTE_")) { show("Pehle SCRIPT_URL me apna Web App URL daalo.", "err"); return; }
+  btn.disabled = true; show("Please wait…");
+  try {
+    const r = await callApi(payload);
+    if (r.ok) go(r.redirect); else show(r.error || "Something went wrong.", "err");
+  } catch (e) {
+    show("Server se connect nahi ho paya. Internet ya script URL check karo.", "err");
+  } finally { btn.disabled = false; }
+}
+
+$("btn-signup").onclick = () => {
+  const d = {
+    action: "signup",
+    name: $("s-name").value.trim(),
+    phone: $("s-phone").value.trim(),
+    email: $("s-email").value.trim().toLowerCase(),
+    country: $("s-country").value,
+    profile: $("s-profile").value.trim(),
+    password: $("s-pass").value
+  };
+  if (!d.name || !d.phone || !d.email || !d.country || !d.profile) return show("Sab fields bharo.", "err");
+  if (!/^\S+@\S+\.\S+$/.test(d.email)) return show("Sahi email daalo.", "err");
+  if (!/^[+\d][\d\s-]{6,17}$/.test(d.phone)) return show("Sahi contact number daalo.", "err");
+  if (d.password.length < 6) return show("Password kam se kam 6 characters ka rakho.", "err");
+  run($("btn-signup"), d);
+};
+
+$("btn-login").onclick = () => {
+  const d = { action: "login", email: $("l-email").value.trim().toLowerCase(), password: $("l-pass").value };
+  if (!d.email || !d.password) return show("Email aur password daalo.", "err");
+  run($("btn-login"), d);
+};
+</script>
+</body>
+</html>
