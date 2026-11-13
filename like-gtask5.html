@@ -519,3 +519,65 @@ if(su&&known[su]) enter(su); else A('auth').hidden=false;
 </script>
 </body>
 </html>
+Tasks App ke Features
+Login / Account
+Username aur password se signup/login.
+Har user ka data alag rehta hai (ek browser par kai accounts).
+Session yaad rehta hai, dobara login nahi karna padta.
+Logout button (⏻).
+Pehle signup par purana saved data us account mein aa jata hai.
+Password hash karke save hota hai, plain text mein nahi.
+Lists (Google Tasks jaisa)
+Kai lists bana sakte hain (+ New list).
+List ka naam badal sakte hain ya list delete kar sakte hain (uske saare tasks ke saath).
+Tabs mein list switch hoti hai, aur tabs scroll ho jaate hain.
+★ Starred tab mein saari lists ke starred tasks ek jagah dikhte hain.
+Tasks
+Task add, edit, delete (delete se pehle 2 baar confirmation).
+Title, details, due date daal sakte hain.
+Circle dabakar complete/incomplete kar sakte hain.
+Star laga sakte hain.
+Task ko up/down move kar sakte hain (order badalna).
+Task ko doosri list mein move kar sakte hain (“Move to”).
+Completed (n) section collapse/expand hota hai.
+Clear completed se saare completed tasks ek saath hat jaate hain.
+Details mein likhe links (https://... ya www...) clickable ho jaate hain.
+Subtasks
+Har task ke andar subtasks jod sakte hain.
+Har subtask ko alag se tick kar sakte hain.
+Subtask mein Enter dabane se agla subtask khulta hai.
+Value / Total
+Har task ko ek value (number, jaise paisa) de sakte hain.
+Har tab par us list ka total dikhta hai, aur Page total (saari lists ka).
+Search results aur Starred mein bhi total dikhta hai.
+Settings mein default value set kar sakte hain.
+Overdue (late) tasks
+Late tasks ki date laal dikhti hai.
+Har late task par “Move to today + N days” box aata hai.
+Page khulne par Overdue popup aata hai, jisme saare late tasks ek jagah dikhte hain. Wahin se Move ya Delete kar sakte hain.
+Popup mein “kitne din overdue” likha rehta hai.
+Auto-move (auto reschedule)
+Har task ke liye: “Overdue: auto-move by N days”. Task late ho to apne aap N din aage badhta rehta hai, jab tak aaj ya baad ki date na ho jaye. Aise tasks par ↻ nishan dikhta hai.
+Sabhi tasks ke liye: Settings mein global auto-move (aaj + N din).
+Ye page kholne par, tab wapas aane par, aur har ghante chalta hai.
+Default overdue days set kar sakte hain (naye tasks aur Move box ke liye).
+Search
+Upar search box se saari lists mein search hota hai.
+Title, details, list ka naam aur subtasks sab mein dhundhta hai.
+Esc dabane se search band.
+Google Sheets Sync
+Apps Script URL se data Google Sheet mein save hota hai.
+Har change ke baad lagbhag 0.7 second mein apne aap save hota hai.
+↻ button se turant sync, aur status dikhta hai (Synced / Saving / Sync failed).
+Sheet mein badlav karo to app mein bhi aa jata hai (list column badalna = task move).
+Doosre device par wahi username aur URL daalo to same data milta hai.
+Bina URL ke bhi chalta hai, tab data sirf browser mein save rehta hai.
+Design
+Google Tasks jaisa saaf look.
+Dark mode apne aap (phone/PC ki setting ke hisaab se).
+Mobile par bhi achhe se chalta hai.
+Ek hi HTML file hai, kisi library ki zaroorat nahi.
+Sीमाएँ
+Login sirf browser mein hota hai, asli server security nahi hai.
+/exec URL jisne dekh liya, wo ?user=naam se kisi ka bhi data dekh sakta hai.
+Har naye device par signup dobara karna padta hai (wahi username rakhein).
