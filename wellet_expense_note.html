@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Merged Expense &amp; Task Tracker</title>
+<style>
+:root{--inc:#28a745;--exp:#dc3545;--task:#007bff;--bd:#333}
+*{box-sizing:border-box}
+body{font-family:Arial,sans-serif;background:#f4f6f9;color:#000;margin:0;padding:15px}
+#app{background:#fff;max-width:950px;margin:0 auto;padding:20px;border:3px solid var(--bd);border-radius:12px}
+button{font-size:1rem;padding:8px 14px;cursor:pointer;background:#eee;border:2px solid var(--bd);font-weight:bold;border-radius:4px}
+button:hover{background:#ddd}
+input,select{font-size:1rem;padding:8px;margin:4px 6px 4px 0;border:2px solid #666;border-radius:4px}
+.box{border:2px solid #ccc;background:#fafafa;border-radius:6px;padding:12px;margin:14px 0}
+.sync{background:#e8f5e9;border-color:var(--inc)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.tabs{display:flex;gap:5px;border-bottom:2px solid #ccc;padding-bottom:5px;margin-bottom:15px}
+.tab.active{background:#333;color:#fff}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.dow{text-align:center;font-weight:bold;font-size:.85rem}
+.day{border:2px solid #ccc;min-height:80px;padding:4px;cursor:pointer;text-align:center;border-radius:4px;font-size:.85rem}
+.day:hover{background:#f1f1f1}
+.day.sel{border-color:#000;background:#e3f2fd;font-weight:bold}
+table{width:100%;border-collapse:collapse;margin-top:10px}
+th,td{border:2px solid var(--bd);padding:8px;text-align:left}
+th{background:#f2f2f2}
+.inc{color:var(--inc);font-weight:bold}.exp{color:var(--exp);font-weight:bold}.tsk{color:var(--task);font-weight:bold}
+.done{text-decoration:line-through;color:#888}
+.chip{display:inline-flex;align-items:center;background:#fff;border:2px solid #000;padding:4px 10px;margin:4px;border-radius:4px;cursor:pointer;font-weight:bold;font-size:.9rem}
+.chip b{color:var(--exp);margin-left:8px;font-size:1.1rem}
+.hidden{display:none}
+#status{font-weight:bold;margin-top:6px}
+@media(max-width:600px){.day{min-height:55px;font-size:.7rem}input[type=text],input[type=number]{width:100%}}
+</style>
+</head>
+<body>
+<div id="app">
+
+<div class="box sync">
+ <h3 style="margin:0 0 8px">Google Sheets Sync</h3>
+ <input id="url" type="url" placeholder="https://script.google.com/macros/s/.../exec" style="width:70%;max-width:600px">
+ <button onclick="saveUrl()">Save URL</button><br>
+ <button onclick="upload()" style="background:#28a745;color:#fff">Upload to Sheet</button>
+ <button onclick="download()" style="background:#0275d8;color:#fff">Fetch from Sheet</button>
+ <div id="status"></div>
+</div>
+
+<div class="row" style="justify-content:flex-start">
+ <h2 id="title" onclick="editTitle()" style="border-bottom:2px dashed #333;cursor:pointer;margin:0">Daily Expense &amp; Task Tracker</h2>
+ <button onclick="editTitle()">Edit Title</button>
+</div>
+
+<div class="box">
+ <div class="row" style="margin-bottom:6px">
+  <strong>Quick Items:</strong>
+  <span><input id="newQ" type="text" placeholder="Naya item" style="width:150px"><button onclick="addQ()">Add</button></span>
+ </div>
+ <div id="chips"></div>
+</div>
+
+<div class="box">
+ <label><input type="radio" name="type" value="income"> Income</label>
+ <label><input type="radio" name="type" value="expense" checked> Expense</label>
+ <label><input type="radio" name="type" value="task"> Task</label><br>
+ <input id="fDate" type="date">
+ <input id="fName" type="text" placeholder="विवरण (Name)" autocomplete="off">
+ <input id="fAmt" type="number" placeholder="राशि (Amount)" min="0">
+ <input id="editId" type="hidden">
+ <button onclick="saveEntry()" style="background:#28a745;color:#fff">Save Entry</button>
+ <button id="cancelBtn" class="hidden" onclick="resetForm()">Cancel</button>
+</div>
+
+<div class="row">
+ <button onclick="chMonth(-1)">◀ पिछला</button>
+ <h3 id="month" style="margin:0"></h3>
+ <button onclick="chMonth(1)">अगला ▶</button>
+</div>
+
+<div class="tabs">
+ <button class="tab active" id="t-calendar" onclick="view('calendar')">Calendar</button>
+ <button class="tab" id="t-day" onclick="view('day')">Day View</button>
+ <button class="tab" id="t-report" onclick="view('report')">Monthly Report</button>
+</div>
+
+<div id="v-calendar"><div class="grid" id="cal"></div></div>
+<div id="v-day" class="hidden"><div id="daySum" style="font-weight:bold"></div></div>
+<div id="v-report" class="hidden">
+ <div id="repSum" style="font-weight:bold"></div>
+ <table><thead><tr><th>Date</th><th>Name</th><th>Income</th><th>Expense</th><th>Task</th><th>Balance</th></tr></thead><tbody id="repBody"></tbody></table>
+</div>
+
+<hr>
+<h3>ट्रांजैक्शन सूची (<span id="selText"></span>)</h3>
+<table><thead><tr><th>विवरण</th><th>राशि</th><th>प्रकार</th><th>Action</th></tr></thead><tbody id="body"></tbody></table>
+
+<div class="row" style="margin-top:25px;border-top:3px solid #000;padding-top:15px;justify-content:flex-start">
+ <button onclick="exportJSON()" style="background:#007bff;color:#fff">Export JSON</button>
+ <button onclick="importJSON()">Import JSON</button>
+ <button onclick="exportCSV()">Export CSV</button>
+</div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+// Har tarah ki date ko YYYY-MM-DD (local) mein badalta hai
+function normDate(v){
+  if(!v) return '';
+  if(v instanceof Date) return ymd(v);
+  const s=String(v).trim();
+  if(/T.*Z$/.test(s)){const d=new Date(s); if(!isNaN(d)) return ymd(d);}
+  let m=s.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/);
+  if(m) return `${m[1]}-${pad(m[2])}-${pad(m[3])}`;
+  m=s.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})/);
+  if(m) return `${m[3]}-${pad(m[2])}-${pad(m[1])}`;
+  const d=new Date(s); return isNaN(d)?s:ymd(d);
+}
+
+let db, tx=[], quick=[], cur=new Date(), sel=ymd(new Date()), curView='calendar', scriptUrl='';
+cur.setDate(1);
+
+// ---------- DB ----------
+function openDB(){return new Promise((res,rej)=>{
+  const r=indexedDB.open('UniversalTrackerDB',5);
+  r.onupgradeneeded=e=>{const d=e.target.result;
+    if(!d.objectStoreNames.contains('transactions')) d.createObjectStore('transactions',{keyPath:'id',autoIncrement:true});
+    if(!d.objectStoreNames.contains('settings')) d.createObjectStore('settings',{keyPath:'key'});
+    if(!d.objectStoreNames.contains('suggestions')) d.createObjectStore('suggestions',{keyPath:'name'});
+  };
+  r.onsuccess=e=>{db=e.target.result;res()};r.onerror=e=>rej(e.target.error);
+});}
+const st=(n,m='readonly')=>db.transaction(n,m).objectStore(n);
+const done=r=>new Promise((res,rej)=>{r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+const all=n=>done(st(n).getAll());
+const put=(n,v)=>done(st(n,'readwrite').put(v));
+const del=(n,k)=>done(st(n,'readwrite').delete(k));
+const getS=async k=>{const r=await done(st('settings').get(k));return r?r.value:null};
+const loadTx=async()=>{
+  tx=await all('transactions');
+  // purani dates ko ek baar normalize karo
+  for(const t of tx){const n=normDate(t.date); if(n!==t.date){t.date=n; await put('transactions',t);}}
+};
+const loadQ=async()=>{quick=await all('suggestions')};
+
+// ---------- Settings ----------
+async function editTitle(){
+  const v=prompt('Naya title:',$('title').innerText);
+  if(v&&v.trim()){$('title').innerText=v.trim();document.title=v.trim();await put('settings',{key:'title',value:v.trim()});}
+}
+async function saveUrl(){scriptUrl=$('url').value.trim();await put('settings',{key:'url',value:scriptUrl});alert('URL Saved!');}
+
+// ---------- Quick items ----------
+function renderQ(){
+  const c=$('chips');c.innerHTML='';
+  quick.forEach(q=>{
+    const s=document.createElement('span');s.className='chip';
+    s.onclick=()=>{$('fName').value=q.name};
+    s.append(q.name);
+    const x=document.createElement('b');x.textContent='×';
+    x.onclick=async e=>{e.stopPropagation();if(confirm('Hataye?')){await del('suggestions',q.name);await loadQ();renderQ();}};
+    s.append(x);c.append(s);
+  });
+}
+async function addQ(){const n=$('newQ').value.trim();if(!n)return;await put('suggestions',{name:n});$('newQ').value='';await loadQ();renderQ();}
+
+// ---------- Views ----------
+function view(v){
+  curView=v;
+  ['calendar','day','report'].forEach(x=>{$('v-'+x).classList.toggle('hidden',x!==v);$('t-'+x).classList.toggle('active',x===v)});
+  refresh();
+}
+function chMonth(d){cur.setMonth(cur.getMonth()+d);refresh();}
+const dayList=d=>tx.filter(t=>t.date===d);
+const sums=l=>{let i=0,e=0,k=0;l.forEach(t=>{if(t.type==='income')i+=+t.amount||0;else if(t.type==='expense')e+=+t.amount||0;else k++});return{i,e,k}};
+
+function renderCal(){
+  const y=cur.getFullYear(),m=cur.getMonth();
+  $('month').innerText=new Intl.DateTimeFormat('hi-IN',{month:'long',year:'numeric'}).format(cur);
+  const g=$('cal');g.innerHTML='';
+  ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(n=>g.innerHTML+=`<div class="dow">${n}</div>`);
+  for(let i=0;i<new Date(y,m,1).getDay();i++)g.innerHTML+='<div></div>';
+  for(let d=1;d<=new Date(y,m+1,0).getDate();d++){
+    const ds=`${y}-${pad(m+1)}-${pad(d)}`,s=sums(dayList(ds));
+    const el=document.createElement('div');
+    el.className='day'+(ds===sel?' sel':'');
+    el.innerHTML=`<strong>${d}</strong><br>`+(s.i?`<span class="inc">+${s.i}</span><br>`:'')+(s.e?`<span class="exp">-${s.e}</span><br>`:'')+(s.k?`<span class="tsk">📋${s.k}</span>`:'');
+    el.onclick=()=>pick(ds);g.append(el);
+  }
+}
+function pick(ds){sel=ds;$('fDate').value=ds;refresh();}
+
+function rowHTML(t){
+  const cls=t.type==='income'?'inc':t.type==='expense'?'exp':'tsk';
+  const name=t.type==='task'
+   ?`<input type="checkbox" ${t.completed?'checked':''} onclick="toggle(${t.id},this.checked)"> <span class="${t.completed?'done':''}">${esc(t.name)}</span>`
+   :esc(t.name);
+  return `<td>${name}</td><td class="${cls}">${t.type==='task'?'-':esc(t.amount)}</td><td>${t.type.toUpperCase()}</td>`;
+}
+function renderList(){
+  $('selText').innerText=sel;
+  const b=$('body');b.innerHTML='';
+  dayList(sel).forEach(t=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=rowHTML(t)+`<td><button onclick="edit(${t.id})">✏️</button> <button onclick="remove(${t.id})">🗑️</button></td>`;
+    b.append(tr);
+  });
+  if(!b.children.length)b.innerHTML='<tr><td colspan="4" style="text-align:center">Is din koi entry nahi.</td></tr>';
+}
+function renderDay(){
+  const l=dayList(sel),s=sums(l);
+  $('daySum').innerHTML=`${sel} — Income: <span class="inc">${s.i}</span> | Expense: <span class="exp">${s.e}</span> | Bal: ${s.i-s.e}`;
+}
+function renderReport(){
+  const p=`${cur.getFullYear()}-${pad(cur.getMonth()+1)}-`;
+  const list=tx.filter(t=>t.date.startsWith(p)).sort((a,b)=>a.date.localeCompare(b.date));
+  const b=$('repBody');b.innerHTML='';let bal=0;
+  list.forEach(t=>{
+    const a=+t.amount||0;
+    if(t.type==='income')bal+=a;else if(t.type==='expense')bal-=a;
+    const tr=document.createElement('tr');tr.style.cursor='pointer';tr.onclick=()=>pick(t.date);
+    tr.innerHTML=`<td>${t.date}</td><td>${esc(t.name)}</td><td>${t.type==='income'?`<span class="inc">${a}</span>`:'-'}</td><td>${t.type==='expense'?`<span class="exp">${a}</span>`:'-'}</td><td>${t.type==='task'?(t.completed?'Completed':'Pending'):'-'}</td><td>${bal}</td>`;
+    b.append(tr);
+  });
+  if(!list.length)b.innerHTML='<tr><td colspan="6" style="text-align:center">Is mahine koi data nahi.</td></tr>';
+  const s=sums(list);
+  $('repSum').innerHTML=`Income: <span class="inc">${s.i}</span> | Expense: <span class="exp">${s.e}</span> | Net: ${s.i-s.e}`;
+}
+function refresh(){renderCal();renderList();if(curView==='day')renderDay();if(curView==='report')renderReport();}
+
+// ---------- CRUD ----------
+const autoSync=()=>{if(scriptUrl)upload()};
+async function saveEntry(){
+  const name=$('fName').value.trim(),type=document.querySelector('input[name=type]:checked').value;
+  const date=normDate($('fDate').value),id=$('editId').value;
+  let amount=type==='task'?0:parseFloat($('fAmt').value);
+  if(!date)return alert('Date select karein.');
+  if(!name)return alert('Name bharein.');
+  if(type!=='task'&&(isNaN(amount)||amount<0))return alert('Sahi amount daalein.');
+  if(id){const old=tx.find(t=>t.id==id);await put('transactions',{...old,name,amount,type,date});}
+  else await put('transactions',{name,amount,type,date,completed:false});
+  await loadTx();sel=date;cur=new Date(+date.slice(0,4),+date.slice(5,7)-1,1);
+  resetForm();refresh();autoSync();
+}
+function edit(id){
+  const t=tx.find(x=>x.id===id);if(!t)return;
+  $('fName').value=t.name;$('fAmt').value=t.amount||'';$('fDate').value=t.date;$('editId').value=t.id;
+  document.querySelector(`input[name=type][value=${t.type}]`).checked=true;
+  $('cancelBtn').classList.remove('hidden');window.scrollTo({top:0,behavior:'smooth'});
+}
+async function remove(id){if(!confirm('Delete karein?'))return;await del('transactions',id);await loadTx();resetForm();refresh();autoSync();}
+async function toggle(id,v){const t=tx.find(x=>x.id===id);t.completed=v;await put('transactions',t);refresh();autoSync();}
+function resetForm(){
+  $('fName').value='';$('fAmt').value='';$('editId').value='';$('fDate').value=sel;
+  document.querySelector('input[name=type][value=expense]').checked=true;
+  $('cancelBtn').classList.add('hidden');
+}
+
+// ---------- Google Sheet ----------
+async function upload(){
+  if(!scriptUrl)return alert('Pehle URL save karein.');
+  $('status').innerHTML='Upload ho raha hai...';
+  try{
+    await fetch(scriptUrl,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({title:$('title').innerText,transactions:tx})});
+    $('status').innerHTML='<span style="color:#28a745">✔ Upload request bhej di gayi.</span>';
+  }catch(e){
+    $('status').innerHTML='<span style="color:red">Upload fail ho sakta hai — sheet check karein.</span>';
+  }
+}
+async function download(){
+  if(!scriptUrl)return alert('URL missing!');
+  if(!confirm('Local data sheet ke data se replace ho jayega. Aage badhein?'))return;
+  $('status').innerHTML='Fetching...';
+  try{
+    const r=await (await fetch(scriptUrl+'?action=DOWNLOAD')).json();
+    if(!r||!Array.isArray(r.transactions))throw 0;
+    const s=st('transactions','readwrite');await done(s.clear());
+    for(const t of r.transactions)await put('transactions',{name:t.name,amount:parseFloat(t.amount||0),type:String(t.type).toLowerCase(),date:normDate(t.date),completed:t.completed===true||t.completed==='true'});
+    await loadTx();resetForm();refresh();
+    $('status').innerHTML='<span style="color:#28a745">✔ Sheet se data aa gaya.</span>';
+  }catch(e){$('status').innerHTML='<span style="color:red">Fetch fail! URL ya setup check karein.</span>';}
+}
+
+// ---------- Backup ----------
+function save(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();}
+const fname=()=>($('title').innerText.replace(/[^\w\u0900-\u097F]+/g,'_')||'tracker');
+function exportJSON(){save(new Blob([JSON.stringify({quick,transactions:tx},null,2)],{type:'application/json'}),`${fname()}_${sel}.json`);}
+function exportCSV(){
+  const q=v=>`"${String(v??'').replace(/"/g,'""')}"`;
+  const rows=['date,type,name,amount,completed',...tx.map(t=>[t.date,t.type,t.name,t.amount,t.completed].map(q).join(','))];
+  save(new Blob(['\ufeff'+rows.join('\n')],{type:'text/csv'}),`${fname()}.csv`);
+}
+function importJSON(){
+  const i=document.createElement('input');i.type='file';i.accept='.json';
+  i.onchange=()=>{const r=new FileReader();r.onload=async e=>{
+    try{
+      const d=JSON.parse(e.target.result);
+      const list=Array.isArray(d)?d:d.transactions||[];
+      for(const t of list)await put('transactions',{name:t.name,amount:parseFloat(t.amount||0),type:String(t.type).toLowerCase(),date:normDate(t.date),completed:!!t.completed});
+      for(const q of (d.quick||[]))await put('suggestions',{name:q.name});
+      await loadTx();await loadQ();renderQ();refresh();alert('Import ho gaya!');
+    }catch(err){alert('File sahi nahi hai.');}
+  };r.readAsText(i.files[0]);};
+  i.click();
+}
+
+// ---------- Start ----------
+(async()=>{
+  await openDB();await loadTx();await loadQ();
+  const t=await getS('title');if(t){$('title').innerText=t;document.title=t;}
+  scriptUrl=(await getS('url'))||'';$('url').value=scriptUrl;
+  $('fDate').value=sel;renderQ();refresh();
+})();
+</script>
+</body>
+</html>
