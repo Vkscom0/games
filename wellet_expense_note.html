@@ -38,7 +38,7 @@ th{background:#f2f2f2}
 
 <div class="box sync">
   <strong>Google Sheet Sync (automatic)</strong>
-  <p style="margin:6px 0;font-size:.9rem">Apps Script Web App URL ek baar save karein. Uske baad har badlav apne aap Sheet par jayega, aur page khulte hi Sheet se data aa jayega.</p>
+  <p style="margin:6px 0;font-size:.9rem">Apps Script Web App URL ek baar save karein. Sab devices ka data apne aap jud jata hai (kuch mitta nahi). Har badlav, page kholne aur app par wapas aane par sync hota hai.</p>
   <input id="scriptUrl" type="url" placeholder="https://script.google.com/macros/s/.../exec" style="width:70%;max-width:600px">
   <button onclick="saveUrl()">Save URL</button>
   <div class="status" id="status"></div>
@@ -101,15 +101,15 @@ th{background:#f2f2f2}
 </div>
 
 <script>
-let db, list = [], cur = new Date(), sel = new Date(), url = "", view = "cal";
+let db, all = [], list = [], cur = new Date(), sel = new Date(), url = "", view = "cal", syncing = false, again = false;
 const $ = id => document.getElementById(id);
 const pad = n => String(n).padStart(2, '0');
 const keyOf = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const rq = r => new Promise((res, rej) => { r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
 const st = (n, m='readonly') => db.transaction(n, m).objectStore(n);
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 
-// Har tarah ki date ko YYYY-MM-DD mein badalta hai (purani "2026-5-9" aur Sheet ki date dono chalengi)
 function normDate(v) {
   if (!v) return "";
   if (v instanceof Date) return keyOf(v);
@@ -127,7 +127,7 @@ function initDB() {
     const r = indexedDB.open("UniversalTrackerDB", 5);
     r.onerror = () => rej(r.error);
     r.onsuccess = () => { db = r.result; res(); };
-    r.onupgradeneeded = e => {   // purana data delete nahi hota
+    r.onupgradeneeded = e => {
       const d = e.target.result;
       if (!d.objectStoreNames.contains("transactions")) d.createObjectStore("transactions", {keyPath: "id", autoIncrement: true});
       if (!d.objectStoreNames.contains("settings")) d.createObjectStore("settings", {keyPath: "key"});
@@ -136,44 +136,59 @@ function initDB() {
   });
 }
 async function loadList() {
-  list = (await rq(st("transactions").getAll())).map(t => ({...t, date: normDate(t.date)}));
+  all = (await rq(st("transactions").getAll())).map(t => ({...t, date: normDate(t.date)}));
+  list = all.filter(t => !t.deleted);
 }
 const getSet = async k => (await rq(st("settings").get(k)))?.value;
 const setSet = (k, v) => rq(st("settings", "readwrite").put({key: k, value: v}));
 
-// ---------- Sync (automatic) ----------
-function setStatus(msg, ok) { $('status').innerHTML = `<span style="color:${ok === false ? '#dc3545' : '#1e7e34'}">${msg}</span>`; }
-async function pushSheet() {
-  if (!url) return;
-  await setSet('dirty', true);
-  setStatus("Sheet par bhej rahe hain...");
-  try {
-    await fetch(url, {method: 'POST', mode: 'no-cors', headers: {'Content-Type': 'text/plain;charset=utf-8'},
-      body: JSON.stringify({title: $('titleView').innerText, transactions: list})});
-    await setSet('dirty', false);
-    setStatus("✔ Sheet par bhej diya gaya");
-  } catch (e) { setStatus("Internet/URL problem. Agli baar page khulne par dobara bhejenge.", false); }
+// Purani numeric ID wali entries ko pakki ID dete hain (har device par ek jaisi, taaki duplicate na bane)
+async function migrate() {
+  const old = (await rq(st("transactions").getAll())).filter(t => typeof t.id === 'number');
+  if (!old.length) return;
+  const s = st("transactions", "readwrite"), seen = {};
+  for (const t of old) {
+    const d = normDate(t.date), base = `L|${d}|${t.type}|${t.name}|${t.amount || 0}`;
+    seen[base] = (seen[base] || 0) + 1;
+    await rq(s.delete(t.id));
+    await rq(s.put({...t, date: d, id: base + '|' + seen[base], updatedAt: 1}));
+  }
 }
-async function pullSheet() {
-  setStatus("Sheet se data la rahe hain...");
+
+// ---------- Sync: jodna (merge), overwrite nahi ----------
+function setStatus(msg, ok) { $('status').innerHTML = `<span style="color:${ok === false ? '#dc3545' : '#1e7e34'}">${msg}</span>`; }
+async function mergeIn(remote) {
+  const map = new Map(all.map(t => [t.id, t])), s = st("transactions", "readwrite");
+  let changed = false;
+  for (const r of remote) {
+    if (!r.id) continue;
+    const id = String(r.id), l = map.get(id), ru = Number(r.updatedAt) || 0;
+    if (!l || ru > (l.updatedAt || 0)) {
+      await rq(s.put({id, date: normDate(r.date), type: r.type, name: r.name, amount: parseFloat(r.amount || 0),
+        completed: r.completed === true || r.completed === "true", deleted: r.deleted === true || r.deleted === "true", updatedAt: ru}));
+      changed = true;
+    }
+  }
+  if (changed) { await loadList(); refresh(); }
+}
+async function sync() {
+  if (!url) return;
+  if (syncing) { again = true; return; }
+  syncing = true; setStatus("Sync ho raha hai...");
   try {
     const remote = await (await fetch(url + "?action=DOWNLOAD")).json();
-    if (remote && Array.isArray(remote.transactions) && remote.transactions.length) {
-      const s = st("transactions", "readwrite");
-      await rq(s.clear());
-      for (const t of remote.transactions) {
-        await rq(s.add({name: t.name, amount: parseFloat(t.amount || 0), type: t.type,
-          date: normDate(t.date), completed: t.completed === true || t.completed === "true"}));
-      }
-      await loadList(); refresh();
-      setStatus("✔ Sheet se data aa gaya");
-    } else setStatus("Sheet khali hai, local data safe hai.");
-  } catch (e) { setStatus("Sheet se data nahi aaya. URL check karein.", false); }
+    if (Array.isArray(remote.transactions)) await mergeIn(remote.transactions);
+    await fetch(url, {method: 'POST', mode: 'no-cors', headers: {'Content-Type': 'text/plain;charset=utf-8'},
+      body: JSON.stringify({title: $('titleView').innerText, transactions: all})});
+    setStatus(`✔ Sync ho gaya (${list.length} entries)`);
+  } catch (e) { setStatus("Sync nahi hua. Internet/URL check karein. Data is device par safe hai, agli baar sync hoga.", false); }
+  syncing = false;
+  if (again) { again = false; sync(); }
 }
 async function saveUrl() {
   url = $('scriptUrl').value.trim();
   await setSet('googleScriptUrl', url);
-  if (url) { await pushSheet(); } else setStatus("URL hata diya.");
+  if (url) sync(); else setStatus("URL hata diya.");
 }
 
 // ---------- Title ----------
@@ -181,7 +196,7 @@ function editTitle() { $('titleIn').value = $('titleView').innerText; $('titleVi
 async function saveTitle() {
   const t = $('titleIn').value.trim() || "Daily Expense & Task Tracker";
   $('titleView').innerText = t; $('titleView').classList.remove('hidden'); $('titleIn').classList.add('hidden');
-  await setSet('appTitle', t); pushSheet();
+  await setSet('appTitle', t); sync();
 }
 
 // ---------- Quick items ----------
@@ -258,9 +273,10 @@ function renderDay() {
     const tr = document.createElement('tr'); tr.style.cursor = 'pointer';
     const cls = t.type === 'income' ? 'i' : t.type === 'expense' ? 'e' : 't';
     const name = t.type === 'task'
-      ? `<input type="checkbox" ${t.completed ? 'checked' : ''} onclick="toggleTask(${t.id}, event)"> <span class="${t.completed ? 'done' : ''}">${esc(t.name)}</span>`
+      ? `<input type="checkbox" ${t.completed ? 'checked' : ''}> <span class="${t.completed ? 'done' : ''}">${esc(t.name)}</span>`
       : esc(t.name);
     tr.innerHTML = `<td>${name}</td><td class="${cls}">${amtOf(t)}</td><td>${t.type.toUpperCase()}</td>`;
+    const cb = tr.querySelector('input'); if (cb) cb.onclick = e => toggleTask(t.id, e);
     tr.onclick = e => { if (e.target.type !== 'checkbox') editEntry(t); };
     b.appendChild(tr);
   });
@@ -277,14 +293,14 @@ async function saveEntry() {
   if (!date) return alert("Date select karein.");
   if (!name) return alert("Kripya name bharein.");
   if (type !== 'task' && (isNaN(amount) || amount < 0)) return alert("Sahi amount daalein.");
-  const s = st("transactions", "readwrite");
+  const s = st("transactions", "readwrite"), now = Date.now();
   if (id) {
-    const item = await rq(s.get(parseInt(id)));
-    await rq(s.put({...item, name, amount, type, date}));
-  } else await rq(s.add({name, amount, type, date, completed: false}));
+    const item = await rq(s.get(id));
+    await rq(s.put({...item, name, amount, type, date, updatedAt: now}));
+  } else await rq(s.put({id: uid(), name, amount, type, date, completed: false, updatedAt: now}));
   const [y, m, d] = date.split('-').map(Number);
   sel = new Date(y, m - 1, d); cur = new Date(y, m - 1, 1);
-  await loadList(); resetForm(); refresh(); pushSheet();
+  await loadList(); resetForm(); refresh(); sync();
 }
 function editEntry(t) {
   $('fName').value = t.name; $('fAmt').value = t.amount || 0; $('editId').value = t.id; $('fDate').value = t.date;
@@ -294,13 +310,14 @@ function editEntry(t) {
 }
 async function delEntry() {
   if (!confirm("Delete karein?")) return;
-  await rq(st("transactions", "readwrite").delete(parseInt($('editId').value)));
-  await loadList(); resetForm(); refresh(); pushSheet();
+  const s = st("transactions", "readwrite"), item = await rq(s.get($('editId').value));
+  if (item) await rq(s.put({...item, deleted: true, updatedAt: Date.now()}));
+  await loadList(); resetForm(); refresh(); sync();
 }
 async function toggleTask(id, ev) {
   ev.stopPropagation();
   const s = st("transactions", "readwrite"), item = await rq(s.get(id));
-  if (item) { item.completed = ev.target.checked; await rq(s.put(item)); await loadList(); refresh(); pushSheet(); }
+  if (item) { item.completed = ev.target.checked; item.updatedAt = Date.now(); await rq(s.put(item)); await loadList(); refresh(); sync(); }
 }
 function resetForm() {
   $('fName').value = ''; $('fAmt').value = ''; $('editId').value = '';
@@ -310,7 +327,7 @@ function resetForm() {
 }
 
 // ---------- Backup ----------
-async function exportData() {
+function exportData() {
   const blob = new Blob([JSON.stringify(list, null, 2)], {type: "application/json"});
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
   a.download = `tracker_backup_${keyOf(new Date())}.json`; a.click();
@@ -322,8 +339,8 @@ function importData() {
     r.onload = async ev => {
       try {
         const data = JSON.parse(ev.target.result), s = st("transactions", "readwrite");
-        for (const t of data) { delete t.id; t.date = normDate(t.date); await rq(s.add(t)); }
-        await loadList(); refresh(); pushSheet(); alert("Import ho gaya!");
+        for (const t of data) await rq(s.put({...t, id: uid(), date: normDate(t.date), deleted: false, updatedAt: Date.now()}));
+        await loadList(); refresh(); sync(); alert("Import ho gaya!");
       } catch (err) { alert("File sahi nahi hai."); }
     };
     r.readAsText(e.target.files[0]);
@@ -332,12 +349,12 @@ function importData() {
 }
 
 window.onload = async () => {
-  await initDB();
+  await initDB(); await migrate();
   const title = await getSet('appTitle'); if (title) $('titleView').innerText = title;
   url = (await getSet('googleScriptUrl')) || ""; $('scriptUrl').value = url;
-  await loadList(); resetForm(); refresh(); renderQuick();
-  if (url) { (await getSet('dirty')) ? pushSheet() : pullSheet(); }
+  await loadList(); resetForm(); refresh(); renderQuick(); sync();
 };
+document.addEventListener('visibilitychange', () => { if (!document.hidden) sync(); });
 </script>
 </body>
 </html>
