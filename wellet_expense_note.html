@@ -38,7 +38,7 @@ th{background:#f2f2f2}
 
 <div class="box sync">
   <strong>Google Sheet Sync (automatic)</strong>
-  <p style="margin:6px 0;font-size:.9rem">Apps Script Web App URL ek baar save karein. Sab devices ka data apne aap jud jata hai (kuch mitta nahi). Har badlav, page kholne aur app par wapas aane par sync hota hai.</p>
+  <p style="margin:6px 0;font-size:.9rem">Apps Script Web App URL ek baar save karein. <b>Sheet hi master hai.</b> Sheet mein badlav karenge to app mein aa jayega, aur app ke badlav Sheet mein jayenge. Internet na ho to badlav jama rehte hain aur baad mein chale jate hain.</p>
   <input id="scriptUrl" type="url" placeholder="https://script.google.com/macros/s/.../exec" style="width:70%;max-width:600px">
   <button onclick="saveUrl()">Save URL</button>
   <div class="status" id="status"></div>
@@ -155,33 +155,36 @@ async function migrate() {
   }
 }
 
-// ---------- Sync: jodna (merge), overwrite nahi ----------
+// ---------- Sync: Sheet hi master hai ----------
 function setStatus(msg, ok) { $('status').innerHTML = `<span style="color:${ok === false ? '#dc3545' : '#1e7e34'}">${msg}</span>`; }
-async function mergeIn(remote) {
-  const map = new Map(all.map(t => [t.id, t])), s = st("transactions", "readwrite");
-  let changed = false;
-  for (const r of remote) {
-    if (!r.id) continue;
-    const id = String(r.id), l = map.get(id), ru = Number(r.updatedAt) || 0;
-    if (!l || ru > (l.updatedAt || 0)) {
-      await rq(s.put({id, date: normDate(r.date), type: r.type, name: r.name, amount: parseFloat(r.amount || 0),
-        completed: r.completed === true || r.completed === "true", deleted: r.deleted === true || r.deleted === "true", updatedAt: ru}));
-      changed = true;
-    }
-  }
-  if (changed) { await loadList(); refresh(); }
-}
+const clean = t => ({id: t.id, date: t.date, type: t.type, name: t.name, amount: t.amount || 0, completed: !!t.completed});
+async function queue(...ops) { const box = (await getSet('outbox')) || []; await setSet('outbox', box.concat(ops)); }
 async function sync() {
   if (!url) return;
   if (syncing) { again = true; return; }
   syncing = true; setStatus("Sync ho raha hai...");
   try {
-    const remote = await (await fetch(url + "?action=DOWNLOAD")).json();
-    if (Array.isArray(remote.transactions)) await mergeIn(remote.transactions);
-    await fetch(url, {method: 'POST', mode: 'no-cors', headers: {'Content-Type': 'text/plain;charset=utf-8'},
-      body: JSON.stringify({title: $('titleView').innerText, transactions: all})});
-    setStatus(`✔ Sync ho gaya (${list.length} entries)`);
-  } catch (e) { setStatus("Sync nahi hua. Internet/URL check karein. Data is device par safe hai, agli baar sync hoga.", false); }
+    let box = (await getSet('outbox')) || [], n = box.length;
+    if (!(await getSet('seeded'))) box = all.map(t => ({op: 'upsert', item: clean(t)})).concat(box); // is device ka purana data ek baar upload
+    if (box.length) {
+      const r = await (await fetch(url, {method: 'POST', headers: {'Content-Type': 'text/plain;charset=utf-8'}, body: JSON.stringify({ops: box})})).json();
+      if (!r.ok) throw new Error(r.error);
+      await setSet('seeded', true);
+      await setSet('outbox', ((await getSet('outbox')) || []).slice(n));
+    }
+    if (((await getSet('outbox')) || []).length) { again = true; }
+    else {
+      const remote = await (await fetch(url + "?action=DOWNLOAD")).json();
+      if (!Array.isArray(remote.transactions)) throw new Error("bad data");
+      const s = st("transactions", "readwrite");
+      await rq(s.clear());
+      for (const t of remote.transactions) await rq(s.put({id: String(t.id), date: normDate(t.date), type: t.type, name: t.name,
+        amount: parseFloat(t.amount || 0), completed: t.completed === true}));
+      if (remote.title) { $('titleView').innerText = remote.title; await setSet('appTitle', remote.title); }
+      await loadList(); refresh();
+      setStatus(`✔ Sheet se match (${list.length} entries)`);
+    }
+  } catch (e) { setStatus("Sheet tak nahi pahunche. Badlav is device par safe hain, net aane par apne aap jayenge.", false); }
   syncing = false;
   if (again) { again = false; sync(); }
 }
@@ -196,7 +199,7 @@ function editTitle() { $('titleIn').value = $('titleView').innerText; $('titleVi
 async function saveTitle() {
   const t = $('titleIn').value.trim() || "Daily Expense & Task Tracker";
   $('titleView').innerText = t; $('titleView').classList.remove('hidden'); $('titleIn').classList.add('hidden');
-  await setSet('appTitle', t); sync();
+  await setSet('appTitle', t); await queue({op: 'title', value: t}); sync();
 }
 
 // ---------- Quick items ----------
@@ -293,11 +296,10 @@ async function saveEntry() {
   if (!date) return alert("Date select karein.");
   if (!name) return alert("Kripya name bharein.");
   if (type !== 'task' && (isNaN(amount) || amount < 0)) return alert("Sahi amount daalein.");
-  const s = st("transactions", "readwrite"), now = Date.now();
-  if (id) {
-    const item = await rq(s.get(id));
-    await rq(s.put({...item, name, amount, type, date, updatedAt: now}));
-  } else await rq(s.put({id: uid(), name, amount, type, date, completed: false, updatedAt: now}));
+  const s = st("transactions", "readwrite");
+  let item = id ? await rq(s.get(id)) : {id: uid(), completed: false};
+  item = {...item, name, amount, type, date};
+  await rq(s.put(item)); await queue({op: 'upsert', item: clean(item)});
   const [y, m, d] = date.split('-').map(Number);
   sel = new Date(y, m - 1, d); cur = new Date(y, m - 1, 1);
   await loadList(); resetForm(); refresh(); sync();
@@ -310,14 +312,14 @@ function editEntry(t) {
 }
 async function delEntry() {
   if (!confirm("Delete karein?")) return;
-  const s = st("transactions", "readwrite"), item = await rq(s.get($('editId').value));
-  if (item) await rq(s.put({...item, deleted: true, updatedAt: Date.now()}));
+  const id = $('editId').value;
+  await rq(st("transactions", "readwrite").delete(id)); await queue({op: 'delete', id});
   await loadList(); resetForm(); refresh(); sync();
 }
 async function toggleTask(id, ev) {
   ev.stopPropagation();
   const s = st("transactions", "readwrite"), item = await rq(s.get(id));
-  if (item) { item.completed = ev.target.checked; item.updatedAt = Date.now(); await rq(s.put(item)); await loadList(); refresh(); sync(); }
+  if (item) { item.completed = ev.target.checked; await rq(s.put(item)); await queue({op: 'upsert', item: clean(item)}); await loadList(); refresh(); sync(); }
 }
 function resetForm() {
   $('fName').value = ''; $('fAmt').value = ''; $('editId').value = '';
@@ -339,7 +341,9 @@ function importData() {
     r.onload = async ev => {
       try {
         const data = JSON.parse(ev.target.result), s = st("transactions", "readwrite");
-        for (const t of data) await rq(s.put({...t, id: uid(), date: normDate(t.date), deleted: false, updatedAt: Date.now()}));
+        const items = data.map(t => ({...t, id: uid(), date: normDate(t.date)}));
+        for (const it of items) await rq(s.put(it));
+        await queue(...items.map(it => ({op: 'upsert', item: clean(it)})));
         await loadList(); refresh(); sync(); alert("Import ho gaya!");
       } catch (err) { alert("File sahi nahi hai."); }
     };
