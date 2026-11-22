@@ -1,0 +1,541 @@
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Expense & Task Tracker</title>
+<style>
+:root{--inc:#28a745;--exp:#dc3545;--task:#007bff;--bd:#333}
+*{box-sizing:border-box}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#e9ecef;color:#000;margin:0;padding:12px}
+#main{background:#fff;max-width:950px;margin:0 auto;padding:20px;border:3px solid var(--bd);border-radius:12px}
+button{font-size:1rem;padding:8px 14px;cursor:pointer;background:#eee;border:2px solid var(--bd);font-weight:bold;border-radius:4px}
+button:hover{background:#ddd}
+input[type=text],input[type=number],input[type=url],input[type=date]{font-size:1rem;padding:8px;margin:4px 8px 4px 0;border:2px solid #666;border-radius:4px}
+.box{margin:16px 0;padding:14px;border:2px solid #ccc;background:#fafafa;border-radius:6px}
+.sync{background:#e8f5e9;border-color:var(--inc)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.tabs{display:flex;gap:5px;border-bottom:2px solid #ccc;padding-bottom:5px;margin-bottom:14px}
+.tab.active{background:#333;color:#fff}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.wd{text-align:center;font-weight:bold;font-size:.85rem}
+.day{border:2px solid #ccc;min-height:80px;padding:4px;cursor:pointer;text-align:center;border-radius:4px;font-size:.85rem;line-height:1.3}
+.day:hover{background:#f1f1f1}
+.day.sel{border-color:#000;background:#e3f2fd}
+table{width:100%;border-collapse:collapse;margin-top:10px}
+th,td{border:2px solid var(--bd);padding:8px;text-align:left}
+th{background:#f2f2f2}
+.i{color:var(--inc);font-weight:bold}.e{color:var(--exp);font-weight:bold}.t{color:var(--task);font-weight:bold}
+.done{text-decoration:line-through;color:#888}
+.hidden{display:none}
+.chip{display:inline-flex;align-items:center;background:#fff;border:2px solid #000;padding:4px 10px;margin:4px;border-radius:4px;cursor:pointer;font-weight:bold;font-size:.9rem}
+.chip b{color:var(--exp);margin-left:8px;font-size:1.1rem}
+.status{font-weight:bold;margin-top:6px;font-size:.95rem}
+@media(max-width:600px){.day{min-height:56px;font-size:.7rem}input[type=text],input[type=number],input[type=date]{width:100%;margin-right:0}}
+#vMic.on{background:var(--exp);color:#fff}
+.pv{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:6px;margin-top:6px}
+.pv input,.pv select{width:100%;margin:0}
+.vitem{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #eee}
+.small{font-size:.8rem;color:#666}
+textarea{width:100%;font-size:1rem;padding:8px;border:2px solid #666;border-radius:4px}
+details summary{cursor:pointer;font-weight:bold;margin-top:8px}
+</style>
+</head>
+<body>
+<div id="main">
+
+<div class="box sync">
+  <strong>Google Sheet Sync (automatic)</strong>
+  <p style="margin:6px 0;font-size:.9rem">Apps Script Web App URL ek baar save karein. <b>Sheet hi master hai.</b> Sheet mein badlav karenge to app mein aa jayega, aur app ke badlav Sheet mein jayenge. Internet na ho to badlav jama rehte hain aur baad mein chale jate hain.</p>
+  <input id="scriptUrl" type="url" placeholder="https://script.google.com/macros/s/.../exec" style="width:70%;max-width:600px">
+  <button onclick="saveUrl()">Save URL</button>
+  <div class="status" id="status"></div>
+</div>
+
+<div class="row" style="justify-content:flex-start">
+  <h2 id="titleView" onclick="editTitle()" style="border-bottom:2px dashed #333;cursor:pointer;margin:0">Daily Expense & Task Tracker</h2>
+  <input id="titleIn" type="text" class="hidden" style="font-size:1.3rem;font-weight:bold" onblur="saveTitle()" onkeydown="if(event.key==='Enter')saveTitle()">
+  <button onclick="editTitle()" style="font-size:.8rem;padding:3px 8px">Edit Title</button>
+</div>
+
+<div class="box">
+  <div class="row" style="margin-bottom:6px">
+    <strong>Quick Items (rozana ke kharche)</strong>
+    <span><input id="quickIn" type="text" placeholder="Naya item" style="width:150px"><button onclick="addQuick()">Add</button></span>
+  </div>
+  <div id="quickList"></div>
+</div>
+
+<div class="box">
+  <strong>🎤 आवाज़ से Entry</strong>
+  <textarea id="vTxt" rows="3" placeholder="Yahan bolein ya likhein... jaise: ramesh se mujhe 500 aaye aur suresh ko 200 diye"></textarea>
+  <div style="margin-top:6px">
+    <button id="vMic">🎤 बोलो</button>
+    <button onclick="vAnalyze()" style="background:var(--inc);color:#fff">🔍 Analyze</button>
+    <button onclick="vStop();vTxt.value='';vPv.innerHTML=''">Clear</button>
+  </div>
+  <div class="small" id="vMsg"></div>
+  <div id="vPv"></div>
+  <details><summary>🔤 शब्द सुधार (galat → sahi)</summary>
+    <div class="small">Bolte samay jo shabd galat likha aaye (jaise ai) use sahi shabd (aaye) se jod dein.</div>
+    <input id="vCw" type="text" placeholder="galat (ai)" style="width:130px"><input id="vCr" type="text" placeholder="sahi (aaye)" style="width:130px"><button onclick="vAddCorr()">Add</button>
+    <div id="vClist"></div>
+  </details>
+  <details><summary>🏷️ Keywords (Income / Expense tay karne ke liye)</summary>
+    <div class="small">Phrase jitna lamba, utni pehle pehchan (mujhe aaye &gt; aaye).</div>
+    <input id="vKp" type="text" placeholder="phrase (mujhe aaye)" style="width:170px"><select id="vKt" style="padding:8px"><option value="credit">Income</option><option value="debit">Expense</option></select><button onclick="vAddKw()">Add</button>
+    <div id="vKlist"></div>
+  </details>
+</div>
+
+<div class="row">
+  <button onclick="changeMonth(-1)">◀ पिछला महीना</button>
+  <h3 id="monthLabel" style="margin:0"></h3>
+  <button onclick="changeMonth(1)">अगला महीना ▶</button>
+</div>
+
+<div class="tabs">
+  <button class="tab active" id="tabCal" onclick="switchView('cal')">Calendar</button>
+  <button class="tab" id="tabRep" onclick="switchView('rep')">Monthly Report</button>
+</div>
+
+<div id="calView"><div class="grid" id="calGrid"></div></div>
+<div id="repView" class="hidden">
+  <table><thead><tr><th>Date</th><th>विवरण</th><th>Income</th><th>Expense</th><th>Task</th></tr></thead><tbody id="repBody"></tbody></table>
+</div>
+
+<div class="box">
+  <h4 style="margin:0 0 10px" id="formTitle">Entry jodein</h4>
+  <label><input type="radio" name="type" value="income"> Income</label>
+  <label><input type="radio" name="type" value="expense" checked> Expense</label>
+  <label><input type="radio" name="type" value="task"> Task</label><br>
+  <input id="fDate" type="date">
+  <input id="fName" type="text" placeholder="विवरण (Name)" autocomplete="off">
+  <input id="fAmt" type="number" placeholder="राशि (Amount)">
+  <input id="editId" type="hidden">
+  <div style="margin-top:8px">
+    <button onclick="saveEntry()" style="background:var(--inc);color:#fff">Save Entry</button>
+    <button id="delBtn" class="hidden" onclick="delEntry()" style="background:var(--exp);color:#fff">Delete</button>
+    <button id="cancelBtn" class="hidden" onclick="resetForm()">Cancel</button>
+  </div>
+</div>
+
+<h3>ट्रांजैक्शन सूची: <span id="dayLabel"></span></h3>
+<div id="daySummary" style="font-weight:bold"></div>
+<table><thead><tr><th>विवरण</th><th>राशि</th><th>प्रकार</th></tr></thead><tbody id="dayBody"></tbody></table>
+
+<div class="row" style="margin-top:24px;border-top:3px solid #000;padding-top:14px;justify-content:flex-start">
+  <button onclick="exportData()">Export JSON (backup)</button>
+  <button onclick="importData()">Import JSON</button>
+</div>
+</div>
+
+<script>
+let db, all = [], list = [], cur = new Date(), sel = new Date(), url = "", view = "cal", syncing = false, again = false;
+const $ = id => document.getElementById(id);
+const pad = n => String(n).padStart(2, '0');
+const keyOf = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const rq = r => new Promise((res, rej) => { r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+const st = (n, m='readonly') => db.transaction(n, m).objectStore(n);
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+
+function normDate(v) {
+  if (!v) return "";
+  if (v instanceof Date) return keyOf(v);
+  const s = String(v).trim();
+  let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (m) return `${m[1]}-${pad(m[2])}-${pad(m[3])}`;
+  m = s.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/);
+  if (m) return `${m[3]}-${pad(m[2])}-${pad(m[1])}`;
+  const d = new Date(s);
+  return isNaN(d) ? s : keyOf(d);
+}
+
+function initDB() {
+  return new Promise((res, rej) => {
+    const r = indexedDB.open("UniversalTrackerDB", 6);
+    r.onerror = () => rej(r.error);
+    r.onsuccess = () => { db = r.result; res(); };
+    r.onupgradeneeded = e => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains("transactions")) d.createObjectStore("transactions", {keyPath: "id", autoIncrement: true});
+      if (!d.objectStoreNames.contains("settings")) d.createObjectStore("settings", {keyPath: "key"});
+      if (!d.objectStoreNames.contains("quick")) d.createObjectStore("quick", {keyPath: "name"});
+      ["corr", "kw"].forEach(n => { if (!d.objectStoreNames.contains(n)) d.createObjectStore(n, {keyPath: "id", autoIncrement: true}); });
+    };
+  });
+}
+async function loadList() {
+  all = (await rq(st("transactions").getAll())).map(t => ({...t, date: normDate(t.date)}));
+  list = all.filter(t => !t.deleted);
+}
+const getSet = async k => (await rq(st("settings").get(k)))?.value;
+const setSet = (k, v) => rq(st("settings", "readwrite").put({key: k, value: v}));
+
+// Purani numeric ID wali entries ko pakki ID dete hain (har device par ek jaisi, taaki duplicate na bane)
+async function migrate() {
+  const old = (await rq(st("transactions").getAll())).filter(t => typeof t.id === 'number');
+  if (!old.length) return;
+  const s = st("transactions", "readwrite"), seen = {};
+  for (const t of old) {
+    const d = normDate(t.date), base = `L|${d}|${t.type}|${t.name}|${t.amount || 0}`;
+    seen[base] = (seen[base] || 0) + 1;
+    await rq(s.delete(t.id));
+    await rq(s.put({...t, date: d, id: base + '|' + seen[base], updatedAt: 1}));
+  }
+}
+
+// ---------- Sync: Sheet hi master hai ----------
+function setStatus(msg, ok) { $('status').innerHTML = `<span style="color:${ok === false ? '#dc3545' : '#1e7e34'}">${msg}</span>`; }
+const clean = t => ({id: t.id, date: t.date, type: t.type, name: t.name, amount: t.amount || 0, completed: !!t.completed});
+async function queue(...ops) { const box = (await getSet('outbox')) || []; await setSet('outbox', box.concat(ops)); }
+async function sync() {
+  if (!url) return;
+  if (syncing) { again = true; return; }
+  syncing = true; setStatus("Sync ho raha hai...");
+  try {
+    let box = (await getSet('outbox')) || [], n = box.length;
+    if (!(await getSet('seeded'))) box = all.map(t => ({op: 'upsert', item: clean(t)})).concat(box); // is device ka purana data ek baar upload
+    if (box.length) {
+      const r = await (await fetch(url, {method: 'POST', headers: {'Content-Type': 'text/plain;charset=utf-8'}, body: JSON.stringify({ops: box})})).json();
+      if (!r.ok) throw new Error(r.error);
+      await setSet('seeded', true);
+      await setSet('outbox', ((await getSet('outbox')) || []).slice(n));
+    }
+    if (((await getSet('outbox')) || []).length) { again = true; }
+    else {
+      const remote = await (await fetch(url + "?action=DOWNLOAD")).json();
+      if (!Array.isArray(remote.transactions)) throw new Error("bad data");
+      const s = st("transactions", "readwrite");
+      await rq(s.clear());
+      for (const t of remote.transactions) await rq(s.put({id: String(t.id), date: normDate(t.date), type: t.type, name: t.name,
+        amount: parseFloat(t.amount || 0), completed: t.completed === true}));
+      if (remote.title) { $('titleView').innerText = remote.title; await setSet('appTitle', remote.title); }
+      await loadList(); refresh();
+      setStatus(`✔ Sheet se match (${list.length} entries)`);
+    }
+  } catch (e) { setStatus("Sheet tak nahi pahunche. Badlav is device par safe hain, net aane par apne aap jayenge.", false); }
+  syncing = false;
+  if (again) { again = false; sync(); }
+}
+async function saveUrl() {
+  url = $('scriptUrl').value.trim();
+  await setSet('googleScriptUrl', url);
+  if (url) sync(); else setStatus("URL hata diya.");
+}
+
+// ---------- Title ----------
+function editTitle() { $('titleIn').value = $('titleView').innerText; $('titleView').classList.add('hidden'); $('titleIn').classList.remove('hidden'); $('titleIn').focus(); }
+async function saveTitle() {
+  const t = $('titleIn').value.trim() || "Daily Expense & Task Tracker";
+  $('titleView').innerText = t; $('titleView').classList.remove('hidden'); $('titleIn').classList.add('hidden');
+  await setSet('appTitle', t); await queue({op: 'title', value: t}); sync();
+}
+
+// ---------- Quick items ----------
+async function renderQuick() {
+  const items = await rq(st("quick").getAll());
+  $('quickList').innerHTML = '';
+  items.forEach(q => {
+    const c = document.createElement('span'); c.className = 'chip'; c.textContent = q.name;
+    c.onclick = () => { $('fName').value = q.name; };
+    const x = document.createElement('b'); x.textContent = '×';
+    x.onclick = async e => { e.stopPropagation(); if (confirm("Ye quick item hataein?")) { await rq(st("quick", "readwrite").delete(q.name)); renderQuick(); } };
+    c.appendChild(x); $('quickList').appendChild(c);
+  });
+}
+async function addQuick() {
+  const n = $('quickIn').value.trim(); if (!n) return;
+  await rq(st("quick", "readwrite").put({name: n})); $('quickIn').value = ''; renderQuick();
+}
+
+// ---------- Views ----------
+function switchView(v) {
+  view = v;
+  $('calView').classList.toggle('hidden', v !== 'cal'); $('repView').classList.toggle('hidden', v !== 'rep');
+  $('tabCal').classList.toggle('active', v === 'cal'); $('tabRep').classList.toggle('active', v === 'rep');
+  refresh();
+}
+function changeMonth(d) { cur = new Date(cur.getFullYear(), cur.getMonth() + d, 1); refresh(); }
+const num = t => parseFloat(t.amount || 0);
+const amtOf = t => t.type === 'task' ? '-' : t.amount;
+
+function renderCalendar() {
+  const y = cur.getFullYear(), m = cur.getMonth(), g = $('calGrid');
+  $('monthLabel').innerText = new Intl.DateTimeFormat('hi-IN', {month: 'long', year: 'numeric'}).format(cur);
+  g.innerHTML = ['रवि','सोम','मंगल','बुध','गुरु','शुक्र','शनि'].map(d => `<div class="wd">${d}</div>`).join('');
+  for (let i = 0; i < new Date(y, m, 1).getDay(); i++) g.innerHTML += '<div></div>';
+  const days = new Date(y, m + 1, 0).getDate(), selKey = keyOf(sel);
+  for (let d = 1; d <= days; d++) {
+    const k = `${y}-${pad(m+1)}-${pad(d)}`, dl = list.filter(t => t.date === k);
+    const inc = dl.filter(t => t.type === 'income').reduce((s, t) => s + num(t), 0);
+    const exp = dl.filter(t => t.type === 'expense').reduce((s, t) => s + num(t), 0);
+    const tk = dl.filter(t => t.type === 'task').length;
+    const el = document.createElement('div');
+    el.className = 'day' + (k === selKey ? ' sel' : '');
+    el.innerHTML = `<strong>${d}</strong>` + (inc ? `<br><span class="i">+${inc}</span>` : '') + (exp ? `<br><span class="e">-${exp}</span>` : '') + (tk ? `<br><span class="t">📋${tk}</span>` : '');
+    el.onclick = () => selectDate(new Date(y, m, d));
+    g.appendChild(el);
+  }
+}
+function selectDate(d) { sel = d; resetForm(); refresh(); }
+
+function renderReport() {
+  const y = cur.getFullYear(), m = cur.getMonth(), pre = `${y}-${pad(m+1)}-`;
+  const rows = list.filter(t => t.date.startsWith(pre)).sort((a, b) => a.date.localeCompare(b.date));
+  let inc = 0, exp = 0, h = '';
+  rows.forEach(t => {
+    if (t.type === 'income') inc += num(t); if (t.type === 'expense') exp += num(t);
+    const ts = t.type === 'task' ? (t.completed ? '<span style="color:gray">Completed</span>' : '<span style="color:blue">Pending</span>') : '-';
+    h += `<tr style="cursor:pointer" onclick="selectDate(new Date('${t.date}T00:00'))"><td>${t.date.slice(8)}/${t.date.slice(5,7)}/${y}</td><td>${esc(t.name)}</td><td>${t.type==='income'?`<span class="i">${t.amount}</span>`:'-'}</td><td>${t.type==='expense'?`<span class="e">${t.amount}</span>`:'-'}</td><td>${ts}</td></tr>`;
+  });
+  h = h || '<tr><td colspan="5" style="text-align:center">Is mahine koi data nahi hai.</td></tr>';
+  h += `<tr style="background:#f2f2f2;font-weight:bold"><td colspan="2">Total (Balance: ${inc - exp})</td><td>${inc}</td><td>${exp}</td><td></td></tr>`;
+  $('repBody').innerHTML = h;
+}
+
+function renderDay() {
+  const k = keyOf(sel), dl = list.filter(t => t.date === k);
+  $('dayLabel').innerText = sel.toDateString();
+  const inc = dl.filter(t => t.type === 'income').reduce((s, t) => s + num(t), 0);
+  const exp = dl.filter(t => t.type === 'expense').reduce((s, t) => s + num(t), 0);
+  $('daySummary').innerHTML = dl.length ? `Income: <span class="i">${inc}</span> | Expense: <span class="e">${exp}</span> | Bal: ${inc - exp}` : '';
+  const b = $('dayBody'); b.innerHTML = '';
+  if (!dl.length) { b.innerHTML = '<tr><td colspan="3" style="text-align:center">Is din koi entry nahi hai.</td></tr>'; return; }
+  dl.forEach(t => {
+    const tr = document.createElement('tr'); tr.style.cursor = 'pointer';
+    const cls = t.type === 'income' ? 'i' : t.type === 'expense' ? 'e' : 't';
+    const name = t.type === 'task'
+      ? `<input type="checkbox" ${t.completed ? 'checked' : ''}> <span class="${t.completed ? 'done' : ''}">${esc(t.name)}</span>`
+      : esc(t.name);
+    tr.innerHTML = `<td>${name}</td><td class="${cls}">${amtOf(t)}</td><td>${t.type.toUpperCase()}</td>`;
+    const cb = tr.querySelector('input'); if (cb) cb.onclick = e => toggleTask(t.id, e);
+    tr.onclick = e => { if (e.target.type !== 'checkbox') editEntry(t); };
+    b.appendChild(tr);
+  });
+}
+function refresh() { renderCalendar(); renderDay(); if (view === 'rep') renderReport(); }
+
+// ---------- Entries ----------
+function typeChanged() { const t = document.querySelector('input[name=type]:checked').value; $('fAmt').style.display = t === 'task' ? 'none' : 'inline-block'; }
+document.querySelectorAll('input[name=type]').forEach(r => r.onclick = typeChanged);
+
+async function saveEntry() {
+  const name = $('fName').value.trim(), type = document.querySelector('input[name=type]:checked').value;
+  const amount = type === 'task' ? 0 : parseFloat($('fAmt').value), date = normDate($('fDate').value), id = $('editId').value;
+  if (!date) return alert("Date select karein.");
+  if (!name) return alert("Kripya name bharein.");
+  if (type !== 'task' && (isNaN(amount) || amount < 0)) return alert("Sahi amount daalein.");
+  const s = st("transactions", "readwrite");
+  let item = id ? await rq(s.get(id)) : {id: uid(), completed: false};
+  item = {...item, name, amount, type, date};
+  await rq(s.put(item)); await queue({op: 'upsert', item: clean(item)});
+  const [y, m, d] = date.split('-').map(Number);
+  sel = new Date(y, m - 1, d); cur = new Date(y, m - 1, 1);
+  await loadList(); resetForm(); refresh(); sync();
+}
+function editEntry(t) {
+  $('fName').value = t.name; $('fAmt').value = t.amount || 0; $('editId').value = t.id; $('fDate').value = t.date;
+  document.querySelector(`input[name=type][value=${t.type}]`).checked = true; typeChanged();
+  $('formTitle').innerText = "Entry badlein"; $('delBtn').classList.remove('hidden'); $('cancelBtn').classList.remove('hidden');
+  $('fName').scrollIntoView({behavior: 'smooth', block: 'center'});
+}
+async function delEntry() {
+  if (!confirm("Delete karein?")) return;
+  const id = $('editId').value;
+  await rq(st("transactions", "readwrite").delete(id)); await queue({op: 'delete', id});
+  await loadList(); resetForm(); refresh(); sync();
+}
+async function toggleTask(id, ev) {
+  ev.stopPropagation();
+  const s = st("transactions", "readwrite"), item = await rq(s.get(id));
+  if (item) { item.completed = ev.target.checked; await rq(s.put(item)); await queue({op: 'upsert', item: clean(item)}); await loadList(); refresh(); sync(); }
+}
+function resetForm() {
+  $('fName').value = ''; $('fAmt').value = ''; $('editId').value = '';
+  document.querySelector('input[name=type][value=expense]').checked = true; typeChanged();
+  $('fDate').value = keyOf(sel); $('formTitle').innerText = "Entry jodein";
+  $('delBtn').classList.add('hidden'); $('cancelBtn').classList.add('hidden');
+}
+
+// ---------- Backup ----------
+function exportData() {
+  const blob = new Blob([JSON.stringify(list, null, 2)], {type: "application/json"});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `tracker_backup_${keyOf(new Date())}.json`; a.click();
+}
+function importData() {
+  const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.json';
+  inp.onchange = e => {
+    const r = new FileReader();
+    r.onload = async ev => {
+      try {
+        const data = JSON.parse(ev.target.result), s = st("transactions", "readwrite");
+        const items = data.map(t => ({...t, id: uid(), date: normDate(t.date)}));
+        for (const it of items) await rq(s.put(it));
+        await queue(...items.map(it => ({op: 'upsert', item: clean(it)})));
+        await loadList(); refresh(); sync(); alert("Import ho gaya!");
+      } catch (err) { alert("File sahi nahi hai."); }
+    };
+    r.readAsText(e.target.files[0]);
+  };
+  inp.click();
+}
+
+// ================= आवाज़ से Entry =================
+const vTxt = $('vTxt'), vPv = $('vPv'), vMsg = $('vMsg');
+let vParsed = [], vOn = false, vRec = null, vBase = '', vLast = '';
+const vAll = s => rq(st(s).getAll());
+const vPut = (s, o) => rq(st(s, 'readwrite').put(o));
+const vDel = (s, id) => rq(st(s, 'readwrite').delete(id));
+
+async function vSeed() {
+  if ((await vAll('corr')).length === 0)
+    for (const [w, r] of [['ai','aaye'],['ae','aaye'],['aye','aaye'],['आई','आए'],['die','diye'],['दीये','दिए'],['दिये','दिए']]) await vPut('corr', {wrong: w, right: r});
+  if ((await vAll('kw')).length === 0) {
+    const k = [['mujhe aaye','credit'],['mujhe mile','credit'],['mujhe diye','credit'],['mujhe diya','credit'],['मुझे आए','credit'],['मुझे मिले','credit'],['मुझे दिए','credit'],['aaye','credit'],['mile','credit'],['received','credit'],['jama','credit'],['जमा','credit'],
+      ['use diye','debit'],['usko diye','debit'],['use diya','debit'],['उसे दिए','debit'],['उसको दिए','debit'],['diye','debit'],['diya','debit'],['दिए','debit'],['दिया','debit'],['gaye','debit'],['kharch','debit'],['खर्च','debit'],['paid','debit']];
+    for (const [p, t] of k) await vPut('kw', {phrase: p, type: t});
+  }
+}
+
+/* ---- Voice ---- */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+function vStop() { vOn = false; try { vRec && vRec.abort(); } catch (e) {} $('vMic').classList.remove('on'); $('vMic').textContent = '🎤 बोलो'; vMsg.textContent = ''; }
+function vStart() {
+  vRec = new SR(); vRec.lang = 'hi-IN'; vRec.continuous = false; vRec.interimResults = true;
+  vRec.onresult = e => {
+    const r = e.results[e.results.length - 1], t = r[0].transcript.trim();
+    if (r.isFinal) {
+      if (t && t !== vLast) {
+        let add = t;
+        if (vLast && t.startsWith(vLast)) add = t.slice(vLast.length).trim();
+        if (add) vBase += (vBase && !vBase.endsWith(' ') ? ' ' : '') + add;
+        vLast = t;
+      }
+      vTxt.value = vBase;
+    } else vTxt.value = vBase + (vBase ? ' ' : '') + t;
+  };
+  vRec.onstart = () => { $('vMic').classList.add('on'); $('vMic').textContent = '⏹ रोको'; vMsg.textContent = 'सुन रहा हूँ…'; };
+  vRec.onend = () => {
+    if (vOn) setTimeout(() => { if (vOn) try { vStart(); } catch (e) {} }, 200);
+    else { $('vMic').classList.remove('on'); $('vMic').textContent = '🎤 बोलो'; vMsg.textContent = ''; }
+  };
+  vRec.onerror = e => { if (e.error === 'no-speech' || e.error === 'aborted') return; vOn = false; vMsg.textContent = 'Mic error: ' + e.error; };
+  vRec.start();
+}
+$('vMic').onclick = () => {
+  if (!SR) { vMsg.textContent = 'Is browser mein voice nahi chalta. Chrome use karein ya type karein.'; return; }
+  if (vOn) { vOn = false; vRec.stop(); return; }
+  vOn = true; vBase = vTxt.value.trim(); vLast = ''; vStart();
+};
+
+/* ---- Analysis ---- */
+const MULT = {hazar:1000, hazaar:1000, 'हज़ार':1000, 'हजार':1000, sau:100, 'सौ':100, lakh:100000, 'लाख':100000};
+const STOP = new Set(['ko','se','ne','ka','ki','ke','rupaye','rupay','rupees','rs','₹','को','से','ने','का','की','के','रुपये','रुपए','रू','mujhe','use','usko','मुझे','उसे','उसको','hai','hain','है','हैं','aur','और','phir','फिर']);
+
+async function vAnalyze() {
+  vStop();
+  const corr = await vAll('corr'), kws = (await vAll('kw')).sort((a, b) => b.phrase.length - a.phrase.length);
+  let t = vTxt.value.trim();
+  if (!t) { vMsg.textContent = 'Pehle kuch bolein ya likhein.'; return; }
+  const map = {}; corr.forEach(c => map[c.wrong.toLowerCase()] = c.right);
+  t = t.replace(/[^\s,।.]+/g, w => map[w.toLowerCase()] ?? w);
+  vTxt.value = t;
+  const segs = t.split(/[,।.\n]|\s(?:aur|phir|और|फिर)\s/i).map(s => s.trim()).filter(Boolean);
+  vParsed = [];
+  const endWords = new Set(kws.map(k => k.phrase.toLowerCase().split(/\s+/).pop()));
+  for (const seg of segs) {
+    const words = seg.split(/\s+/), amts = [];
+    for (let i = 0; i < words.length; i++) {
+      if (/\d/.test(words[i])) {
+        const n = parseFloat(words[i].replace(/[₹,]/g, ''));
+        if (!isNaN(n)) {
+          let a = n, e = i; const m = MULT[(words[i + 1] || '').toLowerCase()];
+          if (m) { a *= m; e = i + 1; }
+          amts.push({s: i, e, a}); i = e;
+        }
+      }
+    }
+    let c = 0;
+    amts.forEach((am, j) => {
+      const nextS = j + 1 < amts.length ? amts[j + 1].s : words.length;
+      let end = am.e;
+      const before = words.slice(c, am.s).some(w => endWords.has(w.toLowerCase()));
+      if (!before) for (let i = am.e + 1; i < nextS; i++) if (endWords.has(words[i].toLowerCase())) { end = i; break; }
+      if (j === amts.length - 1) end = words.length - 1;
+      const chunk = words.slice(c, end + 1);
+      let rest = [];
+      for (let i = c; i <= end; i++) if (i < am.s || i > am.e) rest.push(words[i]);
+      c = end + 1; rest = rest.join(' ');
+      const k = kws.find(k => rest.toLowerCase().includes(k.phrase.toLowerCase()));
+      if (k) rest = rest.replace(new RegExp(k.phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'), ' ');
+      const name = rest.split(/\s+/).filter(w => w && !STOP.has(w.toLowerCase())).join(' ') || 'Unknown';
+      vParsed.push({name, amount: am.a, type: k ? k.type : 'debit', known: !!k, script: chunk.join(' ')});
+    });
+  }
+  vPreview();
+}
+function vPreview() {
+  if (!vParsed.length) { vPv.innerHTML = '<div class="small">Koi rakam nahi mili. Rakam ankon mein bolein/likhein (jaise 500).</div>'; return; }
+  vPv.innerHTML = `<b>Preview</b> <span class="small">(${sel.toDateString()} par judegi, badal sakte hain)</span>` + vParsed.map((p, i) => `
+   <div class="pv"><input value="${esc(p.name)}" onchange="vParsed[${i}].name=this.value">
+     <input type="number" value="${p.amount}" onchange="vParsed[${i}].amount=+this.value">
+     <select onchange="vParsed[${i}].type=this.value"><option value="credit"${p.type=='credit'?' selected':''}>Income</option><option value="debit"${p.type=='debit'?' selected':''}>Expense</option></select></div>
+   <div class="small">🗣 ${esc(p.script || '')}</div>${p.known ? '' : '<div class="small" style="color:#b45309">⚠ keyword nahi mila, type jaanch lein</div>'}`).join('') +
+   '<div style="margin-top:8px"><button onclick="vSave()" style="background:var(--inc);color:#fff">✔ Sab Save karein</button></div>';
+}
+async function vSave() {
+  vStop();
+  const date = keyOf(sel), items = vParsed.filter(p => p.amount > 0).map(p => ({id: uid(), name: p.name, amount: p.amount, type: p.type == 'credit' ? 'income' : 'expense', date, completed: false}));
+  const s = st('transactions', 'readwrite');
+  for (const it of items) await rq(s.put(it));
+  await queue(...items.map(it => ({op: 'upsert', item: clean(it)})));
+  vParsed = []; vPv.innerHTML = ''; vTxt.value = ''; vBase = ''; vLast = '';
+  await loadList(); refresh(); sync();
+}
+
+/* ---- Shabd sudhar & Keywords ---- */
+async function vLoadCorr() {
+  $('vClist').innerHTML = (await vAll('corr')).map(x => `<div class="vitem"><span>${esc(x.wrong)} → <b>${esc(x.right)}</b></span>
+   <span><button onclick="vEditCorr(${x.id})">Edit</button> <button onclick="vDelCorr(${x.id})" style="background:var(--exp);color:#fff">Delete</button></span></div>`).join('');
+}
+async function vAddCorr() {
+  const w = $('vCw').value.trim(), r = $('vCr').value.trim(); if (!w || !r) return;
+  await vPut('corr', {wrong: w, right: r}); $('vCw').value = $('vCr').value = ''; vLoadCorr();
+}
+async function vEditCorr(id) {
+  const x = (await vAll('corr')).find(e => e.id === id);
+  const w = prompt('Galat shabd', x.wrong); if (w === null) return;
+  const r = prompt('Sahi shabd', x.right); if (r === null) return;
+  x.wrong = w.trim(); x.right = r.trim(); await vPut('corr', x); vLoadCorr();
+}
+async function vDelCorr(id) { await vDel('corr', id); vLoadCorr(); }
+async function vLoadKw() {
+  const k = (await vAll('kw')).sort((a, b) => a.type.localeCompare(b.type));
+  $('vKlist').innerHTML = k.map(x => `<div class="vitem"><span>${esc(x.phrase)} <b class="${x.type == 'credit' ? 'i' : 'e'}">${x.type == 'credit' ? 'Income' : 'Expense'}</b></span>
+   <span><button onclick="vEditKw(${x.id})">Edit</button> <button onclick="vDelKw(${x.id})" style="background:var(--exp);color:#fff">Delete</button></span></div>`).join('');
+}
+async function vAddKw() {
+  const p = $('vKp').value.trim(); if (!p) return;
+  await vPut('kw', {phrase: p, type: $('vKt').value}); $('vKp').value = ''; vLoadKw();
+}
+async function vEditKw(id) {
+  const x = (await vAll('kw')).find(e => e.id === id);
+  const p = prompt('Phrase', x.phrase); if (p === null) return;
+  const t = prompt('Type likhein: credit (Income) ya debit (Expense)', x.type); if (t === null) return;
+  x.phrase = p.trim(); x.type = t.trim().toLowerCase() === 'credit' ? 'credit' : 'debit'; await vPut('kw', x); vLoadKw();
+}
+async function vDelKw(id) { await vDel('kw', id); vLoadKw(); }
+
+
+window.onload = async () => {
+  await initDB(); await migrate(); await vSeed();
+  const title = await getSet('appTitle'); if (title) $('titleView').innerText = title;
+  url = (await getSet('googleScriptUrl')) || ""; $('scriptUrl').value = url;
+  await loadList(); resetForm(); refresh(); renderQuick(); vLoadCorr(); vLoadKw(); sync();
+};
+document.addEventListener('visibilitychange', () => { if (!document.hidden) sync(); });
+</script>
+</body>
+</html>
