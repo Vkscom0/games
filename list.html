@@ -1,4 +1,7 @@
+<div style="text-align: right;">
+  <iframe frameborder="0" height="200" scrolling="no" src="https://calendar.google.com/calendar/embed?height=600&wkst=1&ctz=Asia%2FKolkata&showPrint=0&mode=WEEK&src=YzRmYjMwMTNiNWNiYWY2NzllOWQ0MDQ5ZjA4NDFiOGUzMzRjODdkMmM5OTQ1NmEwOTI4YTVlY2E4Mjc0Y2MxOEBncm91cC5jYWxlbmRhci5nb29nbGUuY29t&src=NTBiNjUxNjFmYWFkM2U2OWI4ZmZjMDFlNTJlYTM0ZDZmZmM3Y2U2YjBjZDkxMDJhYjNkNDM4ZWNmYmMyYmZmYUBncm91cC5jYWxlbmRhci5nb29nbGUuY29t&color=%23ad1457&color=%239e69af" style="border: solid 1px #777;" width="400"></iframe>
 
+  <br /></div><div><br /></div><div><br /></div>
 
 <html lang="hi">
 <head>
@@ -441,7 +444,6 @@
             justify-content: center;
             cursor: pointer;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            touch-action: manipulation; /* Mobile par double tap zoom rokne ke liye */
         }
 
         .no-results {
@@ -671,7 +673,7 @@
 
         // ================= GOOGLE SHEETS SYNC =================
         // Google Apps Script Web App URL yahan paste karein.
-        const GOOGLE_SHEETS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwqdWlxoFBCBSfZaJJGX2VZ1_JCN_UGaQTZ2FQ-lskrW9ZOBiVPADK_dkVOCwq5-JdFQw/exec";
+        const GOOGLE_SHEETS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzG9Ryb55GIVpEVccqJp0iStYf88zWVPY_JnPVx8Onyo1rDv1cbN95QxssyyTt0fhMqSw/exec";
         let syncTimer = null;
         let syncingFromSheet = false;
         let sheetSyncReady = false;
@@ -951,15 +953,6 @@
                     resolve();
                 };
             });
-        }
-
-        // ===== NEW: Delete se pehle confirmation (double click ke baad) =====
-        function confirmDeleteItem(id) {
-            const item = menuItems.find(i => Number(i.id) === Number(id));
-            const name = item ? item.title : "यह आइटम";
-            if (confirm(`क्या आप "${name}" को डिलीट करना चाहते हैं?`)) {
-                deleteItemFromDB(id);
-            }
         }
 
         function deleteItemFromDB(id) {
@@ -1269,9 +1262,8 @@
                     <div class="item-actions">
                         <button class="action-btn" type="button" title="Edit"
                             onclick="event.preventDefault(); event.stopPropagation(); openModal('edit', ${item.id})">✏️</button>
-                        <button class="action-btn" type="button" title="${isRecent ? 'हटाने के लिए डबल क्लिक करें' : 'डिलीट करने के लिए डबल क्लिक करें'}"
-                            onclick="event.preventDefault(); event.stopPropagation();"
-                            ondblclick="event.preventDefault(); event.stopPropagation(); ${isRecent ? `removeFromRecentList(${item.id})` : `confirmDeleteItem(${item.id})`}">${isRecent ? '❌' : '🗑️'}</button>
+                        <button class="action-btn" type="button" title="Delete"
+                            onclick="event.preventDefault(); event.stopPropagation(); ${isRecent ? `removeFromRecentList(${item.id})` : `deleteItemFromDB(${item.id})`}">${isRecent ? '❌' : '🗑️'}</button>
                     </div>
                 `;
 
@@ -1737,7 +1729,7 @@
                     const lines = text.split(/\r\n|\n/);
                     let newItems = [];
 
-                    // पहली लाइन (हेडर) को छोड़कर बाकी लाइनों को पढ़ें
+                    // पहली लाइन (हेडर) को छोड़कर बाकी लाइनों को पढ़ें
                     for (let i = 1; i < lines.length; i++) {
                         const line = lines[i].trim();
                         if (!line) continue;
@@ -1760,7 +1752,7 @@
                         }
                         row.push(currentVal.trim());
 
-                        // कोट्स (उद्धरण चिन्ह) हटाएं
+                        // कोट्स (উद्धरण चिन्ह) हटाएं
                         const clean = row.map(val => val.replace(/^"|"$/g, '').replace(/""/g, '"').trim());
 
                         if (clean.length >= 3) {
@@ -1914,6 +1906,11 @@
     </script>
 </body>
 </html>
+
+
+
+sync file = 
+https://www.blogger.com/blog/post/edit/864874242936263364/4333838111156391504</span><div><br /></div>
 
 <div style="text-align: left;"><a href="" target="">List(manual)</a>
   <p></p>
