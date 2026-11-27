@@ -32,3 +32,1927 @@
 <div style="text-align: left;"><a href="https://vkscom0.github.io/games/https://vkscom0.github.io/games/Multitimetablesingle.html" target="_blank">mutitime table backup file for sync</a>
 <div style="text-align: left;"><a href="https://vkscom0.github.io/games/multitimetable_anti_clear.html" target="_blank">menu tital + mutitime table download (manualy sunc)</a>
 <div style="text-align: left;"><a href="https://vkscom0.github.io/games/multi-Timetablefile.html" target="_blank">multi time table like a file but duble masg - disturbing</a>
+
+  <div style="text-align: right;">
+  <iframe frameborder="0" height="200" scrolling="no" src="https://calendar.google.com/calendar/embed?height=300&amp;wkst=2&amp;bgcolor=%23ffffff&amp;ctz=Asia%2FKolkata&amp;title=Office%20table%20calander%20&amp;mode=AGENDA&amp;src=NTBiNjUxNjFmYWFkM2U2OWI4ZmZjMDFlNTJlYTM0ZDZmZmM3Y2U2YjBjZDkxMDJhYjNkNDM4ZWNmYmMyYmZmYUBncm91cC5jYWxlbmRhci5nb29nbGUuY29t&amp;color=%239E69AF" style="border: solid 1px #777;" width="400"></iframe>
+
+  <br /></div><div><br /></div><div><br /></div>
+
+<html lang="hi">
+<head>
+    <meta charset="UTF-8"></meta>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"></meta>
+    <title>Sell and Earn Menu</title>
+  
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --badge-bg: #ea2e08;
+            --badge-text: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+          /* Poore page par text copy/select hone se rokne ke liye */
+
+    -webkit-user-select: none; /* Safari */
+    -moz-user-select: none;    /* Firefox */
+    -ms-user-select: none;     /* IE / Edge */
+    user-select: none;         /* Standard Syntax */
+
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0 auto;
+            padding: 10px 0;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 450px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .app-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            background: #fff;
+            z-index: 10;
+        }
+
+        .header-title-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-grow: 1;
+            justify-content: center;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .header-title-container img {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+        }
+
+        .header-title-container span.header-emoji {
+            font-size: 24px;
+        }
+
+        .app-header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .admin-toggle-btn {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary);
+            transition: all 0.2s;
+        }
+
+        .admin-toggle-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Search & Filter Bar Styles */
+        .search-filter-container {
+            padding: 12px 16px;
+            background: #fff;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            gap: 8px;
+            flex-direction: column;
+        }
+
+        .search-box-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 14px 10px 36px;
+            font-size: 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            outline: none;
+            background: #f8fafc;
+            color: var(--text-main);
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary);
+            background: #fff;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .category-filter-scroll {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding: 2px 2px 8px;
+            width: 100%;
+            max-width: 100%;
+            flex-wrap: nowrap;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: #94a3b8 #f1f5f9;
+            overscroll-behavior-x: contain;
+            touch-action: pan-x;
+        }
+
+        /* Category scrollbar - desktop + mobile */
+        .category-filter-scroll::-webkit-scrollbar {
+            height: 7px;
+            display: block;
+        }
+
+        .category-filter-scroll::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+
+        .category-filter-scroll::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 10px;
+        }
+
+        .category-filter-scroll::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+
+        .category-filter-scroll .filter-chip {
+            flex: 0 0 auto;
+        }
+
+        .filter-chip {
+            flex: 0 0 auto;
+            padding: 7px 13px;
+            font-size: 12px;
+            font-weight: 600;
+            background: #f1f5f9;
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .filter-chip:focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+
+        .filter-chip.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .toolbar {
+            background: #f8fafc;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .btn:active { transform: scale(0.97); }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-success { background: #10b981; color: white; }
+        .btn-success:hover { background: #059669; }
+        .btn-warning { background: #f59e0b; color: white; }
+        .btn-warning:hover { background: #d97706; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-outline { background: white; border: 1px solid var(--border-color); color: var(--text-main); }
+
+        .menu-content {
+            padding: 16px 20px;
+            overflow-y: auto;
+            flex-grow: 1;
+            position: relative;
+        }
+
+        .category-block { 
+            margin-bottom: 24px; 
+            transition: transform 0.15s ease, opacity 0.15s ease;
+            touch-action: pan-y;
+        }
+
+        .admin-mode .category-block {
+            border: 1px dashed #cbd5e1;
+            padding: 10px;
+            border-radius: 12px;
+            background: #fafafa;
+            cursor: grab;
+            position: relative;
+            transition: transform .15s ease, opacity .15s ease, border-color .15s ease;
+        }
+
+        .admin-mode .category-block.dragging {
+            opacity: .45;
+            transform: scale(.985);
+            border: 2px dashed var(--primary);
+        }
+
+      
+        .admin-mode .category-block.drag-over {
+            border: 2px solid var(--primary);
+            background: #eef2ff;
+        }
+
+        .admin-mode .category-title {
+            cursor: grab;
+            user-select: none;
+        }
+
+        .admin-mode .category-title::before {
+            content: '☷';
+            color: var(--primary);
+            font-size: 18px;
+            margin-right: 2px;
+        }
+
+        .category-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .category-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background-color: #e2e8f0;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px 12px;
+        }
+
+        .menu-item-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            text-decoration: none;
+            color: var(--text-main);
+            padding: 8px;
+            border-radius: 12px;
+            position: relative;
+            transition: transform 0.15s ease, opacity 0.15s ease;
+            cursor: pointer;
+            user-select: none;
+            touch-action: pan-y;
+        }
+
+        .admin-mode .menu-item-card {
+            cursor: grab;
+            border: 1px dotted #cbd5e1;
+            background: white;
+        }
+
+        .admin-mode .menu-item-card.dragging {
+            opacity: .35;
+            transform: scale(.94);
+            border: 2px dashed var(--primary);
+        }
+
+        .admin-mode .menu-item-card.drag-over {
+            border: 2px solid var(--primary);
+            background: #eef2ff;
+        }
+
+        .admin-mode .menu-item-card:active,
+        .admin-mode .category-block:active {
+            cursor: grabbing;
+        }
+
+        .drag-hint {
+            display: none;
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-left: auto;
+            white-space: nowrap;
+        }
+
+        .admin-mode .drag-hint {
+            display: inline-block;
+        }
+
+        .menu-item-card:hover {
+            background-color: #f1f5f9;
+        }
+
+        .icon-wrapper {
+            position: relative;
+            width: 52px;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin-bottom: 6px;
+            pointer-events: none;
+        }
+
+        .icon-wrapper img {
+            width: 44px;
+            height: 44px;
+            object-fit: contain;
+        }
+
+        .badge {
+            position: absolute;
+            top: -4px;
+            right: -8px;
+            background: var(--badge-bg);
+            color: var(--badge-text);
+            font-size: 9px;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+        }
+
+        .item-label {
+            font-size: 13px;
+            font-weight: 500;
+            line-height: 1.25;
+            color: #334155;
+            word-break: break-word;
+            pointer-events: none;
+        }
+
+        .item-actions {
+            display: none;
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            gap: 2px;
+            z-index: 5;
+        }
+
+        .admin-mode .item-actions { display: flex; }
+
+        .action-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #cbd5e1;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            touch-action: manipulation; /* Mobile par double tap zoom rokne ke liye */
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal-card {
+            background: white;
+            width: 100%;
+            max-width: 400px;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        .form-group { margin-bottom: 12px; }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            outline: none;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        #csvFileInput { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="app-container" id="appContainer">
+        <div class="app-header">
+            <div class="header-title-container" id="headerTitleContainer" ondblclick="handleResetDoubleClick()" title="डेटा रीसेट करने के लिए डबल क्लिक करें">
+                <div id="headerIconWrapper"></div>
+                <h1 id="headerTitle">Sell and Earn</h1>
+            </div>
+            <button class="admin-toggle-btn" id="adminToggleBtn" onclick="toggleAdminMode()">⚙️ Admin</button>
+        </div>
+
+        <!-- Search Bar & Category Filter Chips -->
+        <div class="search-filter-container">
+            <div class="search-box-wrapper">
+                <span class="search-icon">🔍</span>
+                <input class="search-input" id="searchInput" oninput="handleSearchFilter()" placeholder="बटन या सर्विस खोजें..." type="text" />
+            </div>
+            <div class="category-filter-scroll" id="categoryFilterScroll">
+                <!-- Dynamic Filter Chips यहाँ लोड होंगे -->
+            </div>
+        </div>
+
+        <div class="toolbar" id="toolbar" style="display: none;">
+            <button class="btn btn-outline" onclick="openTitleModal()">✏️ Title Edit</button>
+            <button class="btn btn-primary" onclick="openModal('add')">➕ Item Add</button>
+            <button class="btn btn-success" onclick="exportCSV()">📤 Export CSV</button>
+            <button class="btn btn-warning" onclick="triggerCSVImport()">📥 Import CSV</button>
+            <button class="btn btn-outline" onclick="downloadStandaloneHTML()">💾 Export HTML</button>
+            <button class="btn btn-danger" onclick="handleResetDoubleClick()">🔄 Reset</button>
+            <span class="drag-hint">☷ Category / Button को drag करके move करें</span>
+            <span id="sheetSyncStatus" style="align-self: center; color: #64748b; font-size: 11px;">☁️ Google Sheet sync</span>
+            <input accept=".*" id="csvFileInput" onchange="importCSV(event)" type="file" />
+        </div>
+
+        <div class="menu-content" id="menuContent"></div>
+    </div>
+
+    <!-- Item Modal -->
+    <div class="modal-overlay" id="itemModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="modalTitle">Item Details</h3>
+                <button class="close-btn" onclick="closeModal('itemModal')">✕</button>
+            </div>
+            <form id="itemForm" onsubmit="handleFormSubmit(event)">
+                <input id="itemId" type="hidden" />
+                <div class="form-group">
+                    <label for="categoryInput">Category Name</label>
+                    <input class="form-control" id="categoryInput" list="categorySuggestions" placeholder="Motor, Health &amp; Life आदि" required="" type="text" />
+                    <datalist id="categorySuggestions"></datalist>
+                </div>
+                <div class="form-group">
+                    <label for="titleInput">Item Title</label>
+                    <input class="form-control" id="titleInput" placeholder="Bike Insurance" required="" type="text" />
+                </div>
+                <div class="form-group">
+                    <label for="iconInput">Icon (इमोजी या इमेज URL)</label>
+                    <input class="form-control" id="iconInput" placeholder="🛵 या https://example.com/icon.png" required="" type="text" />
+                </div>
+                <div class="form-group">
+                    <label for="urlInput">Target Link (URL)</label>
+                    <input class="form-control" id="urlInput" placeholder="https://google.com या #bike" type="text" value="#" />
+                </div>
+                <div class="form-group">
+                    <label for="badgeInput">Badge Text (वैकल्पिक)</label>
+                    <input class="form-control" id="badgeInput" placeholder="NEW, 50% OFF" type="text" />
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-outline" onclick="closeModal('itemModal')" type="button">Cancel</button>
+                    <button class="btn btn-primary" type="submit">Save Item</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Header Title & Image Modal -->
+    <div class="modal-overlay" id="titleModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Header Title &amp; Image Edit</h3>
+                <button class="close-btn" onclick="closeModal('titleModal')">✕</button>
+            </div>
+            <form onsubmit="handleTitleSubmit(event)">
+                <div class="form-group">
+                    <label for="headerTitleInput">Page Title Text</label>
+                    <input class="form-control" id="headerTitleInput" required="" type="text" />
+                </div>
+                <div class="form-group">
+                    <label for="headerIconInput">Title Icon / Logo (इमोजी या इमेज URL)</label>
+                    <input class="form-control" id="headerIconInput" placeholder="🛍️ या https://example.com/logo.png" type="text" />
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-outline" onclick="closeModal('titleModal')" type="button">Cancel</button>
+                    <button class="btn btn-primary" type="submit">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script id="mainScript">
+        let pageSettings = {
+            title: "Sell and Earn",
+            icon: "🛍️"
+        };
+
+        let defaultMenuItems = [
+            { id: 1, category: "Motor", title: "Bike Insurance", icon: "🛵", url: "#bike", badge: "", order: 1 },
+            { id: 2, category: "Motor", title: "Car Insurance", icon: "🚗", url: "#car", badge: "", order: 2 },
+            { id: 3, category: "Motor", title: "Comm. Vehicle", icon: "🚚", url: "#comm-vehicle", badge: "", order: 3 },
+            { id: 4, category: "Health & Life", title: "Health Insurance", icon: "🩺", url: "#health", badge: "", order: 4 },
+            { id: 5, category: "Health & Life", title: "Life Insurance", icon: "☂️", url: "#life", badge: "", order: 5 },
+            { id: 6, category: "Health & Life", title: "Personal Accident", icon: "⚠️", url: "#personal-accident", badge: "", order: 6 },
+            { id: 7, category: "Health & Life", title: "Payment Fraud Pr...", icon: "🛡️", url: "#payment-fraud", badge: "", order: 7 },
+            { id: 8, category: "Loans & Credit", title: "Personal Loans", icon: "💰", url: "#personal-loan", badge: "", order: 8 },
+            { id: 9, category: "Loans & Credit", title: "Business Loans", icon: "🏢", url: "#business-loan", badge: "", order: 9 },
+            { id: 10, category: "Loans & Credit", title: "Credit Cards", icon: "💳", url: "#credit-cards", badge: "", order: 10 },
+            { id: 11, category: "Loans & Credit", title: "Home Loans", icon: "🏠", url: "#home-loans", badge: "", order: 11 },
+            { id: 12, category: "Loans & Credit", title: "Free Credit Sc...", icon: "📈", url: "#credit-score", badge: "NEW", order: 12 },
+            { id: 13, category: "Loans & Credit", title: "MF Loans", icon: "🪙", url: "#mf-loans", badge: "", order: 13 },
+            { id: 14, category: "Investment", title: "Mutual Funds", icon: "📊", url: "#mutual-funds", badge: "", order: 14 },
+            { id: 15, category: "SME & Commercial Insurance", title: "Fire Insurance", icon: "🔥", url: "#fire-insurance", badge: "", order: 15 },
+            { id: 16, category: "SME & Commercial Insurance", title: "Marine Insurance", icon: "⚓", url: "#marine-insurance", badge: "", order: 16 },
+            { id: 17, category: "SME & Commercial Insurance", title: "Workmen's Comp.", icon: "👷", url: "#workmen-comp", badge: "", order: 17 }
+        ];
+
+        function generateUniqueDBName() {
+            let path = window.location.pathname || "default";
+            let hash = 0;
+            for (let i = 0; i < path.length; i++) {
+                hash = ((hash << 5) - hash) + path.charCodeAt(i);
+                hash |= 0;
+            }
+            return "SellAndEarnDB_" + Math.abs(hash);
+        }
+
+        const DB_NAME = generateUniqueDBName();
+        let db = null;
+        let isAdmin = false;
+        let menuItems = [];
+        let categoryOrder = [];
+        let recentItemIds = [];
+        let selectedCategoryFilter = "All";
+
+        // Drag & Drop state
+        let draggedCategory = null;
+        let draggedItemId = null;
+        let dragStartCategory = null;
+
+
+        // ================= GOOGLE SHEETS SYNC =================
+        // Google Apps Script Web App URL yahan paste karein.
+        const GOOGLE_SHEETS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwqdWlxoFBCBSfZaJJGX2VZ1_JCN_UGaQTZ2FQ-lskrW9ZOBiVPADK_dkVOCwq5-JdFQw/exec";
+        let syncTimer = null;
+        let syncingFromSheet = false;
+        let sheetSyncReady = false;
+
+        function sheetSyncConfigured() {
+            return GOOGLE_SHEETS_WEB_APP_URL &&
+                GOOGLE_SHEETS_WEB_APP_URL.startsWith("https://script.google.com/macros/s/") &&
+                !GOOGLE_SHEETS_WEB_APP_URL.includes("PASTE_YOUR");
+        }
+
+        function jsonpRequest(url) {
+            return new Promise((resolve, reject) => {
+                const callbackName = "gsCallback_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
+                const script = document.createElement("script");
+                const timer = setTimeout(() => {
+                    cleanup();
+                    reject(new Error("Google Sheet response timeout"));
+                }, 20000);
+                function cleanup() {
+                    clearTimeout(timer);
+                    delete window[callbackName];
+                    script.remove();
+                }
+                window[callbackName] = data => {
+                    cleanup();
+                    resolve(data);
+                };
+                script.onerror = () => {
+                    cleanup();
+                    reject(new Error("Google Sheet se connect nahi ho paaya"));
+                };
+                script.src = url + (url.includes("?") ? "&" : "?") +
+                    "action=load&callback=" + callbackName + "&t=" + Date.now();
+                document.head.appendChild(script);
+            });
+        }
+
+        async function loadFromGoogleSheet() {
+            if (!sheetSyncConfigured()) return null;
+            const data = await jsonpRequest(GOOGLE_SHEETS_WEB_APP_URL);
+            if (!data || data.ok !== true) throw new Error(data?.error || "Sheet load failed");
+            return data.state || null;
+        }
+
+        function scheduleGoogleSheetSave() {
+            if (!sheetSyncReady || syncingFromSheet || !sheetSyncConfigured()) return;
+            clearTimeout(syncTimer);
+            syncTimer = setTimeout(saveToGoogleSheet, 700);
+        }
+
+        async function saveToGoogleSheet() {
+            if (!sheetSyncConfigured() || syncingFromSheet) return;
+            const state = {
+                items: menuItems,
+                settings: {
+                    pageSettings,
+                    categoryOrder,
+                    recentItemIds
+                },
+                updatedAt: new Date().toISOString()
+            };
+            try {
+                // text/plain avoids CORS preflight; Apps Script receives the JSON body.
+                await fetch(GOOGLE_SHEETS_WEB_APP_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify(state)
+                });
+                const status = document.getElementById("sheetSyncStatus");
+                if (status) status.textContent = "☁️ Sync sent";
+            } catch (err) {
+                console.error("Google Sheets save error:", err);
+                const status = document.getElementById("sheetSyncStatus");
+                if (status) status.textContent = "⚠️ Sync error";
+            }
+        }
+
+        async function syncFromGoogleSheet() {
+            if (!sheetSyncConfigured()) {
+                console.info("Google Sheets sync: Apps Script URL set karna baaki hai.");
+                return;
+            }
+            try {
+                const state = await loadFromGoogleSheet();
+                if (state && Array.isArray(state.items) && state.items.length) {
+                    syncingFromSheet = true;
+                    menuItems = state.items.map((item, index) => ({
+                        ...item,
+                        id: Number(item.id) || index + 1,
+                        order: Number(item.order) || index + 1,
+                        category: String(item.category || "General"),
+                        title: String(item.title || "Item"),
+                        icon: String(item.icon || "📌"),
+                        url: String(item.url || "#"),
+                        badge: String(item.badge || "")
+                    }));
+                    if (state.settings) {
+                        if (state.settings.pageSettings) pageSettings = state.settings.pageSettings;
+                        if (Array.isArray(state.settings.categoryOrder)) categoryOrder = state.settings.categoryOrder;
+                        if (Array.isArray(state.settings.recentItemIds)) recentItemIds = state.settings.recentItemIds;
+                    }
+                    await clearAndBulkInsertForSheet(menuItems);
+                    await saveSettingsToDB();
+                    syncingFromSheet = false;
+                    renderHeader();
+                    renderCategoryFilters();
+                    renderMenu();
+                    updateCategorySuggestions();
+                } else {
+                    // Pehli baar sheet khaali ho to current browser data ko Sheet mein bhejein.
+                    sheetSyncReady = true;
+                    await saveToGoogleSheet();
+                }
+                sheetSyncReady = true;
+                const status = document.getElementById("sheetSyncStatus");
+                if (status) status.textContent = "☁️ Google Sheet connected";
+            } catch (err) {
+                syncingFromSheet = false;
+                console.error("Google Sheets sync error:", err);
+                const status = document.getElementById("sheetSyncStatus");
+                if (status) status.textContent = "⚠️ Sheet sync failed";
+            }
+        }
+
+        function clearAndBulkInsertForSheet(items) {
+            return new Promise((resolve, reject) => {
+                if (!db) return resolve();
+                const tx = db.transaction("items", "readwrite");
+                const store = tx.objectStore("items");
+                store.clear();
+                items.forEach((item, idx) => {
+                    const copy = { ...item, id: Number(item.id) || idx + 1, order: Number(item.order) || idx + 1 };
+                    store.put(copy);
+                });
+                tx.oncomplete = () => { scheduleGoogleSheetSave(); resolve(); };
+                tx.onerror = () => reject(tx.error);
+            });
+        }
+        // ======================================================
+
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, 1);
+                
+                request.onupgradeneeded = (e) => {
+                    const dbInstance = e.target.result;
+                    if (!dbInstance.objectStoreNames.contains("items")) {
+                        dbInstance.createObjectStore("items", { keyPath: "id", autoIncrement: true });
+                    }
+                    if (!dbInstance.objectStoreNames.contains("settings")) {
+                        dbInstance.createObjectStore("settings", { keyPath: "key" });
+                    }
+                };
+
+                request.onsuccess = (e) => {
+                    db = e.target.result;
+                    loadSettingsFromDB().then(() => {
+                        const tx = db.transaction("items", "readonly");
+                        const store = tx.objectStore("items");
+                        const countReq = store.count();
+
+                        countReq.onsuccess = () => {
+                            if (countReq.result === 0) {
+                                clearAndBulkInsert(defaultMenuItems).then(resolve);
+                            } else {
+                                loadItemsFromDB().then(resolve);
+                            }
+                        };
+                    });
+                };
+
+                request.onerror = (e) => reject(e);
+            });
+        }
+
+        function saveSettingsToDB() {
+            return new Promise((resolve) => {
+                if (!db) return resolve();
+                const tx = db.transaction("settings", "readwrite");
+                const store = tx.objectStore("settings");
+                store.put({ key: "headerSettings", value: pageSettings });
+                store.put({ key: "categoryOrder", value: categoryOrder });
+                store.put({ key: "recentItems", value: recentItemIds });
+                tx.oncomplete = () => { scheduleGoogleSheetSave(); resolve(); };
+            });
+        }
+
+        function loadSettingsFromDB() {
+            return new Promise((resolve) => {
+                const tx = db.transaction("settings", "readonly");
+                const store = tx.objectStore("settings");
+                const reqHeader = store.get("headerSettings");
+                const reqCatOrder = store.get("categoryOrder");
+                const reqRecent = store.get("recentItems");
+                
+                let loaded = 0;
+                const checkDone = () => {
+                    loaded++;
+                    if (loaded === 3) {
+                        renderHeader();
+                        resolve();
+                    }
+                };
+
+                reqHeader.onsuccess = () => {
+                    if (reqHeader.result && reqHeader.result.value) {
+                        pageSettings = reqHeader.result.value;
+                    }
+                    checkDone();
+                };
+                reqHeader.onerror = checkDone;
+
+                reqCatOrder.onsuccess = () => {
+                    if (reqCatOrder.result && reqCatOrder.result.value) {
+                        categoryOrder = reqCatOrder.result.value;
+                    }
+                    checkDone();
+                };
+                reqCatOrder.onerror = checkDone;
+
+                reqRecent.onsuccess = () => {
+                    if (reqRecent.result && reqRecent.result.value) {
+                        recentItemIds = reqRecent.result.value;
+                    }
+                    checkDone();
+                };
+                reqRecent.onerror = checkDone;
+            });
+        }
+
+        function loadItemsFromDB() {
+            return new Promise((resolve) => {
+                const tx = db.transaction("items", "readonly");
+                const store = tx.objectStore("items");
+                const request = store.getAll();
+                request.onsuccess = () => {
+                    menuItems = request.result || [];
+                    menuItems.sort((a, b) => (a.order || 0) - (b.order || 0));
+                    renderHeader();
+                    renderCategoryFilters();
+                    renderMenu();
+                    updateCategorySuggestions();
+                    resolve();
+                };
+            });
+        }
+
+        function renderHeader() {
+            document.getElementById("headerTitle").textContent = pageSettings.title;
+            document.title = pageSettings.title;
+            const iconWrapper = document.getElementById("headerIconWrapper");
+            iconWrapper.innerHTML = "";
+            
+            if (pageSettings.icon) {
+                if (pageSettings.icon.startsWith("http") || pageSettings.icon.startsWith("data:image")) {
+                    iconWrapper.innerHTML = `<img src="${pageSettings.icon}" alt="Logo">`;
+                } else {
+                    iconWrapper.innerHTML = `<span class="header-emoji">${pageSettings.icon}</span>`;
+                }
+            }
+        }
+
+        function saveItemToDB(item) {
+            return new Promise((resolve) => {
+                const tx = db.transaction("items", "readwrite");
+                const store = tx.objectStore("items");
+                if (item.id) {
+                    store.put(item);
+                } else {
+                    delete item.id;
+                    item.order = menuItems.length + 1;
+                    store.add(item);
+                }
+                tx.oncomplete = () => {
+                    loadItemsFromDB();
+                    resolve();
+                };
+            });
+        }
+
+        // ===== NEW: Delete se pehle confirmation (double click ke baad) =====
+        function confirmDeleteItem(id) {
+            const item = menuItems.find(i => Number(i.id) === Number(id));
+            const name = item ? item.title : "यह आइटम";
+            if (confirm(`क्या आप "${name}" को डिलीट करना चाहते हैं?`)) {
+                deleteItemFromDB(id);
+            }
+        }
+
+        function deleteItemFromDB(id) {
+            return new Promise((resolve) => {
+                const tx = db.transaction("items", "readwrite");
+                const store = tx.objectStore("items");
+                store.delete(id);
+                recentItemIds = recentItemIds.filter(itemId => itemId !== id);
+                saveSettingsToDB();
+                tx.oncomplete = () => {
+                    const remaining = menuItems.filter(item => Number(item.id) !== Number(id));
+                    const deleted = menuItems.find(item => Number(item.id) === Number(id));
+
+                    if (deleted && !remaining.some(item => item.category === deleted.category)) {
+                        categoryOrder = categoryOrder.filter(cat => cat !== deleted.category);
+                        saveSettingsToDB();
+                    }
+
+                    loadItemsFromDB();
+                    resolve();
+                };
+            });
+        }
+
+        function removeFromRecentList(id) {
+            recentItemIds = recentItemIds.filter(itemId => itemId !== id);
+            saveSettingsToDB().then(() => {
+                renderMenu();
+            });
+        }
+
+        function clearAndBulkInsert(items) {
+            return new Promise((resolve) => {
+                const tx = db.transaction("items", "readwrite");
+                const store = tx.objectStore("items");
+                store.clear().onsuccess = () => {
+                    items.forEach((item, idx) => {
+                        delete item.id; // पुराना id हटाकर नया ऑटो-इंक्रीमेंट जनरेट होने दें
+                        item.order = idx + 1;
+                        store.add(item);
+                    });
+                };
+                tx.oncomplete = () => {
+                    loadItemsFromDB();
+                    scheduleGoogleSheetSave();
+                    resolve();
+                };
+            });
+        }
+
+        function handleResetDoubleClick() {
+            if (confirm("क्या आप सभी कस्टम डेटा रीसेट करके डिफ़ॉल्ट मेनू वापस लाना चाहते हैं?")) {
+                pageSettings = { title: "Sell and Earn", icon: "🛍️" };
+                categoryOrder = [];
+                recentItemIds = [];
+                selectedCategoryFilter = "All";
+                saveSettingsToDB();
+                clearAndBulkInsert(defaultMenuItems).then(() => {
+                    alert("डेटा सफलतापूर्वक रीसेट हो गया है!");
+                });
+            }
+        }
+
+        function handleItemClick(item) {
+            recentItemIds = recentItemIds.filter(id => id !== item.id);
+            recentItemIds.unshift(item.id);
+            if (recentItemIds.length > 6) { 
+                recentItemIds.pop();
+            }
+            saveSettingsToDB().then(() => {
+                renderMenu();
+            });
+        }
+
+        function renderCategoryFilters() {
+            const filterContainer = document.getElementById("categoryFilterScroll");
+            filterContainer.innerHTML = "";
+
+            const allChip = document.createElement("button");
+            allChip.className = `filter-chip ${selectedCategoryFilter === 'All' ? 'active' : ''}`;
+            allChip.textContent = "All Categories";
+            allChip.onclick = () => {
+                selectedCategoryFilter = "All";
+                renderCategoryFilters();
+                renderMenu();
+            };
+            filterContainer.appendChild(allChip);
+
+            const categoriesSet = new Set();
+            menuItems.forEach(item => {
+                if (item.category) categoriesSet.add(item.category);
+            });
+
+            categoriesSet.forEach(cat => {
+                const chip = document.createElement("button");
+                chip.className = `filter-chip ${selectedCategoryFilter === cat ? 'active' : ''}`;
+                chip.type = "button";
+                chip.textContent = cat;
+                chip.title = `Filter: ${cat}`;
+                chip.onclick = () => {
+                    selectedCategoryFilter = cat;
+                    renderCategoryFilters();
+                    renderMenu();
+                    requestAnimationFrame(scrollSelectedCategoryIntoView);
+                };
+                filterContainer.appendChild(chip);
+            });
+
+            requestAnimationFrame(scrollSelectedCategoryIntoView);
+        }
+
+        // Desktop पर mouse wheel से भी category list को horizontal scroll करें.
+        document.addEventListener("DOMContentLoaded", () => {
+            const categoryScroll = document.getElementById("categoryFilterScroll");
+            if (!categoryScroll) return;
+
+            categoryScroll.addEventListener("wheel", (e) => {
+                if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+                    e.preventDefault();
+                    categoryScroll.scrollLeft += e.deltaY;
+                }
+            }, { passive: false });
+        });
+
+        function handleSearchFilter() {
+            renderMenu();
+        }
+
+        // Selected category chip को horizontal scroll में automatically visible रखें.
+        function scrollSelectedCategoryIntoView() {
+            const filterContainer = document.getElementById("categoryFilterScroll");
+            if (!filterContainer) return;
+
+            const activeChip = filterContainer.querySelector(".filter-chip.active");
+            if (activeChip) {
+                activeChip.scrollIntoView({
+                    behavior: "smooth",
+                    block: "nearest",
+                    inline: "center"
+                });
+            }
+        }
+
+        function renderMenu() {
+            const container = document.getElementById("menuContent");
+            container.innerHTML = "";
+
+            if (isAdmin) container.classList.add("admin-mode");
+            else container.classList.remove("admin-mode");
+
+            const searchQuery = document.getElementById("searchInput").value.toLowerCase().trim();
+
+            if (isAdmin && (searchQuery !== "" || selectedCategoryFilter !== "All")) {
+                // Dragging filtered results को disable रखें ताकि hidden items का order न बदले।
+                // Admin mode में भी edit/delete buttons काम करेंगे।
+            }
+
+            let filteredItems = menuItems.filter(item => {
+                const title = String(item.title || "").toLowerCase();
+                const category = String(item.category || "").toLowerCase();
+                const badge = String(item.badge || "").toLowerCase();
+
+                const matchesSearch =
+                    title.includes(searchQuery) ||
+                    category.includes(searchQuery) ||
+                    badge.includes(searchQuery);
+
+                const matchesCategory =
+                    selectedCategoryFilter === "All" ||
+                    item.category === selectedCategoryFilter;
+
+                return matchesSearch && matchesCategory;
+            });
+
+            if (filteredItems.length === 0) {
+                container.innerHTML = `<div class="no-results">कोई परिणाम नहीं मिला 🔍</div>`;
+                return;
+            }
+
+            // Recently used केवल normal view में दिखाएं।
+            if (recentItemIds.length > 0 && searchQuery === "" &&
+                selectedCategoryFilter === "All" && !isAdmin) {
+
+                const recentItems = recentItemIds
+                    .map(id => menuItems.find(item => item.id === id))
+                    .filter(Boolean);
+
+                if (recentItems.length > 0) {
+                    createCategoryBlock("⭐ Recently Used", recentItems, container, true);
+                }
+            }
+
+            const categories = {};
+            filteredItems.forEach(item => {
+                const cat = item.category || "General";
+                if (!categories[cat]) categories[cat] = [];
+                categories[cat].push(item);
+            });
+
+            let presentCategories = Object.keys(categories);
+            let sortedCategories = [];
+
+            // Saved category order को पहले रखें।
+            categoryOrder.forEach(cat => {
+                if (presentCategories.includes(cat) && !sortedCategories.includes(cat)) {
+                    sortedCategories.push(cat);
+                }
+            });
+
+            // नई categories को existing item order के हिसाब से जोड़ें।
+            presentCategories.forEach(cat => {
+                if (!sortedCategories.includes(cat)) {
+                    sortedCategories.push(cat);
+                }
+            });
+
+            // Admin drag के दौरान temporary filters से order खराब न हो।
+            if (!searchQuery && selectedCategoryFilter === "All") {
+                categoryOrder = sortedCategories.slice();
+            }
+
+            sortedCategories.forEach(catName => {
+                const items = categories[catName];
+
+                // Items को उनके saved order के अनुसार sort करें।
+                items.sort((a, b) => {
+                    const ao = Number(a.order) || 0;
+                    const bo = Number(b.order) || 0;
+                    return ao - bo;
+                });
+
+                createCategoryBlock(catName, items, container, false);
+            });
+
+            if (isAdmin) {
+                enableCategoryDragAndDrop();
+                enableItemDragAndDrop();
+                enableCategoryItemDropZones();
+            }
+        }
+
+        function createCategoryBlock(catName, items, container, isRecent = false) {
+            const catBlock = document.createElement("div");
+            catBlock.className = "category-block";
+            catBlock.dataset.category = catName;
+
+            // Recently Used को admin में draggable न बनाएं।
+            if (isAdmin && !isRecent &&
+                document.getElementById("searchInput").value.trim() === "" &&
+                selectedCategoryFilter === "All") {
+                catBlock.draggable = true;
+            }
+
+            const catHeader = document.createElement("div");
+            catHeader.className = "category-title";
+            catHeader.textContent = catName;
+
+            catBlock.appendChild(catHeader);
+
+            const grid = document.createElement("div");
+            grid.className = "grid-container";
+
+            items.forEach(item => {
+                const card = document.createElement("a");
+                card.className = "menu-item-card";
+                card.href = item.url || "#";
+                card.dataset.id = item.id;
+                card.dataset.category = item.category || "";
+
+                if (isAdmin && !isRecent &&
+                    document.getElementById("searchInput").value.trim() === "" &&
+                    selectedCategoryFilter === "All") {
+                    card.draggable = true;
+                }
+
+                if (item.url && item.url.startsWith("http")) {
+                    card.target = "_blank";
+                }
+
+                card.onclick = (e) => {
+                    if (isAdmin) {
+                        e.preventDefault();
+                    } else {
+                        handleItemClick(item);
+                        if (!item.url || item.url === "#" || item.url.startsWith("#")) {
+                            e.preventDefault();
+                            alert(`आपने "${item.title}" पर क्लिक किया! टारगेट लिंक: ${item.url || 'None'}`);
+                        }
+                    }
+                };
+
+                let iconHTML = String(item.icon || "").startsWith("http") ||
+                               String(item.icon || "").startsWith("data:image")
+                    ? `<img src="${item.icon}" alt="${item.title}">`
+                    : `<span>${item.icon || "📌"}</span>`;
+
+                const badgeHTML = item.badge
+                    ? `<span class="badge">${item.badge}</span>`
+                    : "";
+
+                card.innerHTML = `
+                    <div class="icon-wrapper">
+                        ${iconHTML}
+                        ${badgeHTML}
+                    </div>
+                    <span class="item-label">${item.title}</span>
+                    <div class="item-actions">
+                        <button class="action-btn" type="button" title="Edit"
+                            onclick="event.preventDefault(); event.stopPropagation(); openModal('edit', ${item.id})">✏️</button>
+                        <button class="action-btn" type="button" title="${isRecent ? 'हटाने के लिए डबल क्लिक करें' : 'डिलीट करने के लिए डबल क्लिक करें'}"
+                            onclick="event.preventDefault(); event.stopPropagation();"
+                            ondblclick="event.preventDefault(); event.stopPropagation(); ${isRecent ? `removeFromRecentList(${item.id})` : `confirmDeleteItem(${item.id})`}">${isRecent ? '❌' : '🗑️'}</button>
+                    </div>
+                `;
+
+                grid.appendChild(card);
+            });
+
+            catBlock.appendChild(grid);
+            container.appendChild(catBlock);
+        }
+
+        // =========================================================
+        // CATEGORY DRAG & DROP
+        // =========================================================
+        function enableCategoryDragAndDrop() {
+            const container = document.getElementById("menuContent");
+            const blocks = [...container.querySelectorAll(".category-block")];
+
+            blocks.forEach(block => {
+                if (!block.draggable || block.dataset.category === "⭐ Recently Used") return;
+
+                block.addEventListener("dragstart", handleCategoryDragStart);
+                block.addEventListener("dragover", handleCategoryDragOver);
+                block.addEventListener("dragleave", handleCategoryDragLeave);
+                block.addEventListener("drop", handleCategoryDrop);
+                block.addEventListener("dragend", handleCategoryDragEnd);
+            });
+        }
+
+        function handleCategoryDragStart(e) {
+            if (!isAdmin) return;
+            if (e.target.closest(".action-btn")) {
+                e.preventDefault();
+                return;
+            }
+
+            draggedCategory = e.currentTarget.dataset.category;
+            dragStartCategory = draggedCategory;
+
+            e.dataTransfer.effectAllowed = "move";
+            e.dataTransfer.setData("text/plain", draggedCategory);
+
+            e.currentTarget.classList.add("dragging");
+        }
+
+        function handleCategoryDragOver(e) {
+            if (!isAdmin || !draggedCategory) return;
+
+            e.preventDefault();
+            e.dataTransfer.dropEffect = "move";
+
+            const target = e.currentTarget;
+            const targetCategory = target.dataset.category;
+
+            if (!targetCategory ||
+                targetCategory === draggedCategory ||
+                targetCategory === "⭐ Recently Used") {
+                return;
+            }
+
+            target.classList.add("drag-over");
+        }
+
+        function handleCategoryDragLeave(e) {
+            e.currentTarget.classList.remove("drag-over");
+        }
+
+        function handleCategoryDrop(e) {
+            if (!isAdmin || !draggedCategory) return;
+
+            e.preventDefault();
+
+            const target = e.currentTarget;
+            target.classList.remove("drag-over");
+
+            const targetCategory = target.dataset.category;
+
+            if (!targetCategory ||
+                targetCategory === draggedCategory ||
+                targetCategory === "⭐ Recently Used") {
+                return;
+            }
+
+            reorderCategories(draggedCategory, targetCategory);
+        }
+
+        function handleCategoryDragEnd(e) {
+            e.currentTarget.classList.remove("dragging");
+
+            document.querySelectorAll(".category-block.drag-over")
+                .forEach(el => el.classList.remove("drag-over"));
+
+            draggedCategory = null;
+            dragStartCategory = null;
+        }
+
+        function reorderCategories(fromCategory, toCategory) {
+            let order = categoryOrder.slice();
+
+            // सभी existing categories को order में रखें।
+            menuItems.forEach(item => {
+                if (item.category && !order.includes(item.category)) {
+                    order.push(item.category);
+                }
+            });
+
+            const fromIndex = order.indexOf(fromCategory);
+            const toIndex = order.indexOf(toCategory);
+
+            if (fromIndex < 0 || toIndex < 0 || fromIndex === toIndex) return;
+
+            order.splice(fromIndex, 1);
+
+            // Target की current position पर insert।
+            const newTargetIndex = order.indexOf(toCategory);
+            order.splice(newTargetIndex, 0, fromCategory);
+
+            categoryOrder = order;
+
+            saveSettingsToDB().then(() => {
+                renderMenu();
+            });
+        }
+
+        // =========================================================
+        // ITEM / BUTTON DRAG & DROP
+        // =========================================================
+        function enableItemDragAndDrop() {
+            const cards = [...document.querySelectorAll(".menu-item-card")];
+
+            cards.forEach(card => {
+                if (!card.draggable) return;
+
+                card.addEventListener("dragstart", handleItemDragStart);
+                card.addEventListener("dragover", handleItemDragOver);
+                card.addEventListener("dragleave", handleItemDragLeave);
+                card.addEventListener("drop", handleItemDrop);
+                card.addEventListener("dragend", handleItemDragEnd);
+            });
+        }
+
+        function handleItemDragStart(e) {
+            if (!isAdmin) return;
+            if (e.target.closest(".action-btn")) {
+                e.preventDefault();
+                return;
+            }
+
+            draggedItemId = Number(e.currentTarget.dataset.id);
+            e.dataTransfer.effectAllowed = "move";
+            e.dataTransfer.setData("text/plain", String(draggedItemId));
+
+            e.currentTarget.classList.add("dragging");
+        }
+
+        function handleItemDragOver(e) {
+            if (!isAdmin || !draggedItemId) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            e.dataTransfer.dropEffect = "move";
+
+            const target = e.currentTarget;
+            const targetId = Number(target.dataset.id);
+
+            if (!targetId || targetId === draggedItemId) return;
+
+            target.classList.add("drag-over");
+        }
+
+        function handleItemDragLeave(e) {
+            e.currentTarget.classList.remove("drag-over");
+        }
+
+        function handleItemDrop(e) {
+            if (!isAdmin || !draggedItemId) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            const target = e.currentTarget;
+            target.classList.remove("drag-over");
+
+            const targetId = Number(target.dataset.id);
+
+            if (!targetId || targetId === draggedItemId) return;
+
+            moveItemToTarget(draggedItemId, targetId);
+        }
+
+        function handleItemDragEnd(e) {
+            e.currentTarget.classList.remove("dragging");
+
+            document.querySelectorAll(".menu-item-card.drag-over")
+                .forEach(el => el.classList.remove("drag-over"));
+
+            draggedItemId = null;
+        }
+
+        function moveItemToTarget(sourceId, targetId) {
+            const source = menuItems.find(i => Number(i.id) === Number(sourceId));
+            const target = menuItems.find(i => Number(i.id) === Number(targetId));
+
+            if (!source || !target) return;
+
+            // Category भी बदलने दें:
+            // Button को दूसरे category के button पर drop करने पर
+            // source button उसी category में चला जाएगा।
+            const targetCategory = target.category;
+
+            const sourceCategory = source.category;
+
+            // Global list को order में लें।
+            let allItems = [...menuItems].sort(
+                (a, b) => (Number(a.order) || 0) - (Number(b.order) || 0)
+            );
+
+            const sourceIndex = allItems.findIndex(i => Number(i.id) === Number(sourceId));
+            const targetIndex = allItems.findIndex(i => Number(i.id) === Number(targetId));
+
+            if (sourceIndex < 0 || targetIndex < 0) return;
+
+            // Source निकालें।
+            const [moving] = allItems.splice(sourceIndex, 1);
+
+            // Target को निकालने के बाद उसकी नई position लें।
+            const adjustedTargetIndex = allItems.findIndex(
+                i => Number(i.id) === Number(targetId)
+            );
+
+            moving.category = targetCategory;
+
+            // Target के पहले insert करें।
+            allItems.splice(
+                adjustedTargetIndex < 0 ? allItems.length : adjustedTargetIndex,
+                0,
+                moving
+            );
+
+            // सभी item orders को clean sequential values दें।
+            allItems.forEach((item, index) => {
+                item.order = index + 1;
+            });
+
+            menuItems = allItems;
+
+            saveAllItemsOrderToDB().then(() => {
+                renderCategoryFilters();
+                renderMenu();
+                updateCategorySuggestions();
+            });
+        }
+
+        function saveAllItemsOrderToDB() {
+            return new Promise((resolve, reject) => {
+                if (!db) {
+                    resolve();
+                    return;
+                }
+
+                const tx = db.transaction("items", "readwrite");
+                const store = tx.objectStore("items");
+
+                menuItems.forEach(item => {
+                    store.put(item);
+                });
+
+                tx.oncomplete = () => resolve();
+                tx.onerror = () => reject(tx.error);
+            });
+        }
+
+        // =========================================================
+        // OPTIONAL: empty category पर drop करने के लिए category area
+        // =========================================================
+        function enableCategoryItemDropZones() {
+            document.querySelectorAll(".category-block").forEach(block => {
+                if (block.dataset.category === "⭐ Recently Used") return;
+
+                const grid = block.querySelector(".grid-container");
+                if (!grid) return;
+
+                grid.addEventListener("dragover", e => {
+                    if (!isAdmin || !draggedItemId) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.dataTransfer.dropEffect = "move";
+                });
+
+                grid.addEventListener("drop", e => {
+                    if (!isAdmin || !draggedItemId) return;
+
+                    // अगर सीधे card पर drop हुआ है तो card handler काम करेगा।
+                    if (e.target.closest(".menu-item-card")) return;
+
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const source = menuItems.find(
+                        i => Number(i.id) === Number(draggedItemId)
+                    );
+
+                    if (!source) return;
+
+                    const newCategory = block.dataset.category;
+                    if (!newCategory || source.category === newCategory) return;
+
+                    source.category = newCategory;
+
+                    // Order को list के end में रखें।
+                    const maxOrder = Math.max(
+                        0,
+                        ...menuItems.map(i => Number(i.order) || 0)
+                    );
+                    source.order = maxOrder + 1;
+
+                    saveAllItemsOrderToDB().then(() => {
+                        renderCategoryFilters();
+                        renderMenu();
+                        updateCategorySuggestions();
+                    });
+                });
+            });
+        }
+
+        function toggleAdminMode() {
+            isAdmin = !isAdmin;
+            const btn = document.getElementById("adminToggleBtn");
+            const toolbar = document.getElementById("toolbar");
+            if (isAdmin) {
+                btn.textContent = "🔒 Exit Admin";
+                btn.style.background = "var(--primary)";
+                btn.style.color = "white";
+                toolbar.style.display = "flex";
+            } else {
+                btn.textContent = "⚙️ Admin";
+                btn.style.background = "#f1f5f9";
+                btn.style.color = "var(--primary)";
+                toolbar.style.display = "none";
+            }
+            renderMenu();
+        }
+
+        function openModal(mode, id = null) {
+            const modal = document.getElementById("itemModal");
+            const titleEl = document.getElementById("modalTitle");
+            document.getElementById("itemForm").reset();
+            document.getElementById("itemId").value = "";
+
+            if (mode === 'edit' && id) {
+                titleEl.textContent = "Edit Item Details";
+                const item = menuItems.find(i => i.id === id);
+                if (item) {
+                    document.getElementById("itemId").value = item.id;
+                    document.getElementById("categoryInput").value = item.category;
+                    document.getElementById("titleInput").value = item.title;
+                    document.getElementById("iconInput").value = item.icon;
+                    document.getElementById("urlInput").value = item.url || "#";
+                    document.getElementById("badgeInput").value = item.badge || "";
+                }
+            } else {
+                titleEl.textContent = "Add New Item";
+            }
+            modal.classList.add("active");
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove("active");
+        }
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const idVal = document.getElementById("itemId").value;
+            const newItem = {
+                category: document.getElementById("categoryInput").value.trim(),
+                title: document.getElementById("titleInput").value.trim(),
+                icon: document.getElementById("iconInput").value.trim(),
+                url: document.getElementById("urlInput").value.trim() || "#",
+                badge: document.getElementById("badgeInput").value.trim()
+            };
+
+            if (idVal) {
+                newItem.id = Number(idVal);
+                const existing = menuItems.find(i => i.id === newItem.id);
+                if (existing) {
+                    newItem.order = existing.order;
+
+                    // Category बदली गई हो तो नई category को order list में जोड़ें।
+                    if (existing.category !== newItem.category &&
+                        newItem.category &&
+                        !categoryOrder.includes(newItem.category)) {
+                        categoryOrder.push(newItem.category);
+                    }
+                }
+            } else {
+                if (newItem.category && !categoryOrder.includes(newItem.category)) {
+                    categoryOrder.push(newItem.category);
+                }
+            }
+
+            saveItemToDB(newItem).then(() => {
+                saveSettingsToDB();
+
+                closeModal('itemModal');
+            });
+        }
+
+        function openTitleModal() {
+            document.getElementById("headerTitleInput").value = pageSettings.title;
+            document.getElementById("headerIconInput").value = pageSettings.icon;
+            document.getElementById("titleModal").classList.add("active");
+        }
+
+        function handleTitleSubmit(e) {
+            e.preventDefault();
+            pageSettings.title = document.getElementById("headerTitleInput").value.trim();
+            const iconInputVal = document.getElementById("headerIconInput").value.trim();
+            if(iconInputVal) pageSettings.icon = iconInputVal;
+
+            saveSettingsToDB().then(() => {
+                renderHeader();
+                closeModal('titleModal');
+            });
+        }
+
+        function updateCategorySuggestions() {
+            const datalist = document.getElementById("categorySuggestions");
+            datalist.innerHTML = "";
+            const cats = new Set(menuItems.map(i => i.category));
+            cats.forEach(c => {
+                const opt = document.createElement("option");
+                opt.value = c;
+                datalist.appendChild(opt);
+            });
+        }
+
+        function triggerCSVImport() {
+            document.getElementById("csvFileInput").click();
+        }
+
+        function exportCSV() {
+            let csv = 'id,category,title,icon,url,badge,order\n';
+            menuItems.forEach(i => {
+                csv += `"${i.id}","${i.category.replace(/"/g, '""')}","${i.title.replace(/"/g, '""')}","${i.icon}","${i.url || ''}","${i.badge || ''}","${i.order || 0}"\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('href', url);
+            a.setAttribute('download', 'sell_and_earn_menu.csv');
+            a.click();
+        }
+
+        // फिक्स किया गया बेहतर CSV इम्पोर्ट फंक्शन
+        function importCSV(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const text = evt.target.result;
+                    const lines = text.split(/\r\n|\n/);
+                    let newItems = [];
+
+                    // पहली लाइन (हेडर) को छोड़कर बाकी लाइनों को पढ़ें
+                    for (let i = 1; i < lines.length; i++) {
+                        const line = lines[i].trim();
+                        if (!line) continue;
+
+                        // CSV लाइन को सही तरीके से पार्स करने के लिए Regex
+                        let row = [];
+                        let inQuotes = false;
+                        let currentVal = '';
+
+                        for (let charIndex = 0; charIndex < line.length; charIndex++) {
+                            let char = line[charIndex];
+                            if (char === '"') {
+                                inQuotes = !inQuotes;
+                            } else if (char === ',' && !inQuotes) {
+                                row.push(currentVal.trim());
+                                currentVal = '';
+                            } else {
+                                currentVal += char;
+                            }
+                        }
+                        row.push(currentVal.trim());
+
+                        // कोट्स (उद्धरण चिन्ह) हटाएं
+                        const clean = row.map(val => val.replace(/^"|"$/g, '').replace(/""/g, '"').trim());
+
+                        if (clean.length >= 3) {
+                            newItems.push({
+                                category: clean[1] || "General",
+                                title: clean[2] || "Item",
+                                icon: clean[3] || "📌",
+                                url: clean[4] || "#",
+                                badge: clean[5] || "",
+                                order: Number(clean[6]) || i
+                            });
+                        }
+                    }
+
+                    if (newItems.length > 0) {
+                        clearAndBulkInsert(newItems).then(() => {
+                            alert("CSV फाइल सफलतापूर्वक इम्पोर्ट हो गई है! ✅");
+                            document.getElementById("csvFileInput").value = ""; // इनपुट रीसेट करें
+                        });
+                    } else {
+                        alert("CSV फाइल में कोई डेटा नहीं मिला या फॉर्मेट गलत है! ❌");
+                    }
+                } catch (err) {
+                    console.error("CSV Parse Error:", err);
+                    alert("फाइल इम्पोर्ट करने में त्रुटि आई है। कृपया सही CSV फाइल चुनें।");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function downloadStandaloneHTML() {
+            let htmlContent = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'SellAndEarnMenu.html';
+            a.click();
+        }
+
+
+        // =========================================================
+        // MOBILE TOUCH DRAG SUPPORT
+        // Long-press करके button/category move करें।
+        // =========================================================
+        let touchDrag = null;
+        let touchTimer = null;
+
+        function setupTouchDrag() {
+            const root = document.getElementById("menuContent");
+
+            root.addEventListener("pointerdown", e => {
+                if (!isAdmin || e.pointerType === "mouse") return;
+
+                const card = e.target.closest(".menu-item-card");
+                const block = e.target.closest(".category-block");
+
+                if (!card && !block) return;
+                if (e.target.closest(".action-btn")) return;
+
+                clearTimeout(touchTimer);
+
+                touchTimer = setTimeout(() => {
+                    if (card) {
+                        touchDrag = {
+                            type: "item",
+                            id: Number(card.dataset.id),
+                            element: card
+                        };
+                    } else if (block && block.dataset.category !== "⭐ Recently Used") {
+                        touchDrag = {
+                            type: "category",
+                            category: block.dataset.category,
+                            element: block
+                        };
+                    }
+
+                    if (touchDrag) {
+                        touchDrag.element.classList.add("dragging");
+                        if (navigator.vibrate) navigator.vibrate(30);
+                    }
+                }, 350);
+            }, {passive: true});
+
+            root.addEventListener("pointermove", e => {
+                if (!touchDrag) return;
+
+                const el = document.elementFromPoint(e.clientX, e.clientY);
+                if (!el) return;
+
+                if (touchDrag.type === "item") {
+                    const targetCard = el.closest(".menu-item-card");
+
+                    document.querySelectorAll(".menu-item-card.drag-over")
+                        .forEach(x => x.classList.remove("drag-over"));
+
+                    if (targetCard &&
+                        Number(targetCard.dataset.id) !== touchDrag.id) {
+                        targetCard.classList.add("drag-over");
+                        touchDrag.over = targetCard;
+                    } else {
+                        touchDrag.over = null;
+                    }
+                } else {
+                    const targetBlock = el.closest(".category-block");
+
+                    document.querySelectorAll(".category-block.drag-over")
+                        .forEach(x => x.classList.remove("drag-over"));
+
+                    if (targetBlock &&
+                        targetBlock.dataset.category !== touchDrag.category &&
+                        targetBlock.dataset.category !== "⭐ Recently Used") {
+                        targetBlock.classList.add("drag-over");
+                        touchDrag.over = targetBlock;
+                    } else {
+                        touchDrag.over = null;
+                    }
+                }
+            }, {passive: true});
+
+            root.addEventListener("pointerup", () => {
+                clearTimeout(touchTimer);
+                if (!touchDrag) return;
+
+                const d = touchDrag;
+                document.querySelectorAll(".drag-over")
+                    .forEach(x => x.classList.remove("drag-over"));
+
+                if (d.type === "item" && d.over) {
+                    moveItemToTarget(d.id, Number(d.over.dataset.id));
+                } else if (d.type === "category" && d.over) {
+                    reorderCategories(d.category, d.over.dataset.category);
+                }
+
+                d.element.classList.remove("dragging");
+                touchDrag = null;
+            }, {passive: true});
+
+            root.addEventListener("pointercancel", () => {
+                clearTimeout(touchTimer);
+                document.querySelectorAll(".dragging,.drag-over")
+                    .forEach(x => x.classList.remove("dragging", "drag-over"));
+                touchDrag = null;
+            }, {passive: true});
+        }
+
+        window.addEventListener("DOMContentLoaded", () => {
+            setupTouchDrag();
+            initDB().then(() => syncFromGoogleSheet()).catch(err => console.error("DB Init Error:", err));
+        });
+    </script>
+</body>
+</html>
+
+
+sync file = 
+no sync with google sheet = https://9356116628.blogspot.com/2026/09/is-menu-recent-delete.html<div><br /></div>
