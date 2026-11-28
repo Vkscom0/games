@@ -30,6 +30,7 @@ button,.btn{cursor:pointer;border:1px solid var(--line);background:var(--surface
 .tabs{display:flex;gap:6px;overflow-x:auto;padding:4px 0 8px}
 .tab{white-space:nowrap;border-radius:20px;padding:8px 14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);text-decoration:none;font-size:.95rem}
 .tab.on{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+.tt .tab.on{background:var(--pro);border-color:var(--pro)}
 .chips{display:flex;gap:6px;overflow-x:auto;padding:4px 0 8px}
 .chip{white-space:nowrap;border-radius:20px;padding:6px 12px;font-size:.9rem}
 .chip.on{background:var(--accent);color:var(--bg);border-color:var(--accent)}
@@ -73,29 +74,36 @@ button,.btn{cursor:pointer;border:1px solid var(--line);background:var(--surface
 const $=s=>document.querySelector(s),app=$("#app");
 const C=["Paisa","Samay","Sehat","Rishte","Jokhim","Seekhna","Aaram","Izzat","Career","Khushi"];
 const AN=["Tarazu","Split bar","Donut","Category bars","Radar","Paisa","Value vs Amount","Top 5","Heatmap","Meter"];
-let db=null,topics=[],curId=null,an=0,pimg="",ft="pro",fc=0;
+let db=null,pages=[],topics=[],curP=null,curT=null,an=0,ft="pro",fc=0;
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const R=n=>"₹"+Math.round(n).toLocaleString("en-IN");
 const rid=()=>Math.random().toString(36).slice(2,10);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const IMG=/^data:image\/(jpeg|png|webp|gif);base64,[A-Za-z0-9+\/=]+$/;
-const cur=()=>topics.find(t=>t.id===curId);
+const cur=()=>topics.find(t=>t.id===curT);
 
-/* ---------- IndexedDB + explicit save ---------- */
-function openDB(){return new Promise(res=>{try{const r=indexedDB.open("fayde-nuksan",1);r.onupgradeneeded=()=>r.result.createObjectStore("topics",{keyPath:"id"});r.onsuccess=()=>res(r.result);r.onerror=()=>res(null)}catch(e){res(null)}})}
-function loadAll(){return new Promise(res=>{if(!db)return res([]);try{const q=db.transaction("topics").objectStore("topics").getAll();q.onsuccess=()=>res(q.result||[]);q.onerror=()=>res([])}catch(e){res([])}})}
-const dirty=new Set(),gone=new Set();
-function save(t){dirty.add(t.id);gone.delete(t.id);upd()}
-function del(id){dirty.delete(id);gone.add(id);upd()}
-function upd(){const b=$("#sv"),n=dirty.size+gone.size;b.textContent=n?"💾 Save ("+n+")":"💾 Saved";b.classList.toggle("primary",!!n)}
+/* ---------- IndexedDB + explicit save (pages + topics) ---------- */
+function openDB(){return new Promise(res=>{try{const r=indexedDB.open("fayde-nuksan",2);
+  r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains("topics"))d.createObjectStore("topics",{keyPath:"id"});if(!d.objectStoreNames.contains("pages"))d.createObjectStore("pages",{keyPath:"id"})};
+  r.onsuccess=()=>res(r.result);r.onerror=()=>res(null)}catch(e){res(null)}})}
+function loadAll(n){return new Promise(res=>{if(!db)return res([]);try{const q=db.transaction(n).objectStore(n).getAll();q.onsuccess=()=>res(q.result||[]);q.onerror=()=>res([])}catch(e){res([])}})}
+const dT=new Set(),gT=new Set(),dP=new Set(),gP=new Set();
+const pend=()=>dT.size+gT.size+dP.size+gP.size;
+function save(t){dT.add(t.id);gT.delete(t.id);upd()}
+function del(id){dT.delete(id);gT.add(id);upd()}
+function saveP(p){dP.add(p.id);gP.delete(p.id);upd()}
+function delP(id){dP.delete(id);gP.add(id);upd()}
+function upd(){const b=$("#sv"),n=pend();b.textContent=n?"💾 Save ("+n+")":"💾 Saved";b.classList.toggle("primary",!!n)}
 function commit(){return new Promise(res=>{
   if(!db)return res(false);
-  try{const tx=db.transaction("topics","readwrite"),s=tx.objectStore("topics");
-    dirty.forEach(id=>{const t=topics.find(x=>x.id===id);if(t)s.put(t)});
-    gone.forEach(id=>s.delete(id));
-    tx.oncomplete=()=>{dirty.clear();gone.clear();upd();res(true)};
+  try{const tx=db.transaction(["topics","pages"],"readwrite"),a=tx.objectStore("topics"),b=tx.objectStore("pages");
+    dT.forEach(id=>{const t=topics.find(x=>x.id===id);if(t)a.put(t)});gT.forEach(id=>a.delete(id));
+    dP.forEach(id=>{const p=pages.find(x=>x.id===id);if(p)b.put(p)});gP.forEach(id=>b.delete(id));
+    tx.oncomplete=()=>{dT.clear();gT.clear();dP.clear();gP.clear();upd();res(true)};
     tx.onerror=tx.onabort=()=>res(false)}catch(e){res(false)}})}
 function norm(t){t.img=t.img||"";t.report=t.report||"";t.items=t.items||[];t.items.forEach(i=>{i.value=+(i.value??i.weight??5);i.cat=+i.cat||0;i.amount=+i.amount||0})}
+const curPage=()=>pages.find(p=>p.id===curP);
+const pTopics=()=>topics.filter(t=>t.pageId===curP);
 
 /* ---------- stats ---------- */
 function st(t){
@@ -161,9 +169,11 @@ function readImg(f){return new Promise(r=>{if(!f)return r("");const fr=new FileR
 const itemHTML=i=>`<div class="item ${i.type}" data-id="${i.id}"><input type="text" data-f="text" value="${esc(i.text)}" maxlength="140" aria-label="Point"><div class="r2"><select data-f="cat" aria-label="Category">${C.map((c,k)=>`<option value="${k}"${k===i.cat?" selected":""}>${c}</option>`).join("")}</select><label>V<input type="number" data-f="value" min="1" max="10" value="${i.value}" aria-label="Value"></label><label>₹<input type="number" data-f="amount" min="0" value="${i.amount}" aria-label="Amount"></label><button class="x" data-d="${i.id}" aria-label="Hatao">×</button></div></div>`;
 
 function render(){
-  const t=cur();pimg="";
-  let h=`<div class="tabs">${topics.map(x=>`<a href="#topic-${x.id}" class="tab${t&&x.id===t.id?" on":""}">${esc(x.name)}</a>`).join("")}<button class="tab" id="ap">➕ Naya page</button></div>
-  ${t?'<div class="row"><button id="rn">✏️ Page edit (naam badlo)</button><button id="dt">🗑 Page delete</button></div>':'<p class="empty">Abhi koi page nahi. ➕ Naya page dabao.</p>'}`;
+  const p=curPage(),t=cur();
+  let h=`<div class="card"><h2>📁 Pages</h2><div class="tabs">${pages.map(x=>`<a class="tab${x.id===curP?" on":""}" href="#page-${x.id}">${esc(x.name)}</a>`).join("")}<button class="tab" id="ap">➕ Naya page</button></div>${p?'<div class="row"><button id="rnp">✏️ Page edit</button><button id="dp">🗑 Page delete</button></div>':'<p class="empty">Abhi koi page nahi. ➕ Naya page dabao.</p>'}</div>`;
+  if(p){
+    h+=`<div class="card"><h2>🗂 Topics — ${esc(p.name)}</h2><div class="tabs tt">${pTopics().map(x=>`<a class="tab${x.id===curT?" on":""}" href="#page-${p.id}-topic-${x.id}">${esc(x.name)}</a>`).join("")}<button class="tab" id="at">➕ Naya topic</button></div>${t?'<div class="row"><button id="rnt">✏️ Topic edit</button><button id="dt">🗑 Topic delete</button></div>':'<p class="empty">Is page mein abhi koi topic nahi. ➕ Naya topic dabao.</p>'}</div>`;
+  }
   if(t){
     const s=st(t);
     h+=`<div class="card"><h2>${esc(t.name)}</h2>
@@ -181,16 +191,24 @@ function render(){
   }
   h+=`<div class="card"><h2>Backup (import / export)</h2><div class="row"><button id="eh">HTML export</button><button id="ec">CSV export</button></div>
   <textarea id="out" readonly placeholder="Export ka text yahan aayega" style="min-height:70px"></textarea><button id="cp">Copy karo</button>
-  <p class="hint">CSV mein image nahi jaati, HTML mein jaati hai. Report dono mein jaati hai.</p>
+  <p class="hint">CSV mein image nahi jaati, HTML mein jaati hai. Pages, topics aur report dono mein jaate hain.</p>
   <input type="file" id="if" accept=".csv,.html,.htm,text/csv,text/html"><textarea id="inp" placeholder="Ya yahan CSV / HTML text paste karo" style="min-height:70px"></textarea>
   <button class="primary" id="im">Import karo</button><p id="ms" class="hint"></p></div>`;
   app.innerHTML=h;bind(t);if(t)drawAn(t);
 }
 
+const go=(p,t)=>{location.hash="page-"+p+(t?"-topic-"+t:"")};
 function bind(t){
-  $("#ap").onclick=()=>{const n=(prompt("Naye page ka naam:")||"").trim().slice(0,80);if(!n)return;const x={id:Date.now(),name:n,img:"",report:"",items:[]};topics.push(x);save(x);location.hash="topic-"+x.id};
-  if($("#rn"))$("#rn").onclick=()=>{const n=(prompt("Page ka naya naam:",t.name)||"").trim().slice(0,80);if(!n)return;t.name=n;save(t);render()};
-  if($("#dt"))$("#dt").onclick=()=>{if(!t||!confirm("“"+t.name+"” page aur uska saara data hata dein?"))return;del(t.id);topics=topics.filter(k=>k.id!==t.id);location.hash="home";route()};
+  /* pages */
+  $("#ap").onclick=()=>{const n=(prompt("Naye page ka naam:")||"").trim().slice(0,80);if(!n)return;const x={id:Date.now(),name:n};pages.push(x);saveP(x);go(x.id)};
+  if($("#rnp"))$("#rnp").onclick=()=>{const p=curPage(),n=(prompt("Page ka naya naam:",p.name)||"").trim().slice(0,80);if(!n)return;p.name=n;saveP(p);render()};
+  if($("#dp"))$("#dp").onclick=()=>{const p=curPage(),ts=pTopics();
+    if(!confirm("“"+p.name+"” page aur uske "+ts.length+" topics ka saara data hata dein?"))return;
+    ts.forEach(x=>del(x.id));topics=topics.filter(x=>x.pageId!==p.id);pages=pages.filter(x=>x.id!==p.id);delP(p.id);location.hash="home";route()};
+  /* topics */
+  if($("#at"))$("#at").onclick=()=>{const n=(prompt("Naye topic ka naam (jaise: Naya phone lena):")||"").trim().slice(0,80);if(!n)return;const x={id:Date.now(),pageId:curP,name:n,img:"",report:"",items:[]};topics.push(x);save(x);go(curP,x.id)};
+  if($("#rnt"))$("#rnt").onclick=()=>{const n=(prompt("Topic ka naya naam:",t.name)||"").trim().slice(0,80);if(!n)return;t.name=n;save(t);render()};
+  if($("#dt"))$("#dt").onclick=()=>{if(!confirm("“"+t.name+"” topic aur uska saara data hata dein?"))return;del(t.id);topics=topics.filter(k=>k.id!==t.id);curT=null;location.hash="page-"+curP;route()};
   if(t){
     $("#ci").onchange=async e=>{const d=await readImg(e.target.files[0]);if(d){t.img=d;save(t);render()}};
     if($("#ri"))$("#ri").onclick=()=>{if(!confirm("Topic ki image hata dein?"))return;t.img="";save(t);render()};
@@ -202,11 +220,12 @@ function bind(t){
     $("#ad").onclick=add;$("#tx").onkeydown=e=>{if(e.key=="Enter")add()};
     app.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{const it=t.items.find(i=>String(i.id)===b.dataset.d);if(!confirm("Ye point hata dein?\n\n“"+(it?it.text:"")+"”"))return;t.items=t.items.filter(i=>String(i.id)!==b.dataset.d);save(t);render()});
   }
+  /* backup */
   $("#eh").onclick=()=>dl("fayde-nuksan.html",toHTML(),"text/html");
   $("#ec").onclick=()=>dl("fayde-nuksan.csv","\ufeff"+toCSV(),"text/csv");
   $("#cp").onclick=async()=>{try{await navigator.clipboard.writeText($("#out").value);$("#ms").textContent="Copy ho gaya."}catch(e){$("#out").select();$("#ms").textContent="Text select ho gaya, copy kar lo."}};
   $("#if").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{$("#inp").value=r.result};r.readAsText(f)};
-  $("#im").onclick=()=>{const m=doImport($("#inp").value);render();$("#ms").textContent=m};
+  $("#im").onclick=()=>{const m=doImport($("#inp").value);route();$("#ms").textContent=m};
 }
 
 /* live editing of name, report and points (no re-render, so typing is smooth) */
@@ -223,19 +242,24 @@ app.addEventListener("input",e=>{
   save(t);drawAn(t);
 });
 
-/* ---------- import / export ---------- */
+/* ---------- import / export (pages > topics) ---------- */
 const q=v=>'"'+String(v).replace(/"/g,'""')+'"';
 function toCSV(){
-  const rows=[["topic","type","category","text","value","amount"].join(",")];
-  topics.forEach(t=>{if(!t.items.length&&!t.report)rows.push([q(t.name),"","","","",""].join(","));
-    if(t.report)rows.push([q(t.name),"report","",q(t.report),"",""].join(","));
-    t.items.forEach(i=>rows.push([q(t.name),i.type==="pro"?"fayda":"nuksan",q(C[i.cat]),q(i.text),i.value,i.amount].join(",")))});
+  const rows=[["page","topic","type","category","text","value","amount"].join(",")];
+  pages.forEach(p=>{
+    const ts=topics.filter(t=>t.pageId===p.id);
+    if(!ts.length)rows.push([q(p.name),"","","","","",""].join(","));
+    ts.forEach(t=>{const b=[q(p.name),q(t.name)];
+      if(!t.items.length&&!t.report)rows.push([...b,"","","","",""].join(","));
+      if(t.report)rows.push([...b,"report","",q(t.report),"",""].join(","));
+      t.items.forEach(i=>rows.push([...b,i.type==="pro"?"fayda":"nuksan",q(C[i.cat]),q(i.text),i.value,i.amount].join(",")))});
+  });
   return rows.join("\n");
 }
 function toHTML(){
   return `<!DOCTYPE html><html lang="hi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Fayde-Nuksan Report</title><style>body{font-family:system-ui;max-width:760px;margin:20px auto;padding:0 14px}img{max-width:100%;border-radius:8px}table{border-collapse:collapse;width:100%;margin:8px 0 24px}td,th{border:1px solid #ccc;padding:6px;text-align:left}.pro td:first-child{color:#1f7a4d}.con td:first-child{color:#b3392f}</style></head><body><h1>Fayde-Nuksan Report</h1>`+
-  topics.map(t=>{const s=st(t);return `<h2>${esc(t.name)}</h2>${t.img?`<img src="${t.img}" alt="">`:""}<p>Fayde: ${s.ps} (${R(s.pa)}) | Nuksan: ${s.cs} (${R(s.ca)}) | ${verdict(s)[0]}</p>${t.report?`<p style="white-space:pre-wrap">${esc(t.report)}</p>`:""}<table><tr><th>Type</th><th>Category</th><th>Point</th><th>Value</th><th>Amount</th></tr>${t.items.map(i=>`<tr class="${i.type}"><td>${i.type==="pro"?"Fayda":"Nuksan"}</td><td>${C[i.cat]}</td><td>${esc(i.text)}</td><td>${i.value}</td><td>${R(i.amount)}</td></tr>`).join("")}</table>`}).join("")+
-  `<script type="application/json" id="fn-data">${JSON.stringify(topics).replace(/</g,"\\u003c")}<\/script></body></html>`;
+  pages.map(p=>`<h2>📁 ${esc(p.name)}</h2>`+topics.filter(t=>t.pageId===p.id).map(t=>{const s=st(t);return `<h3>${esc(t.name)}</h3>${t.img?`<img src="${t.img}" alt="">`:""}<p>Fayde: ${s.ps} (${R(s.pa)}) | Nuksan: ${s.cs} (${R(s.ca)}) | ${verdict(s)[0]}</p>${t.report?`<p style="white-space:pre-wrap">${esc(t.report)}</p>`:""}<table><tr><th>Type</th><th>Category</th><th>Point</th><th>Value</th><th>Amount</th></tr>${t.items.map(i=>`<tr class="${i.type}"><td>${i.type==="pro"?"Fayda":"Nuksan"}</td><td>${C[i.cat]}</td><td>${esc(i.text)}</td><td>${i.value}</td><td>${R(i.amount)}</td></tr>`).join("")}</table>`}).join("")).join("")+
+  `<script type="application/json" id="fn-data">${JSON.stringify({v:2,pages,topics}).replace(/</g,"\\u003c")}<\/script></body></html>`;
 }
 function parseCSV(s){
   const r=[];let row=[],f="",qq=false;
@@ -248,27 +272,39 @@ function parseCSV(s){
   row.push(f);r.push(row);return r.filter(x=>x.join("").trim());
 }
 function fromCSV(s){
-  const rows=parseCSV(s.replace(/^\ufeff/,"")),m=new Map();
-  if(rows.length&&String(rows[0][0]).trim().toLowerCase()==="topic")rows.shift();
-  rows.forEach(r=>{const n=String(r[0]||"").trim();if(!n)return;if(!m.has(n))m.set(n,{name:n,report:"",items:[]});
-    const ty=String(r[1]||"").trim();
-    if(ty.toLowerCase()==="report"){m.get(n).report=String(r[3]||"");return}
-    if(ty)m.get(n).items.push({type:/^(n|con)/i.test(ty)?"con":"pro",cat:Math.max(0,C.findIndex(x=>x.toLowerCase()===String(r[2]).trim().toLowerCase())),text:r[3],value:r[4],amount:r[5]})});
-  return [...m.values()];
+  let rows=parseCSV(s.replace(/^\ufeff/,""));
+  const first=rows.length?String(rows[0][0]).trim().toLowerCase():"";
+  if(first==="topic")rows=rows.map(r=>["Imported",...r]);   /* purana 6-column format */
+  if(first==="page"||first==="topic")rows.shift();
+  const m=new Map();
+  rows.forEach(r=>{const pn=String(r[0]||"").trim();if(!pn)return;
+    if(!m.has(pn))m.set(pn,{name:pn,topics:new Map()});
+    const tn=String(r[1]||"").trim();if(!tn)return;
+    const P=m.get(pn);if(!P.topics.has(tn))P.topics.set(tn,{name:tn,report:"",items:[]});
+    const T=P.topics.get(tn),ty=String(r[2]||"").trim();
+    if(ty.toLowerCase()==="report"){T.report=String(r[4]||"");return}
+    if(ty)T.items.push({type:/^(n|con)/i.test(ty)?"con":"pro",cat:Math.max(0,C.findIndex(x=>x.toLowerCase()===String(r[3]).trim().toLowerCase())),text:r[4],value:r[5],amount:r[6]})});
+  return [...m.values()].map(p=>({name:p.name,topics:[...p.topics.values()]}));
 }
 function doImport(txt){
-  let arr=[];txt=txt.trim();
-  if(!txt)return "Kuch paste ya file nahi mili.";
+  txt=txt.trim();if(!txt)return "Kuch paste ya file nahi mili.";
   try{
-    if(txt[0]==="<"){const e=new DOMParser().parseFromString(txt,"text/html").getElementById("fn-data");if(!e)return "Is HTML mein import data nahi mila (sirf is app ka export chalega).";arr=JSON.parse(e.textContent)}
-    else arr=fromCSV(txt);
-    if(!Array.isArray(arr))return "Data sahi format mein nahi hai.";
-    let n=0;
-    arr.forEach((x,k)=>{if(!x||!x.name)return;
-      const t={id:Date.now()+k,name:String(x.name).slice(0,80),img:IMG.test(x.img||"")?x.img:"",report:String(x.report||"").slice(0,5000),
-        items:(Array.isArray(x.items)?x.items:[]).map(i=>({id:rid(),type:i.type==="con"?"con":"pro",text:String(i.text||"").slice(0,140),cat:clamp(Math.round(+i.cat)||0,0,9),value:clamp(+i.value||5,1,10),amount:Math.max(0,+i.amount||0)}))};
-      topics.push(t);save(t);curId=t.id;n++});
-    return n+" topic import hue. Upar 💾 Save dabana mat bhoolna.";
+    let ps;
+    if(txt[0]==="<"){
+      const e=new DOMParser().parseFromString(txt,"text/html").getElementById("fn-data");
+      if(!e)return "Is HTML mein import data nahi mila (sirf is app ka export chalega).";
+      const d=JSON.parse(e.textContent);
+      ps=Array.isArray(d)?[{name:"Imported",topics:d}]:(d.pages||[]).map(p=>({name:p.name,topics:(d.topics||[]).filter(t=>t.pageId===p.id)}));
+    }else ps=fromCSV(txt);
+    let np=0,nt=0;
+    ps.forEach((x,k)=>{if(!x||!x.name)return;
+      const p={id:Date.now()+k*1000,name:String(x.name).slice(0,80)};pages.push(p);saveP(p);np++;curP=p.id;
+      (x.topics||[]).forEach((y,j)=>{if(!y||!y.name)return;
+        const t={id:p.id+j+1,pageId:p.id,name:String(y.name).slice(0,80),img:IMG.test(y.img||"")?y.img:"",report:String(y.report||"").slice(0,5000),
+          items:(Array.isArray(y.items)?y.items:[]).map(i=>({id:rid(),type:i.type==="con"?"con":"pro",text:String(i.text||"").slice(0,140),cat:clamp(Math.round(+i.cat)||0,0,9),value:clamp(+i.value||5,1,10),amount:Math.max(0,+i.amount||0)}))};
+        topics.push(t);save(t);nt++})});
+    curT=null;
+    return np+" page, "+nt+" topic import hue. Upar 💾 Save dabana mat bhoolna.";
   }catch(e){return "Import fail: file padh nahi payi."}
 }
 function dl(name,txt,type){
@@ -277,20 +313,31 @@ function dl(name,txt,type){
   catch(e){$("#ms").textContent="Download nahi hua, upar ka text copy karo."}
 }
 
-/* ---------- hash routing (#topic-123) ---------- */
+/* ---------- hash routing: #page-1 and #page-1-topic-2 ---------- */
 function route(){
-  const m=location.hash.match(/^#topic-(\d+)$/);
-  curId=m&&topics.find(x=>x.id==m[1])?+m[1]:(topics.find(x=>x.id===curId)?curId:(topics[0]?topics[0].id:null));
-  render();
+  const h=location.hash,m=h.match(/^#page-(\d+)(?:-topic-(\d+))?$/),o=h.match(/^#topic-(\d+)$/);
+  let pid=null,tid=null;
+  if(m){pid=+m[1];tid=m[2]?+m[2]:null}
+  else if(o){const t=topics.find(x=>x.id==o[1]);if(t){pid=t.pageId;tid=t.id}}
+  if(!pages.some(p=>p.id===pid))pid=pages.some(p=>p.id===curP)?curP:(pages[0]?pages[0].id:null);
+  const ts=topics.filter(t=>t.pageId===pid);
+  if(!ts.some(t=>t.id===tid))tid=ts.some(t=>t.id===curT)?curT:(ts[0]?ts[0].id:null);
+  curP=pid;curT=tid;render();
 }
 addEventListener("hashchange",()=>{route();scrollTo(0,0)});
 (async()=>{
   db=await openDB();if(!db)$("#warn").hidden=false;
-  topics=(await loadAll()).sort((a,b)=>a.id-b.id);topics.forEach(norm);
+  pages=(await loadAll("pages")).sort((a,b)=>a.id-b.id);
+  topics=(await loadAll("topics")).sort((a,b)=>a.id-b.id);topics.forEach(norm);
+  /* purane topics (jinka koi page nahi) ek default page mein */
+  if(topics.some(t=>!pages.some(p=>p.id===t.pageId))){
+    let p=pages[0];if(!p){p={id:Date.now(),name:"Mera Page"};pages.push(p);saveP(p)}
+    topics.forEach(t=>{if(!pages.some(x=>x.id===t.pageId)){t.pageId=p.id;save(t)}});
+  }
   $("#sv").onclick=async()=>{const b=$("#sv"),ok=await commit();
     if(ok){b.textContent="✅ Save ho gaya";setTimeout(upd,1500)}
     else alert("Save nahi hua. Is browser mein IndexedDB available nahi hai.")};
-  addEventListener("beforeunload",e=>{if(dirty.size||gone.size){e.preventDefault();e.returnValue=""}});
+  addEventListener("beforeunload",e=>{if(pend()){e.preventDefault();e.returnValue=""}});
   upd();route();
 })();
 </script>
