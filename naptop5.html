@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fayde–Nuksan Tarazu</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap">
+<style>
+:root{color-scheme:light;--bg:#eef1f4;--surface:#fff;--ink:#17202a;--muted:#5d6b7a;--line:#d5dce3;--pro:#1f7a4d;--pro-bg:#e3f3ea;--con:#b3392f;--con-bg:#f9e6e3;--accent:#243b53;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root{color-scheme:dark;--bg:#12171d;--surface:#1b222a;--ink:#e8edf2;--muted:#93a1b0;--line:#2c3743;--pro:#5fd09a;--pro-bg:#173a2a;--con:#f08a80;--con-bg:#42201d;--accent:#9db7d3}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Bricolage Grotesque",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.45}
+.wrap{max-width:900px;margin:0 auto;padding:0 16px 56px}
+header{position:sticky;top:0;z-index:5;background:var(--bg);display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0}
+h1{font-size:1.5rem;font-weight:800;margin:0;letter-spacing:-.02em}
+h2{font-size:1.05rem;margin:0 0 10px}
+.sub,.hint,.empty{color:var(--muted)}.hint{font-size:.85rem;text-align:center}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;margin:12px 0}
+input,select,button,textarea{font:inherit;color:inherit}
+input[type=text],input[type=number],select,textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--bg);margin-bottom:8px}
+textarea{min-height:150px;font-size:.92rem;resize:vertical}
+button,.btn{cursor:pointer;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:10px 14px;display:inline-block;text-decoration:none}
+.primary{background:var(--accent);color:var(--bg);border-color:var(--accent);font-weight:600}
+#sv{border-radius:20px;padding:8px 16px;white-space:nowrap}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:8px}.row>*{flex:1;min-width:120px}
+.row>button,.row>.btn{flex:0 0 auto;text-align:center}
+.lab{font-size:.85rem;color:var(--muted)}
+.hero{width:100%;max-height:300px;object-fit:cover;border-radius:12px;display:block;margin:8px 0}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:4px 0 8px}
+.tab{white-space:nowrap;border-radius:20px;padding:8px 14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);text-decoration:none;font-size:.95rem}
+.tab.on{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+.tt .tab.on{background:var(--pro);border-color:var(--pro)}
+.tblk{margin-top:28px;padding-top:6px;border-top:3px solid var(--accent);scroll-margin-top:64px}
+.thead{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}.thead h2{margin:0;font-size:1.2rem}.thead button{padding:6px 10px;font-size:.9rem}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:4px 0 8px}
+.chip{white-space:nowrap;border-radius:20px;padding:6px 12px;font-size:.9rem}
+.chip.on{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+.av svg{display:block;width:100%;max-height:300px}
+.verdict{text-align:center;font-weight:800;font-size:1.2rem;margin:10px 0 4px}
+.nums{display:flex;justify-content:space-between;font-size:.95rem;color:var(--muted);gap:8px;flex-wrap:wrap}
+.pn b{color:var(--pro)}.cn b{color:var(--con)}
+.split{display:flex;height:44px;border-radius:10px;overflow:hidden;margin:20px 0}
+.split i{display:grid;place-items:center;color:#fff;font-style:normal;font-weight:800;min-width:0}
+.cr{display:grid;grid-template-columns:76px 1fr;gap:2px 8px;margin:8px 0;font-size:.9rem;align-items:center}
+.cr>b{grid-row:span 2}
+.bar2{display:flex;align-items:center;gap:6px}
+.bar2 i{display:block;height:9px;border-radius:5px;min-width:2px}
+.mb{margin:14px 0}.trk{background:var(--bg);border-radius:8px;height:26px;margin:4px 0}.trk i{display:block;height:100%;border-radius:8px;min-width:3px}
+.hm{display:grid;grid-template-columns:90px 1fr 1fr;gap:4px;text-align:center}
+.hm i{font-style:normal;padding:10px 0;border-radius:6px;font-weight:600}
+.hm span{text-align:left;align-self:center}
+.tp{position:relative;padding:9px 10px;margin:6px 0;border-radius:8px;background:var(--bg);overflow:hidden}
+.tp i{position:absolute;inset:0 auto 0 0;opacity:.25}.tp span{position:relative}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
+.cols>*{min-width:0}
+@media(max-width:620px){.r2{flex-wrap:wrap}.r2 select{flex:1 1 100%}.col{padding:8px}.item{padding:6px}}
+.col{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;border-top:4px solid}
+.col.pro{border-top-color:var(--pro)}.col.con{border-top-color:var(--con)}
+.col.pro h2{color:var(--pro)}.col.con h2{color:var(--con)}
+.item{padding:8px;border-radius:8px;margin-bottom:8px}
+.item.pro{background:var(--pro-bg)}.item.con{background:var(--con-bg)}
+.item input,.item select{margin-bottom:6px;background:var(--surface)}
+.r2{display:flex;gap:6px;align-items:center}
+.r2 select{flex:1.4;min-width:0;margin:0}.r2 label{flex:1;display:flex;align-items:center;gap:4px;font-size:.85rem;color:var(--muted)}
+.r2 label input{margin:0;min-width:0;padding:7px}
+.x{border:none;background:transparent;padding:2px 8px;font-size:1.3rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><h1>Fayde–Nuksan</h1><button id="sv">💾 Saved</button></header>
+  <p id="warn" class="hint" hidden>IndexedDB chal nahi raha, data sirf is session tak rahega.</p>
+  <div id="app"></div>
+</div>
+<script>
+const $=s=>document.querySelector(s),app=$("#app");
+const C=["Paisa","Samay","Sehat","Rishte","Jokhim","Seekhna","Aaram","Izzat","Career","Khushi"];
+const AN=["Tarazu","Split bar","Donut","Category bars","Radar","Paisa","Value vs Amount","Top 5","Heatmap","Meter"];
+let db=null,pages=[],topics=[],curP=null,curT=null,anT={},ft="pro",fc=0;
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const R=n=>"₹"+Math.round(n).toLocaleString("en-IN");
+const rid=()=>Math.random().toString(36).slice(2,10);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const IMG=/^data:image\/(jpeg|png|webp|gif);base64,[A-Za-z0-9+\/=]+$/;
+const cur=()=>topics.find(t=>t.id===curT);
+
+/* ---------- IndexedDB + explicit save (pages + topics) ---------- */
+function openDB(){return new Promise(res=>{try{const r=indexedDB.open("fayde-nuksan",2);
+  r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains("topics"))d.createObjectStore("topics",{keyPath:"id"});if(!d.objectStoreNames.contains("pages"))d.createObjectStore("pages",{keyPath:"id"})};
+  r.onsuccess=()=>res(r.result);r.onerror=()=>res(null)}catch(e){res(null)}})}
+function loadAll(n){return new Promise(res=>{if(!db)return res([]);try{const q=db.transaction(n).objectStore(n).getAll();q.onsuccess=()=>res(q.result||[]);q.onerror=()=>res([])}catch(e){res([])}})}
+const dT=new Set(),gT=new Set(),dP=new Set(),gP=new Set();
+const pend=()=>dT.size+gT.size+dP.size+gP.size;
+function save(t){dT.add(t.id);gT.delete(t.id);upd()}
+function del(id){dT.delete(id);gT.add(id);upd()}
+function saveP(p){dP.add(p.id);gP.delete(p.id);upd()}
+function delP(id){dP.delete(id);gP.add(id);upd()}
+function upd(){const b=$("#sv"),n=pend();b.textContent=n?"💾 Save ("+n+")":"💾 Saved";b.classList.toggle("primary",!!n)}
+function commit(){return new Promise(res=>{
+  if(!db)return res(false);
+  try{const tx=db.transaction(["topics","pages"],"readwrite"),a=tx.objectStore("topics"),b=tx.objectStore("pages");
+    dT.forEach(id=>{const t=topics.find(x=>x.id===id);if(t)a.put(t)});gT.forEach(id=>a.delete(id));
+    dP.forEach(id=>{const p=pages.find(x=>x.id===id);if(p)b.put(p)});gP.forEach(id=>b.delete(id));
+    tx.oncomplete=()=>{dT.clear();gT.clear();dP.clear();gP.clear();upd();res(true)};
+    tx.onerror=tx.onabort=()=>res(false)}catch(e){res(false)}})}
+function norm(t){t.img=t.img||"";t.report=t.report||"";t.items=t.items||[];t.items.forEach(i=>{i.value=+(i.value??i.weight??5);i.cat=+i.cat||0;i.amount=+i.amount||0})}
+const curPage=()=>pages.find(p=>p.id===curP);
+const pTopics=()=>topics.filter(t=>t.pageId===curP);
+
+/* ---------- stats ---------- */
+function st(t){
+  const P=t.items.filter(i=>i.type==="pro"),Q=t.items.filter(i=>i.type==="con");
+  const s=a=>a.reduce((x,i)=>x+i.value,0),m=a=>a.reduce((x,i)=>x+i.amount,0);
+  const cat=C.map((_,k)=>{const p=P.filter(i=>i.cat===k),q=Q.filter(i=>i.cat===k);return{p:s(p),c:s(q),pa:m(p),ca:m(q)}});
+  return{P,Q,ps:s(P),cs:s(Q),pa:m(P),ca:m(Q),cat,tot:s(P)+s(Q)};
+}
+function verdict(s){
+  if(!s.tot)return["Pehle points jodo","var(--muted)"];
+  const p=s.ps/s.tot*100;
+  return p>=60?["Aage badho: fayde bhari","var(--pro)"]:p>=45?["Soch samajh kar: muqabla kareeb","var(--accent)"]:["Rehne do: nuksan bhari","var(--con)"];
+}
+
+/* ---------- 10 analyses ---------- */
+const AF=[
+/*0*/s=>{const d=s.tot?clamp((s.cs-s.ps)/s.tot*20,-14,14):0;
+ return `<svg viewBox="0 0 400 150"><rect x="196" y="60" width="8" height="80" fill="var(--muted)"/><rect x="150" y="136" width="100" height="8" rx="4" fill="var(--muted)"/><g transform="rotate(${d} 200 60)"><rect x="40" y="56" width="320" height="8" rx="4" fill="var(--accent)"/><line x1="55" y1="64" x2="55" y2="96" stroke="var(--muted)"/><rect x="25" y="96" width="60" height="10" rx="5" fill="var(--pro)"/><line x1="345" y1="64" x2="345" y2="96" stroke="var(--muted)"/><rect x="315" y="96" width="60" height="10" rx="5" fill="var(--con)"/></g><circle cx="200" cy="60" r="8" fill="var(--accent)"/></svg>`},
+/*1*/s=>{const p=s.tot?s.ps/s.tot*100:50;
+ return `<div class="split"><i style="width:${p}%;background:var(--pro)">${Math.round(p)}%</i><i style="width:${100-p}%;background:var(--con)">${Math.round(100-p)}%</i></div><p class="hint">Hara = fayde, laal = nuksan (value ke hisaab se)</p>`},
+/*2*/s=>{const p=s.tot?s.ps/s.tot*100:0,k=2.51327;
+ return `<svg viewBox="0 0 120 120" style="max-width:240px;margin:auto"><circle cx="60" cy="60" r="40" fill="none" stroke="${s.tot?"var(--con)":"var(--line)"}" stroke-width="18"/><circle cx="60" cy="60" r="40" fill="none" stroke="var(--pro)" stroke-width="18" stroke-dasharray="${p*k} 251.327" transform="rotate(-90 60 60)"/><text x="60" y="66" text-anchor="middle" font-size="18" font-weight="800" fill="var(--ink)">${Math.round(p)}%</text></svg>`},
+/*3*/s=>{const m=Math.max(1,...s.cat.map(x=>Math.max(x.p,x.c)));
+ return s.cat.map((x,k)=>`<div class="cr"><b>${C[k]}</b><div class="bar2"><i style="width:${x.p/m*80}%;background:var(--pro)"></i>${x.p}</div><div class="bar2"><i style="width:${x.c/m*80}%;background:var(--con)"></i>${x.c}</div></div>`).join("")},
+/*4*/s=>{const n=s.cat.map(x=>x.p-x.c),m=Math.max(1,...n.map(Math.abs)),cx=180,cy=150,R0=100;
+ const pt=(k,r)=>{const a=k*Math.PI/5-Math.PI/2;return[cx+r*Math.cos(a),cy+r*Math.sin(a)]};
+ let g=[.5,1].map(f=>`<polygon points="${n.map((_,k)=>pt(k,R0*f).join(",")).join(" ")}" fill="none" stroke="var(--line)" ${f==.5?'stroke-dasharray="4"':""}/>`).join("");
+ g+=n.map((_,k)=>{const[x1,y1]=pt(k,R0),[x2,y2]=pt(k,R0+14),c=Math.cos(k*Math.PI/5-Math.PI/2);
+  return `<line x1="${cx}" y1="${cy}" x2="${x1}" y2="${y1}" stroke="var(--line)"/><text x="${x2}" y="${y2+4}" text-anchor="${c>.3?"start":c<-.3?"end":"middle"}" font-size="11" fill="var(--muted)">${C[k]}</text>`}).join("");
+ const poly=n.map((v,k)=>pt(k,R0*(.5+.5*v/m)).join(",")).join(" ");
+ return `<svg viewBox="0 0 360 300">${g}<polygon points="${poly}" fill="var(--accent)" fill-opacity=".25" stroke="var(--accent)" stroke-width="2"/></svg><p class="hint">Dotted line = barabar. Bahar = fayde, andar = nuksan.</p>`},
+/*5*/s=>{const m=Math.max(1,s.pa,s.ca),n=s.pa-s.ca;
+ const b=(l,v,c)=>`<div class="mb"><div class="nums"><span>${l}</span><b>${R(v)}</b></div><div class="trk"><i style="width:${v/m*100}%;background:${c}"></i></div></div>`;
+ return b("Fayde ka amount (kamayi/bachat)",s.pa,"var(--pro)")+b("Nuksan ka amount (kharcha)",s.ca,"var(--con)")+`<p class="verdict" style="color:${n>=0?"var(--pro)":"var(--con)"}">${n>=0?"Net fayda":"Net kharcha"}: ${R(Math.abs(n))}</p>`},
+/*6*/s=>{const a=[...s.P,...s.Q];if(!a.length)return '<p class="empty">Points jodo.</p>';const mx=Math.max(1,...a.map(i=>i.amount));
+ const d=a.map(i=>`<circle cx="${45+i.amount/mx*310}" cy="${220-i.value/10*200}" r="8" fill="${i.type==="pro"?"var(--pro)":"var(--con)"}" fill-opacity=".75"><title>${esc(i.text)}</title></circle>`).join("");
+ return `<svg viewBox="0 0 380 255"><line x1="40" y1="220" x2="365" y2="220" stroke="var(--muted)"/><line x1="40" y1="15" x2="40" y2="220" stroke="var(--muted)"/><text x="365" y="240" text-anchor="end" font-size="11" fill="var(--muted)">Amount → ${R(mx)}</text><text x="6" y="14" font-size="11" fill="var(--muted)">Value ↑ 10</text>${d}</svg>`},
+/*7*/s=>{const a=[...s.P,...s.Q].sort((x,y)=>y.value-x.value).slice(0,5);
+ return a.length?a.map(i=>`<div class="tp"><i style="width:${i.value*10}%;background:${i.type==="pro"?"var(--pro)":"var(--con)"}"></i><span><b>${i.value}</b> · ${esc(i.text)}</span></div>`).join(""):'<p class="empty">Points jodo.</p>'},
+/*8*/s=>{const m=Math.max(1,...s.cat.flatMap(x=>[x.p,x.c])),cm=(c,v)=>`background:color-mix(in srgb,${c} ${v/m*100}%,transparent)`;
+ return `<div class="hm"><span></span><b>Fayde</b><b>Nuksan</b>${s.cat.map((x,k)=>`<span>${C[k]}</span><i style="${cm("var(--pro)",x.p)}">${x.p}</i><i style="${cm("var(--con)",x.c)}">${x.c}</i>`).join("")}</div>`},
+/*9*/s=>{const p=s.tot?s.ps/s.tot*100:50,a=Math.PI*(1-p/100),X=(a,r)=>150+r*Math.cos(a),Y=(a,r)=>140-r*Math.sin(a);
+ const arc=(p1,p2,c)=>{const a1=Math.PI*(1-p1/100),a2=Math.PI*(1-p2/100);return `<path d="M${X(a1,100)} ${Y(a1,100)} A100 100 0 0 1 ${X(a2,100)} ${Y(a2,100)}" stroke="${c}" stroke-width="18" fill="none"/>`};
+ return `<svg viewBox="0 0 300 175" style="max-width:360px;margin:auto">${arc(0,40,"var(--con)")}${arc(40,60,"#d9a21b")}${arc(60,100,"var(--pro)")}<line x1="150" y1="140" x2="${X(a,85)}" y2="${Y(a,85)}" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/><circle cx="150" cy="140" r="8" fill="var(--ink)"/><text x="150" y="168" text-anchor="middle" font-size="15" font-weight="800" fill="var(--ink)">${Math.round(p)}% fayde</text></svg>`}
+];
+
+function drawAn(t){
+  const b=app.querySelector('[data-tid="'+t.id+'"]');if(!b)return;
+  const s=st(t),v=verdict(s);
+  b.querySelector(".av").innerHTML=AF[anT[t.id]||0](s)+`<div class="verdict" style="color:${v[1]}">${v[0]}</div><div class="nums"><span class="pn">Fayde: <b>${s.ps}</b> · ${R(s.pa)}</span><span class="cn">Nuksan: <b>${s.cs}</b> · ${R(s.ca)}</span></div>`;
+  b.querySelector(".ph").textContent=s.ps+" · "+R(s.pa);b.querySelector(".ch").textContent=s.cs+" · "+R(s.ca);
+}
+function autoReport(t){
+  const s=st(t),top=a=>a.slice().sort((x,y)=>y.value-x.value).slice(0,3).map(i=>"- "+i.text+" (value "+i.value+(i.amount?", "+R(i.amount):"")+")").join("\n")||"- koi point nahi";
+  return "Report: "+t.name+"\n\nKul "+t.items.length+" points. Fayde: "+s.ps+" value ("+R(s.pa)+"), Nuksan: "+s.cs+" value ("+R(s.ca)+").\nNateeja: "+verdict(s)[0]+"\n\nSabse bade fayde:\n"+top(s.P)+"\n\nSabse bade nuksan:\n"+top(s.Q)+"\n\nMera faisla: ";
+}
+
+/* ---------- image ---------- */
+function readImg(f){return new Promise(r=>{if(!f)return r("");const fr=new FileReader();
+ fr.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,720/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=im.width*k;c.height=im.height*k;c.getContext("2d").drawImage(im,0,0,c.width,c.height);r(c.toDataURL("image/jpeg",.8))};im.onerror=()=>r("");im.src=fr.result};
+ fr.onerror=()=>r("");fr.readAsDataURL(f)})}
+
+/* ---------- single page ---------- */
+const itemHTML=i=>`<div class="item ${i.type}" data-id="${i.id}"><input type="text" data-f="text" value="${esc(i.text)}" maxlength="140" aria-label="Point"><div class="r2"><select data-f="cat" aria-label="Category">${C.map((c,k)=>`<option value="${k}"${k===i.cat?" selected":""}>${c}</option>`).join("")}</select><label>V<input type="number" data-f="value" min="1" max="10" value="${i.value}" aria-label="Value"></label><label>₹<input type="number" data-f="amount" min="0" value="${i.amount}" aria-label="Amount"></label><button class="x" data-d="${i.id}" aria-label="Hatao">×</button></div></div>`;
+
+const topicHTML=t=>{
+  const s=st(t),a=anT[t.id]||0;
+  return `<section class="tblk" id="t-${t.id}" data-tid="${t.id}">
+  <div class="card"><div class="thead"><h2>${esc(t.name)}</h2><span><button data-a="rnt" aria-label="Topic edit">✏️ Edit</button> <button data-a="dt" aria-label="Topic delete">🗑 Delete</button></span></div>
+  ${t.img?`<img class="hero" src="${t.img}" alt="">`:""}
+  <div class="row"><label class="btn">${t.img?"Image badlo":"Image jodo"}<input type="file" data-a="ci" accept="image/*" hidden></label>${t.img?'<button data-a="ri">Image hatao</button>':""}</div></div>
+  <div class="chips">${AN.map((n,i)=>`<button class="chip ${i==a?"on":""}" data-i="${i}">${i+1}. ${n}</button>`).join("")}</div>
+  <div class="card av"></div>
+  <div class="card"><h2>Report (edit kar sakte ho)</h2><textarea data-f="report" placeholder="Apni report yahan likho...">${esc(t.report)}</textarea><button data-a="ar">Auto report banao</button></div>
+  <div class="card"><h2>Naya point</h2><div class="row"><select class="ty"><option value="pro">Fayda</option><option value="con">Nuksan</option></select><select class="ct">${C.map((c,k)=>`<option value="${k}">${c}</option>`).join("")}</select></div>
+  <input type="text" class="tx" placeholder="Point likho" maxlength="140">
+  <div class="row"><label class="lab">Value point (1-10)<input type="number" class="va" min="1" max="10" value="5"></label><label class="lab">Amount point (₹)<input type="number" class="am" min="0" value="0"></label></div>
+  <button class="primary" data-a="ad">Point jodo</button></div>
+  <div class="cols"><section class="col pro"><h2>Fayde — <span class="ph"></span></h2>${s.P.map(itemHTML).join("")||'<p class="empty">Kuch nahi.</p>'}</section>
+  <section class="col con"><h2>Nuksan — <span class="ch"></span></h2>${s.Q.map(itemHTML).join("")||'<p class="empty">Kuch nahi.</p>'}</section></div></section>`;
+};
+
+function render(){
+  const p=curPage();
+  let h=`<div class="card"><h2>📁 Pages</h2><div class="tabs">${pages.map(x=>`<a class="tab${x.id===curP?" on":""}" href="#page-${x.id}">${esc(x.name)}</a>`).join("")}<button class="tab" id="ap">➕ Naya page</button></div>${p?'<div class="row"><button id="rnp">✏️ Page edit</button><button id="dp">🗑 Page delete</button></div>':'<p class="empty">Abhi koi page nahi. ➕ Naya page dabao.</p>'}</div>`;
+  if(p){
+    const ts=pTopics();
+    h+=`<div class="card"><h2>🗂 Topics — ${esc(p.name)}</h2><div class="tabs tt">${ts.map(x=>`<a class="tab" href="#page-${p.id}-topic-${x.id}">${esc(x.name)}</a>`).join("")}<button class="tab" id="at">➕ Naya topic</button></div>${ts.length?'<p class="hint">Topic par tap karo to seedha wahan pahunch jaoge. Neeche saare topics ek ke baad ek hain.</p>':'<p class="empty">Is page mein abhi koi topic nahi. ➕ Naya topic dabao.</p>'}</div>`+ts.map(topicHTML).join("");
+  }
+  h+=`<div class="card"><h2>Backup (import / export)</h2><div class="row"><button id="eh">HTML export</button><button id="ec">CSV export</button></div>
+  <textarea id="out" readonly placeholder="Export ka text yahan aayega" style="min-height:70px"></textarea><button id="cp">Copy karo</button>
+  <p class="hint">CSV mein image nahi jaati, HTML mein jaati hai. Pages, topics aur report dono mein jaate hain.</p>
+  <input type="file" id="if" accept=".csv,.html,.htm,text/csv,text/html"><textarea id="inp" placeholder="Ya yahan CSV / HTML text paste karo" style="min-height:70px"></textarea>
+  <button class="primary" id="im">Import karo</button><p id="ms" class="hint"></p></div>`;
+  app.innerHTML=h;bind();pTopics().forEach(drawAn);
+}
+
+const go=(p,t)=>{location.hash="page-"+p+(t?"-topic-"+t:"")};
+function bind(){
+  /* pages */
+  $("#ap").onclick=()=>{const n=(prompt("Naye page ka naam:")||"").trim().slice(0,80);if(!n)return;const x={id:Date.now(),name:n};pages.push(x);saveP(x);go(x.id)};
+  if($("#rnp"))$("#rnp").onclick=()=>{const p=curPage(),n=(prompt("Page ka naya naam:",p.name)||"").trim().slice(0,80);if(!n)return;p.name=n;saveP(p);render()};
+  if($("#dp"))$("#dp").onclick=()=>{const p=curPage(),ts=pTopics();
+    if(!confirm("“"+p.name+"” page aur uske "+ts.length+" topics ka saara data hata dein?"))return;
+    ts.forEach(x=>del(x.id));topics=topics.filter(x=>x.pageId!==p.id);pages=pages.filter(x=>x.id!==p.id);delP(p.id);location.hash="home";route()};
+  if($("#at"))$("#at").onclick=()=>{const n=(prompt("Naye topic ka naam (jaise: Naya phone lena):")||"").trim().slice(0,80);if(!n)return;const x={id:Date.now(),pageId:curP,name:n,img:"",report:"",items:[]};topics.push(x);save(x);go(curP,x.id)};
+  /* every topic block */
+  app.querySelectorAll(".tblk").forEach(b=>{
+    const t=topics.find(x=>x.id==b.dataset.tid),W=s=>b.querySelector(s);if(!t)return;
+    W('[data-a="rnt"]').onclick=()=>{const n=(prompt("Topic ka naya naam:",t.name)||"").trim().slice(0,80);if(!n)return;t.name=n;save(t);render()};
+    W('[data-a="dt"]').onclick=()=>{if(!confirm("“"+t.name+"” topic aur uska saara data hata dein?"))return;del(t.id);topics=topics.filter(k=>k.id!==t.id);location.hash="page-"+curP;route()};
+    W('[data-a="ci"]').onchange=async e=>{const d=await readImg(e.target.files[0]);if(d){t.img=d;save(t);render()}};
+    if(W('[data-a="ri"]'))W('[data-a="ri"]').onclick=()=>{if(!confirm("Topic ki image hata dein?"))return;t.img="";save(t);render()};
+    b.querySelectorAll(".chip").forEach(c=>c.onclick=()=>{anT[t.id]=+c.dataset.i;b.querySelectorAll(".chip").forEach(x=>x.classList.toggle("on",x===c));drawAn(t)});
+    W('[data-a="ar"]').onclick=()=>{const r=W('textarea[data-f="report"]');if(r.value.trim()&&!confirm("Purani report badal kar nayi auto report likh dein?"))return;t.report=autoReport(t);save(t);r.value=t.report};
+    W(".ty").value=ft;W(".ct").value=fc;
+    const add=()=>{const x=W(".tx").value.trim();if(!x)return;ft=W(".ty").value;fc=+W(".ct").value;
+      t.items.push({id:rid(),type:ft,text:x,cat:fc,value:clamp(+W(".va").value||5,1,10),amount:Math.max(0,+W(".am").value||0)});save(t);render();const n=$("#t-"+t.id+" .tx");if(n)n.focus()};
+    W('[data-a="ad"]').onclick=add;W(".tx").onkeydown=e=>{if(e.key=="Enter")add()};
+    b.querySelectorAll("[data-d]").forEach(x=>x.onclick=()=>{const it=t.items.find(i=>String(i.id)===x.dataset.d);if(!confirm("Ye point hata dein?\n\n“"+(it?it.text:"")+"”"))return;t.items=t.items.filter(i=>String(i.id)!==x.dataset.d);save(t);render()});
+  });
+  /* backup */
+  $("#eh").onclick=()=>dl("fayde-nuksan.html",toHTML(),"text/html");
+  $("#ec").onclick=()=>dl("fayde-nuksan.csv","\ufeff"+toCSV(),"text/csv");
+  $("#cp").onclick=async()=>{try{await navigator.clipboard.writeText($("#out").value);$("#ms").textContent="Copy ho gaya."}catch(e){$("#out").select();$("#ms").textContent="Text select ho gaya, copy kar lo."}};
+  $("#if").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{$("#inp").value=r.result};r.readAsText(f)};
+  $("#im").onclick=()=>{const m=doImport($("#inp").value);route();$("#ms").textContent=m};
+}
+
+/* live editing: report and points (no re-render, typing stays smooth) */
+app.addEventListener("input",e=>{
+  const el=e.target,blk=el.closest("[data-tid]"),f=el.dataset.f;if(!blk||!f)return;
+  const t=topics.find(x=>x.id==blk.dataset.tid);if(!t)return;
+  if(f==="report"){t.report=el.value;save(t);return}
+  const row=el.closest("[data-id]");if(!row)return;
+  const it=t.items.find(i=>String(i.id)===row.dataset.id);if(!it)return;
+  if(f==="text")it.text=el.value;
+  else if(f==="cat")it.cat=clamp(+el.value||0,0,9);
+  else if(f==="value")it.value=clamp(+el.value||1,1,10);
+  else if(f==="amount")it.amount=Math.max(0,+el.value||0);
+  save(t);drawAn(t);
+});
+
+/* ---------- import / export (pages > topics) ---------- */
+const q=v=>'"'+String(v).replace(/"/g,'""')+'"';
+function toCSV(){
+  const rows=[["page","topic","type","category","text","value","amount"].join(",")];
+  pages.forEach(p=>{
+    const ts=topics.filter(t=>t.pageId===p.id);
+    if(!ts.length)rows.push([q(p.name),"","","","","",""].join(","));
+    ts.forEach(t=>{const b=[q(p.name),q(t.name)];
+      if(!t.items.length&&!t.report)rows.push([...b,"","","","",""].join(","));
+      if(t.report)rows.push([...b,"report","",q(t.report),"",""].join(","));
+      t.items.forEach(i=>rows.push([...b,i.type==="pro"?"fayda":"nuksan",q(C[i.cat]),q(i.text),i.value,i.amount].join(",")))});
+  });
+  return rows.join("\n");
+}
+function toHTML(){
+  return `<!DOCTYPE html><html lang="hi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Fayde-Nuksan Report</title><style>body{font-family:system-ui;max-width:760px;margin:20px auto;padding:0 14px}img{max-width:100%;border-radius:8px}table{border-collapse:collapse;width:100%;margin:8px 0 24px}td,th{border:1px solid #ccc;padding:6px;text-align:left}.pro td:first-child{color:#1f7a4d}.con td:first-child{color:#b3392f}</style></head><body><h1>Fayde-Nuksan Report</h1>`+
+  pages.map(p=>`<h2>📁 ${esc(p.name)}</h2>`+topics.filter(t=>t.pageId===p.id).map(t=>{const s=st(t);return `<h3>${esc(t.name)}</h3>${t.img?`<img src="${t.img}" alt="">`:""}<p>Fayde: ${s.ps} (${R(s.pa)}) | Nuksan: ${s.cs} (${R(s.ca)}) | ${verdict(s)[0]}</p>${t.report?`<p style="white-space:pre-wrap">${esc(t.report)}</p>`:""}<table><tr><th>Type</th><th>Category</th><th>Point</th><th>Value</th><th>Amount</th></tr>${t.items.map(i=>`<tr class="${i.type}"><td>${i.type==="pro"?"Fayda":"Nuksan"}</td><td>${C[i.cat]}</td><td>${esc(i.text)}</td><td>${i.value}</td><td>${R(i.amount)}</td></tr>`).join("")}</table>`}).join("")).join("")+
+  `<script type="application/json" id="fn-data">${JSON.stringify({v:2,pages,topics}).replace(/</g,"\\u003c")}<\/script></body></html>`;
+}
+function parseCSV(s){
+  const r=[];let row=[],f="",qq=false;
+  for(let i=0;i<s.length;i++){const c=s[i];
+    if(qq){if(c=='"'){if(s[i+1]=='"'){f+='"';i++}else qq=false}else f+=c}
+    else if(c=='"')qq=true;
+    else if(c==","){row.push(f);f=""}
+    else if(c=="\n"||c=="\r"){if(c=="\r"&&s[i+1]=="\n")i++;row.push(f);f="";r.push(row);row=[]}
+    else f+=c}
+  row.push(f);r.push(row);return r.filter(x=>x.join("").trim());
+}
+function fromCSV(s){
+  let rows=parseCSV(s.replace(/^\ufeff/,""));
+  const first=rows.length?String(rows[0][0]).trim().toLowerCase():"";
+  if(first==="topic")rows=rows.map(r=>["Imported",...r]);   /* purana 6-column format */
+  if(first==="page"||first==="topic")rows.shift();
+  const m=new Map();
+  rows.forEach(r=>{const pn=String(r[0]||"").trim();if(!pn)return;
+    if(!m.has(pn))m.set(pn,{name:pn,topics:new Map()});
+    const tn=String(r[1]||"").trim();if(!tn)return;
+    const P=m.get(pn);if(!P.topics.has(tn))P.topics.set(tn,{name:tn,report:"",items:[]});
+    const T=P.topics.get(tn),ty=String(r[2]||"").trim();
+    if(ty.toLowerCase()==="report"){T.report=String(r[4]||"");return}
+    if(ty)T.items.push({type:/^(n|con)/i.test(ty)?"con":"pro",cat:Math.max(0,C.findIndex(x=>x.toLowerCase()===String(r[3]).trim().toLowerCase())),text:r[4],value:r[5],amount:r[6]})});
+  return [...m.values()].map(p=>({name:p.name,topics:[...p.topics.values()]}));
+}
+function doImport(txt){
+  txt=txt.trim();if(!txt)return "Kuch paste ya file nahi mili.";
+  try{
+    let ps;
+    if(txt[0]==="<"){
+      const e=new DOMParser().parseFromString(txt,"text/html").getElementById("fn-data");
+      if(!e)return "Is HTML mein import data nahi mila (sirf is app ka export chalega).";
+      const d=JSON.parse(e.textContent);
+      ps=Array.isArray(d)?[{name:"Imported",topics:d}]:(d.pages||[]).map(p=>({name:p.name,topics:(d.topics||[]).filter(t=>t.pageId===p.id)}));
+    }else ps=fromCSV(txt);
+    let np=0,nt=0;
+    ps.forEach((x,k)=>{if(!x||!x.name)return;
+      const p={id:Date.now()+k*1000,name:String(x.name).slice(0,80)};pages.push(p);saveP(p);np++;curP=p.id;
+      (x.topics||[]).forEach((y,j)=>{if(!y||!y.name)return;
+        const t={id:p.id+j+1,pageId:p.id,name:String(y.name).slice(0,80),img:IMG.test(y.img||"")?y.img:"",report:String(y.report||"").slice(0,5000),
+          items:(Array.isArray(y.items)?y.items:[]).map(i=>({id:rid(),type:i.type==="con"?"con":"pro",text:String(i.text||"").slice(0,140),cat:clamp(Math.round(+i.cat)||0,0,9),value:clamp(+i.value||5,1,10),amount:Math.max(0,+i.amount||0)}))};
+        topics.push(t);save(t);nt++})});
+    curT=null;
+    return np+" page, "+nt+" topic import hue. Upar 💾 Save dabana mat bhoolna.";
+  }catch(e){return "Import fail: file padh nahi payi."}
+}
+function dl(name,txt,type){
+  $("#out").value=txt;
+  try{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type}));a.download=name;document.body.appendChild(a);a.click();a.remove();$("#ms").textContent="File download ho gayi. Na ho to upar ka text copy karo."}
+  catch(e){$("#ms").textContent="Download nahi hua, upar ka text copy karo."}
+}
+
+/* ---------- hash routing: #page-1 and #page-1-topic-2 ---------- */
+function route(){
+  const h=location.hash,m=h.match(/^#page-(\d+)(?:-topic-(\d+))?$/),o=h.match(/^#topic-(\d+)$/);
+  let pid=null,tid=null;
+  if(m){pid=+m[1];tid=m[2]?+m[2]:null}
+  else if(o){const t=topics.find(x=>x.id==o[1]);if(t){pid=t.pageId;tid=t.id}}
+  if(!pages.some(p=>p.id===pid))pid=pages.some(p=>p.id===curP)?curP:(pages[0]?pages[0].id:null);
+  const ts=topics.filter(t=>t.pageId===pid);
+  if(!ts.some(t=>t.id===tid))tid=ts.some(t=>t.id===curT)?curT:(ts[0]?ts[0].id:null);
+  curP=pid;curT=tid;render();
+}
+addEventListener("hashchange",()=>{route();const x=/-topic-/.test(location.hash)&&$("#t-"+curT);x?x.scrollIntoView():scrollTo(0,0)});
+(async()=>{
+  db=await openDB();if(!db)$("#warn").hidden=false;
+  pages=(await loadAll("pages")).sort((a,b)=>a.id-b.id);
+  topics=(await loadAll("topics")).sort((a,b)=>a.id-b.id);topics.forEach(norm);
+  /* purane topics (jinka koi page nahi) ek default page mein */
+  if(topics.some(t=>!pages.some(p=>p.id===t.pageId))){
+    let p=pages[0];if(!p){p={id:Date.now(),name:"Mera Page"};pages.push(p);saveP(p)}
+    topics.forEach(t=>{if(!pages.some(x=>x.id===t.pageId)){t.pageId=p.id;save(t)}});
+  }
+  $("#sv").onclick=async()=>{const b=$("#sv"),ok=await commit();
+    if(ok){b.textContent="✅ Save ho gaya";setTimeout(upd,1500)}
+    else alert("Save nahi hua. Is browser mein IndexedDB available nahi hai.")};
+  addEventListener("beforeunload",e=>{if(pend()){e.preventDefault();e.returnValue=""}});
+  upd();route();
+})();
+</script>
+</body>
+</html>
