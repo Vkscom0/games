@@ -6,216 +6,276 @@
 <title>Fayde–Nuksan Tarazu</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap">
 <style>
-:root{
-  color-scheme:light;
-  --bg:#eef1f4;--surface:#fff;--ink:#17202a;--muted:#5d6b7a;--line:#d5dce3;
-  --pro:#1f7a4d;--pro-bg:#e3f3ea;--con:#b3392f;--con-bg:#f9e6e3;--accent:#243b53;
-  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
-}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
-  --bg:#12171d;--surface:#1b222a;--ink:#e8edf2;--muted:#93a1b0;--line:#2c3743;
-  --pro:#5fd09a;--pro-bg:#173a2a;--con:#f08a80;--con-bg:#42201d;--accent:#9db7d3;}}
-:root[data-theme="dark"]{color-scheme:dark;
-  --bg:#12171d;--surface:#1b222a;--ink:#e8edf2;--muted:#93a1b0;--line:#2c3743;
-  --pro:#5fd09a;--pro-bg:#173a2a;--con:#f08a80;--con-bg:#42201d;--accent:#9db7d3;}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
+:root{color-scheme:light;--bg:#eef1f4;--surface:#fff;--ink:#17202a;--muted:#5d6b7a;--line:#d5dce3;--pro:#1f7a4d;--pro-bg:#e3f3ea;--con:#b3392f;--con-bg:#f9e6e3;--accent:#243b53;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root{color-scheme:dark;--bg:#12171d;--surface:#1b222a;--ink:#e8edf2;--muted:#93a1b0;--line:#2c3743;--pro:#5fd09a;--pro-bg:#173a2a;--con:#f08a80;--con-bg:#42201d;--accent:#9db7d3}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:"Bricolage Grotesque",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.45}
-.wrap{max-width:860px;margin:0 auto;padding:20px 16px 48px}
-h1{font-size:1.9rem;font-weight:800;margin:0 0 4px;letter-spacing:-.02em}
-.sub{color:var(--muted);margin:0 0 18px}
-.bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-input,select,button{font:inherit;color:inherit}
-input[type=text],select{flex:1;min-width:0;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
-button{cursor:pointer;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:10px 14px}
-button.primary{background:var(--accent);color:var(--bg);border-color:var(--accent);font-weight:600}
-button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.scale{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;margin:16px 0}
-.scale svg{display:block;width:100%;height:150px}
-.beam{transform-origin:200px 60px;transition:transform .7s cubic-bezier(.3,1.4,.5,1)}
-.verdict{text-align:center;font-weight:800;font-size:1.25rem;margin:6px 0 2px}
-.nums{display:flex;justify-content:space-between;color:var(--muted);font-size:.95rem}
-.nums b{font-size:1.15rem}
-.pro-n{color:var(--pro)}.con-n{color:var(--con)}
+.wrap{max-width:900px;margin:0 auto;padding:12px 16px 56px}
+nav{display:flex;gap:6px;margin-bottom:14px}
+nav a{padding:8px 14px;border-radius:20px;text-decoration:none;color:var(--muted);border:1px solid var(--line)}
+nav a.on{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+nav button{margin-left:auto;padding:8px 14px;border-radius:20px}
+h1{font-size:1.8rem;font-weight:800;margin:0 0 4px;letter-spacing:-.02em}
+h2{font-size:1.05rem;margin:0 0 10px}
+.sub,.hint,.empty{color:var(--muted)}.hint{font-size:.85rem;text-align:center}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;margin:12px 0}
+input,select,button,textarea{font:inherit;color:inherit}
+input[type=text],input[type=number],select,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);margin-bottom:8px}
+textarea{min-height:90px;font-size:.8rem}
+button,.btn{cursor:pointer;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:10px 14px;display:inline-block;text-decoration:none}
+.primary{background:var(--accent);color:var(--bg);border-color:var(--accent);font-weight:600}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:8px}.row>*{flex:1;min-width:120px}
+.lab{font-size:.85rem;color:var(--muted)}
+.back{display:inline-block;margin-bottom:8px;color:var(--accent)}
+.hero{width:100%;max-height:300px;object-fit:cover;border-radius:12px;display:block;margin:8px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.tc{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;text-decoration:none;color:inherit;display:flex;flex-direction:column}
+.tc img,.ph{width:100%;height:120px;object-fit:cover;background:var(--line);display:grid;place-items:center;font-size:2rem}
+.tc b,.tc small{padding:0 12px}.tc b{padding-top:8px}.tc small{padding-bottom:10px;color:var(--muted)}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:4px 0 8px}
+.chip{white-space:nowrap;border-radius:20px;padding:6px 12px;font-size:.9rem}
+.chip.on{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+.av svg{display:block;width:100%;max-height:300px}
+.verdict{text-align:center;font-weight:800;font-size:1.2rem;margin:10px 0 4px}
+.nums{display:flex;justify-content:space-between;font-size:.95rem;color:var(--muted);gap:8px;flex-wrap:wrap}
+.pn b{color:var(--pro)}.cn b{color:var(--con)}
+.split{display:flex;height:44px;border-radius:10px;overflow:hidden;margin:20px 0}
+.split i{display:grid;place-items:center;color:#fff;font-style:normal;font-weight:800;min-width:0}
+.cr{display:grid;grid-template-columns:76px 1fr;gap:2px 8px;margin:8px 0;font-size:.9rem;align-items:center}
+.cr>b{grid-row:span 2}
+.bar2{display:flex;align-items:center;gap:6px}
+.bar2 i{display:block;height:9px;border-radius:5px;min-width:2px}
+.mb{margin:14px 0}.trk{background:var(--bg);border-radius:8px;height:26px;margin:4px 0}.trk i{display:block;height:100%;border-radius:8px;min-width:3px}
+.hm{display:grid;grid-template-columns:90px 1fr 1fr;gap:4px;text-align:center}
+.hm i{font-style:normal;padding:10px 0;border-radius:6px;font-weight:600}
+.hm span{text-align:left;align-self:center}
+.tp{position:relative;padding:9px 10px;margin:6px 0;border-radius:8px;background:var(--bg);overflow:hidden}
+.tp i{position:absolute;inset:0 auto 0 0;opacity:.25}.tp span{position:relative}
 .cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media(max-width:620px){.cols{grid-template-columns:1fr}}
-.col{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;border-top-width:4px}
+.col{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;border-top:4px solid}
 .col.pro{border-top-color:var(--pro)}.col.con{border-top-color:var(--con)}
-.col h2{font-size:1.1rem;margin:0 0 10px}
 .col.pro h2{color:var(--pro)}.col.con h2{color:var(--con)}
-.add{display:flex;gap:6px;margin-bottom:10px}
-.add select{flex:0 0 66px}
 .item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;margin-bottom:6px}
-.pro .item{background:var(--pro-bg)}.con .item{background:var(--con-bg)}
-.item span.t{flex:1;overflow-wrap:anywhere}
-.w{font-weight:800;min-width:1.6em;text-align:center}
-.x{padding:2px 8px;border:none;background:transparent;color:var(--muted);font-size:1.1rem}
-.empty{color:var(--muted);font-size:.95rem;padding:6px 2px}
-.note{color:var(--muted);font-size:.85rem;margin-top:14px}
-.hidden{display:none}
+.item.pro{background:var(--pro-bg)}.item.con{background:var(--con-bg)}
+.item .t{flex:1;overflow-wrap:anywhere}.item small{display:block;color:var(--muted)}
+.w{font-weight:800;min-width:1.8em;text-align:center}
+.x{border:none;background:transparent;padding:2px 8px;font-size:1.2rem;color:var(--muted)}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>Fayde–Nuksan Tarazu</h1>
-  <p class="sub">Kisi bhi cheez ke advantages aur disadvantages likho, tarazu bata dega kaun bhari hai.</p>
-
-  <div class="bar">
-    <input type="text" id="newTopic" placeholder="Naya topic (jaise: Naya phone lena)" maxlength="80">
-    <button class="primary" id="addTopic">Topic jodo</button>
-  </div>
-  <div class="bar">
-    <select id="topicSel" aria-label="Topic chuno"></select>
-    <button id="delTopic">Topic hatao</button>
-  </div>
-
-  <div id="main" class="hidden">
-    <div class="scale">
-      <svg viewBox="0 0 400 150" aria-hidden="true">
-        <rect x="196" y="60" width="8" height="80" fill="var(--muted)"/>
-        <rect x="150" y="136" width="100" height="8" rx="4" fill="var(--muted)"/>
-        <g class="beam" id="beam">
-          <rect x="40" y="56" width="320" height="8" rx="4" fill="var(--accent)"/>
-          <g id="pL"><line x1="55" y1="64" x2="55" y2="96" stroke="var(--muted)"/><rect x="25" y="96" width="60" height="10" rx="5" fill="var(--pro)"/></g>
-          <g id="pR"><line x1="345" y1="64" x2="345" y2="96" stroke="var(--muted)"/><rect x="315" y="96" width="60" height="10" rx="5" fill="var(--con)"/></g>
-        </g>
-        <circle cx="200" cy="60" r="8" fill="var(--accent)"/>
-      </svg>
-      <div class="verdict" id="verdict"></div>
-      <div class="nums">
-        <span>Fayde: <b class="pro-n" id="pn">0</b> (<span id="pc">0</span>)</span>
-        <span>Nuksan: <b class="con-n" id="cn">0</b> (<span id="cc">0</span>)</span>
-      </div>
-    </div>
-
-    <div class="cols">
-      <section class="col pro">
-        <h2>Advantages (Fayde)</h2>
-        <div class="add"><input type="text" id="pt" placeholder="Fayda likho" maxlength="140">
-          <select id="pw" aria-label="Ahmiyat"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option></select>
-          <button class="primary" id="pa">+</button></div>
-        <div id="pl"></div>
-      </section>
-      <section class="col con">
-        <h2>Disadvantages (Nuksan)</h2>
-        <div class="add"><input type="text" id="ct" placeholder="Nuksan likho" maxlength="140">
-          <select id="cw" aria-label="Ahmiyat"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option></select>
-          <button class="primary" id="ca">+</button></div>
-        <div id="cl"></div>
-      </section>
-    </div>
-    <p class="note">Number (1–5) ahmiyat batata hai: 5 matlab bahut zaroori. Data aapke browser ke IndexedDB mein save hota hai.</p>
-  </div>
-  <p class="empty" id="none">Shuru karne ke liye upar ek topic jodo.</p>
-  <p class="note hidden" id="dbwarn">IndexedDB chal nahi raha, isliye data sirf is session tak rahega.</p>
+  <nav><a href="#home" data-p="home">Home</a><a href="#backup" data-p="backup">Backup</a><button id="sv">💾 Saved</button></nav>
+  <p id="warn" class="hint" hidden>IndexedDB chal nahi raha, data sirf is session tak rahega.</p>
+  <div id="app"></div>
 </div>
-
 <script>
-const $=id=>document.getElementById(id);
-let db=null,topics=[],cur=null;
+const $=s=>document.querySelector(s),app=$("#app");
+const C=["Paisa","Samay","Sehat","Rishte","Jokhim","Seekhna","Aaram","Izzat","Career","Khushi"];
+const AN=["Tarazu","Split bar","Donut","Category bars","Radar","Paisa","Value vs Amount","Top 5","Heatmap","Meter"];
+let db=null,topics=[],an=0,pimg="",ft="pro",fc=0;
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const R=n=>"₹"+Math.round(n).toLocaleString("en-IN");
+const rid=()=>Math.random().toString(36).slice(2,10);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const IMG=/^data:image\/(jpeg|png|webp|gif);base64,[A-Za-z0-9+\/=]+$/;
 
-function openDB(){
-  return new Promise(res=>{
-    try{
-      const r=indexedDB.open("fayde-nuksan",1);
-      r.onupgradeneeded=()=>r.result.createObjectStore("topics",{keyPath:"id"});
-      r.onsuccess=()=>res(r.result);
-      r.onerror=()=>res(null);
-    }catch(e){res(null)}
-  });
-}
-function loadAll(){
-  return new Promise(res=>{
-    if(!db)return res([]);
-    try{
-      const q=db.transaction("topics").objectStore("topics").getAll();
-      q.onsuccess=()=>res(q.result||[]);
-      q.onerror=()=>res([]);
-    }catch(e){res([])}
-  });
-}
-function save(t){
-  if(!db)return;
-  try{db.transaction("topics","readwrite").objectStore("topics").put(t)}catch(e){console.error(e)}
-}
-function remove(id){
-  if(!db)return;
-  try{db.transaction("topics","readwrite").objectStore("topics").delete(id)}catch(e){console.error(e)}
-}
+/* ---------- IndexedDB ---------- */
+function openDB(){return new Promise(res=>{try{const r=indexedDB.open("fayde-nuksan",1);r.onupgradeneeded=()=>r.result.createObjectStore("topics",{keyPath:"id"});r.onsuccess=()=>res(r.result);r.onerror=()=>res(null)}catch(e){res(null)}})}
+function loadAll(){return new Promise(res=>{if(!db)return res([]);try{const q=db.transaction("topics").objectStore("topics").getAll();q.onsuccess=()=>res(q.result||[]);q.onerror=()=>res([])}catch(e){res([])}})}
+const dirty=new Set(),gone=new Set();
+function save(t){dirty.add(t.id);gone.delete(t.id);upd()}
+function del(id){dirty.delete(id);gone.add(id);upd()}
+function upd(){const b=$("#sv");if(!b)return;const n=dirty.size+gone.size;b.textContent=n?"💾 Save ("+n+")":"💾 Saved";b.classList.toggle("primary",!!n)}
+function commit(){return new Promise(res=>{
+  if(!db)return res(false);
+  try{const tx=db.transaction("topics","readwrite"),s=tx.objectStore("topics");
+    dirty.forEach(id=>{const t=topics.find(x=>x.id===id);if(t)s.put(t)});
+    gone.forEach(id=>s.delete(id));
+    tx.oncomplete=()=>{dirty.clear();gone.clear();upd();res(true)};
+    tx.onerror=tx.onabort=()=>res(false)}catch(e){res(false)}})}
+function norm(t){t.img=t.img||"";t.items=t.items||[];t.items.forEach(i=>{i.value=+(i.value??i.weight??5);i.cat=+i.cat||0;i.amount=+i.amount||0})}
 
-function curTopic(){return topics.find(t=>t.id===cur)}
-
-function renderSel(){
-  const s=$("topicSel");s.innerHTML="";
-  topics.forEach(t=>{const o=document.createElement("option");o.value=t.id;o.textContent=t.name;if(t.id===cur)o.selected=true;s.appendChild(o)});
-  $("main").classList.toggle("hidden",!topics.length);
-  $("none").classList.toggle("hidden",!!topics.length);
-  $("topicSel").parentElement.classList.toggle("hidden",!topics.length);
+/* ---------- stats ---------- */
+function st(t){
+  const P=t.items.filter(i=>i.type==="pro"),Q=t.items.filter(i=>i.type==="con");
+  const s=a=>a.reduce((x,i)=>x+i.value,0),m=a=>a.reduce((x,i)=>x+i.amount,0);
+  const cat=C.map((_,k)=>{const p=P.filter(i=>i.cat===k),q=Q.filter(i=>i.cat===k);return{p:s(p),c:s(q),pa:m(p),ca:m(q)}});
+  return{P,Q,ps:s(P),cs:s(Q),pa:m(P),ca:m(Q),cat,tot:s(P)+s(Q)};
+}
+function verdict(s){
+  if(!s.tot)return["Pehle points jodo","var(--muted)"];
+  const p=s.ps/s.tot*100;
+  return p>=60?["Aage badho: fayde bhari","var(--pro)"]:p>=45?["Soch samajh kar: muqabla kareeb","var(--accent)"]:["Rehne do: nuksan bhari","var(--con)"];
 }
 
-function drawList(el,type,t){
-  el.innerHTML="";
-  const items=t.items.filter(i=>i.type===type);
-  if(!items.length){const p=document.createElement("div");p.className="empty";p.textContent="Abhi kuch nahi jodha.";el.appendChild(p);return}
-  items.forEach(i=>{
-    const d=document.createElement("div");d.className="item";
-    const w=document.createElement("span");w.className="w";w.textContent=i.weight;
-    const s=document.createElement("span");s.className="t";s.textContent=i.text;
-    const x=document.createElement("button");x.className="x";x.textContent="×";x.setAttribute("aria-label","Hatao");
-    x.onclick=()=>{t.items=t.items.filter(k=>k.id!==i.id);save(t);render()};
-    d.append(w,s,x);el.appendChild(d);
-  });
+/* ---------- 10 analyses ---------- */
+const AF=[
+/*0 tarazu*/s=>{const d=s.tot?clamp((s.cs-s.ps)/s.tot*20,-14,14):0;
+ return `<svg viewBox="0 0 400 150"><rect x="196" y="60" width="8" height="80" fill="var(--muted)"/><rect x="150" y="136" width="100" height="8" rx="4" fill="var(--muted)"/><g transform="rotate(${d} 200 60)"><rect x="40" y="56" width="320" height="8" rx="4" fill="var(--accent)"/><line x1="55" y1="64" x2="55" y2="96" stroke="var(--muted)"/><rect x="25" y="96" width="60" height="10" rx="5" fill="var(--pro)"/><line x1="345" y1="64" x2="345" y2="96" stroke="var(--muted)"/><rect x="315" y="96" width="60" height="10" rx="5" fill="var(--con)"/></g><circle cx="200" cy="60" r="8" fill="var(--accent)"/></svg>`},
+/*1 split*/s=>{const p=s.tot?s.ps/s.tot*100:50;
+ return `<div class="split"><i style="width:${p}%;background:var(--pro)">${Math.round(p)}%</i><i style="width:${100-p}%;background:var(--con)">${Math.round(100-p)}%</i></div><p class="hint">Hara = fayde, laal = nuksan (value ke hisaab se)</p>`},
+/*2 donut*/s=>{const p=s.tot?s.ps/s.tot*100:0,k=2.51327;
+ return `<svg viewBox="0 0 120 120" style="max-width:240px;margin:auto"><circle cx="60" cy="60" r="40" fill="none" stroke="${s.tot?"var(--con)":"var(--line)"}" stroke-width="18"/><circle cx="60" cy="60" r="40" fill="none" stroke="var(--pro)" stroke-width="18" stroke-dasharray="${p*k} 251.327" transform="rotate(-90 60 60)"/><text x="60" y="66" text-anchor="middle" font-size="18" font-weight="800" fill="var(--ink)">${Math.round(p)}%</text></svg>`},
+/*3 category bars*/s=>{const m=Math.max(1,...s.cat.map(x=>Math.max(x.p,x.c)));
+ return s.cat.map((x,k)=>`<div class="cr"><b>${C[k]}</b><div class="bar2"><i style="width:${x.p/m*80}%;background:var(--pro)"></i>${x.p}</div><div class="bar2"><i style="width:${x.c/m*80}%;background:var(--con)"></i>${x.c}</div></div>`).join("")},
+/*4 radar*/s=>{const n=s.cat.map(x=>x.p-x.c),m=Math.max(1,...n.map(Math.abs)),cx=180,cy=150,R0=100;
+ const pt=(k,r)=>{const a=k*Math.PI/5-Math.PI/2;return[cx+r*Math.cos(a),cy+r*Math.sin(a)]};
+ let g=[.5,1].map(f=>`<polygon points="${n.map((_,k)=>pt(k,R0*f).join(",")).join(" ")}" fill="none" stroke="var(--line)" ${f==.5?'stroke-dasharray="4"':""}/>`).join("");
+ g+=n.map((_,k)=>{const[x1,y1]=pt(k,R0),[x2,y2]=pt(k,R0+14),c=Math.cos(k*Math.PI/5-Math.PI/2);
+  return `<line x1="${cx}" y1="${cy}" x2="${x1}" y2="${y1}" stroke="var(--line)"/><text x="${x2}" y="${y2+4}" text-anchor="${c>.3?"start":c<-.3?"end":"middle"}" font-size="11" fill="var(--muted)">${C[k]}</text>`}).join("");
+ const poly=n.map((v,k)=>pt(k,R0*(.5+.5*v/m)).join(",")).join(" ");
+ return `<svg viewBox="0 0 360 300">${g}<polygon points="${poly}" fill="var(--accent)" fill-opacity=".25" stroke="var(--accent)" stroke-width="2"/></svg><p class="hint">Dotted line = barabar. Bahar = fayde, andar = nuksan.</p>`},
+/*5 paisa*/s=>{const m=Math.max(1,s.pa,s.ca),n=s.pa-s.ca;
+ const b=(l,v,c)=>`<div class="mb"><div class="nums"><span>${l}</span><b>${R(v)}</b></div><div class="trk"><i style="width:${v/m*100}%;background:${c}"></i></div></div>`;
+ return b("Fayde ka amount (kamayi/bachat)",s.pa,"var(--pro)")+b("Nuksan ka amount (kharcha)",s.ca,"var(--con)")+`<p class="verdict" style="color:${n>=0?"var(--pro)":"var(--con)"}">${n>=0?"Net fayda":"Net kharcha"}: ${R(Math.abs(n))}</p>`},
+/*6 scatter*/s=>{const a=[...s.P,...s.Q];if(!a.length)return '<p class="empty">Points jodo.</p>';const mx=Math.max(1,...a.map(i=>i.amount));
+ const d=a.map(i=>`<circle cx="${45+i.amount/mx*310}" cy="${220-i.value/10*200}" r="8" fill="${i.type==="pro"?"var(--pro)":"var(--con)"}" fill-opacity=".75"><title>${esc(i.text)}</title></circle>`).join("");
+ return `<svg viewBox="0 0 380 255"><line x1="40" y1="220" x2="365" y2="220" stroke="var(--muted)"/><line x1="40" y1="15" x2="40" y2="220" stroke="var(--muted)"/><text x="365" y="240" text-anchor="end" font-size="11" fill="var(--muted)">Amount → ${R(mx)}</text><text x="6" y="14" font-size="11" fill="var(--muted)">Value ↑ 10</text>${d}</svg>`},
+/*7 top5*/s=>{const a=[...s.P,...s.Q].sort((x,y)=>y.value-x.value).slice(0,5);
+ return a.length?a.map(i=>`<div class="tp"><i style="width:${i.value*10}%;background:${i.type==="pro"?"var(--pro)":"var(--con)"}"></i><span><b>${i.value}</b> · ${esc(i.text)}</span></div>`).join(""):'<p class="empty">Points jodo.</p>'},
+/*8 heatmap*/s=>{const m=Math.max(1,...s.cat.flatMap(x=>[x.p,x.c])),cm=(c,v)=>`background:color-mix(in srgb,${c} ${v/m*100}%,transparent)`;
+ return `<div class="hm"><span></span><b>Fayde</b><b>Nuksan</b>${s.cat.map((x,k)=>`<span>${C[k]}</span><i style="${cm("var(--pro)",x.p)}">${x.p}</i><i style="${cm("var(--con)",x.c)}">${x.c}</i>`).join("")}</div>`},
+/*9 meter*/s=>{const p=s.tot?s.ps/s.tot*100:50,a=Math.PI*(1-p/100),X=(a,r)=>150+r*Math.cos(a),Y=(a,r)=>140-r*Math.sin(a);
+ const arc=(p1,p2,c)=>{const a1=Math.PI*(1-p1/100),a2=Math.PI*(1-p2/100);return `<path d="M${X(a1,100)} ${Y(a1,100)} A100 100 0 0 1 ${X(a2,100)} ${Y(a2,100)}" stroke="${c}" stroke-width="18" fill="none"/>`};
+ return `<svg viewBox="0 0 300 175" style="max-width:360px;margin:auto">${arc(0,40,"var(--con)")}${arc(40,60,"#d9a21b")}${arc(60,100,"var(--pro)")}<line x1="150" y1="140" x2="${X(a,85)}" y2="${Y(a,85)}" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/><circle cx="150" cy="140" r="8" fill="var(--ink)"/><text x="150" y="168" text-anchor="middle" font-size="15" font-weight="800" fill="var(--ink)">${Math.round(p)}% fayde</text></svg>`}
+];
+
+/* ---------- image ---------- */
+function readImg(f){return new Promise(r=>{if(!f)return r("");const fr=new FileReader();
+ fr.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,720/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=im.width*k;c.height=im.height*k;c.getContext("2d").drawImage(im,0,0,c.width,c.height);r(c.toDataURL("image/jpeg",.8))};im.onerror=()=>r("");im.src=fr.result};
+ fr.onerror=()=>r("");fr.readAsDataURL(f)})}
+
+/* ---------- pages ---------- */
+function pageHome(){
+  pimg="";
+  app.innerHTML=`<h1>Fayde–Nuksan</h1><p class="sub">Koi bhi cheez ke fayde aur nuksan tolo.</p>
+  <div class="card"><input type="text" id="nt" placeholder="Naya topic (jaise: Naya phone lena)" maxlength="80">
+  <div class="row"><label class="btn">Topic ki image<input type="file" id="ni" accept="image/*" hidden></label><button class="primary" id="at">Topic jodo</button></div><div id="pv"></div></div>
+  <div class="grid">${topics.map(t=>{const s=st(t);return `<a class="tc" href="#topic-${t.id}">${t.img?`<img src="${t.img}" alt="">`:'<div class="ph">⚖️</div>'}<b>${esc(t.name)}</b><small>${t.items.length} points · ${verdict(s)[0]}</small></a>`}).join("")||'<p class="empty">Abhi koi topic nahi.</p>'}</div>`;
+  $("#ni").onchange=async e=>{pimg=await readImg(e.target.files[0]);$("#pv").innerHTML=pimg?`<img class="hero" src="${pimg}" alt="">`:""};
+  const add=()=>{const n=$("#nt").value.trim();if(!n)return;const t={id:Date.now(),name:n,img:pimg,items:[]};topics.push(t);save(t);location.hash="topic-"+t.id};
+  $("#at").onclick=add;$("#nt").onkeydown=e=>{if(e.key=="Enter")add()};
 }
 
-function render(){
-  renderSel();
-  const t=curTopic();if(!t)return;
-  drawList($("pl"),"pro",t);drawList($("cl"),"con",t);
-  const P=t.items.filter(i=>i.type==="pro"),C=t.items.filter(i=>i.type==="con");
-  const ps=P.reduce((a,i)=>a+i.weight,0),cs=C.reduce((a,i)=>a+i.weight,0);
-  $("pn").textContent=ps;$("cn").textContent=cs;$("pc").textContent=P.length+" points";$("cc").textContent=C.length+" points";
-  const tot=ps+cs;
-  const deg=tot?Math.max(-14,Math.min(14,(cs-ps)/tot*20)):0;
-  const dy=deg*-1.2;
-  $("beam").style.transform="rotate("+deg+"deg)";
-  const v=$("verdict");
-  if(!tot){v.textContent="Pehle kuch points jodo";v.style.color="var(--muted)"}
-  else if(ps>cs){v.textContent="Fayde bhari hain (+"+(ps-cs)+")";v.style.color="var(--pro)"}
-  else if(cs>ps){v.textContent="Nuksan bhari hain (+"+(cs-ps)+")";v.style.color="var(--con)"}
-  else{v.textContent="Barabar ka muqabla";v.style.color="var(--accent)"}
+function pageTopic(t){
+  const s=st(t),v=verdict(s);
+  app.innerHTML=`<a class="back" href="#home">← Sab topics</a><h1>${esc(t.name)}</h1>
+  ${t.img?`<img class="hero" src="${t.img}" alt="">`:""}
+  <div class="chips">${AN.map((n,i)=>`<button class="chip ${i==an?"on":""}" data-i="${i}">${i+1}. ${n}</button>`).join("")}</div>
+  <div class="card av">${AF[an](s)}
+    <div class="verdict" style="color:${v[1]}">${v[0]}</div>
+    <div class="nums"><span class="pn">Fayde: <b>${s.ps}</b> · ${R(s.pa)}</span><span class="cn">Nuksan: <b>${s.cs}</b> · ${R(s.ca)}</span></div></div>
+  <a class="btn primary" href="#points-${t.id}">Points jodo / badlo</a>`;
+  app.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{an=+b.dataset.i;pageTopic(t)});
 }
 
-function addItem(type){
-  const t=curTopic();if(!t)return;
-  const inp=$(type==="pro"?"pt":"ct"),w=+$(type==="pro"?"pw":"cw").value;
-  const text=inp.value.trim();if(!text)return;
-  t.items.push({id:Date.now()+Math.random(),type,text,weight:w});
-  inp.value="";save(t);render();inp.focus();
+function pagePoints(t){
+  const s=st(t);
+  const li=a=>a.length?a.map(i=>`<div class="item ${i.type}"><span class="w">${i.value}</span><span class="t">${esc(i.text)}<small>${C[i.cat]} · ${R(i.amount)}</small></span><button class="x" data-d="${i.id}" aria-label="Hatao">×</button></div>`).join(""):'<p class="empty">Kuch nahi.</p>';
+  app.innerHTML=`<a class="back" href="#topic-${t.id}">← Analysis dekho</a><h1>${esc(t.name)}</h1>
+  <div class="card"><div class="row"><select id="ty"><option value="pro">Fayda</option><option value="con">Nuksan</option></select><select id="ct">${C.map((c,k)=>`<option value="${k}">${c}</option>`).join("")}</select></div>
+  <input type="text" id="tx" placeholder="Point likho" maxlength="140">
+  <div class="row"><label class="lab">Value point (1-10)<input type="number" id="va" min="1" max="10" value="5"></label><label class="lab">Amount point (₹)<input type="number" id="am" min="0" value="0"></label></div>
+  <button class="primary" id="ad">Point jodo</button></div>
+  <div class="cols"><section class="col pro"><h2>Fayde</h2>${li(s.P)}</section><section class="col con"><h2>Nuksan</h2>${li(s.Q)}</section></div>
+  <div class="card"><h2>Topic settings</h2><div class="row"><label class="btn">Image badlo<input type="file" id="ci" accept="image/*" hidden></label>${t.img?'<button id="ri">Image hatao</button>':""}<button id="dt">Topic hatao</button></div></div>`;
+  $("#ty").value=ft;$("#ct").value=fc;
+  const add=()=>{const x=$("#tx").value.trim();if(!x)return;ft=$("#ty").value;fc=+$("#ct").value;
+    t.items.push({id:rid(),type:ft,text:x,cat:fc,value:clamp(+$("#va").value||5,1,10),amount:Math.max(0,+$("#am").value||0)});save(t);pagePoints(t);$("#tx").focus()};
+  $("#ad").onclick=add;$("#tx").onkeydown=e=>{if(e.key=="Enter")add()};
+  app.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{const it=t.items.find(i=>String(i.id)===b.dataset.d);if(!confirm("Ye point hata dein?\n\n“"+(it?it.text:"")+"”"))return;t.items=t.items.filter(i=>String(i.id)!==b.dataset.d);save(t);pagePoints(t)});
+  $("#ci").onchange=async e=>{const d=await readImg(e.target.files[0]);if(d){t.img=d;save(t);pagePoints(t)}};
+  if($("#ri"))$("#ri").onclick=()=>{if(!confirm("Topic ki image hata dein?"))return;t.img="";save(t);pagePoints(t)};
+  $("#dt").onclick=()=>{if(!confirm("“"+t.name+"” aur uska saara data hata dein?"))return;del(t.id);topics=topics.filter(k=>k.id!==t.id);location.hash="home"};
 }
 
-$("addTopic").onclick=()=>{
-  const n=$("newTopic").value.trim();if(!n)return;
-  const t={id:Date.now(),name:n,items:[]};
-  topics.push(t);cur=t.id;$("newTopic").value="";save(t);render();
-};
-$("newTopic").onkeydown=e=>{if(e.key==="Enter")$("addTopic").click()};
-$("topicSel").onchange=e=>{cur=+e.target.value;render()};
-$("delTopic").onclick=()=>{
-  const t=curTopic();if(!t)return;
-  if(!confirm("“"+t.name+"” aur uska saara data hata dein?"))return;
-  remove(t.id);topics=topics.filter(k=>k.id!==t.id);cur=topics.length?topics[0].id:null;render();
-};
-$("pa").onclick=()=>addItem("pro");$("ca").onclick=()=>addItem("con");
-$("pt").onkeydown=e=>{if(e.key==="Enter")addItem("pro")};
-$("ct").onkeydown=e=>{if(e.key==="Enter")addItem("con")};
+/* ---------- import / export ---------- */
+const q=v=>'"'+String(v).replace(/"/g,'""')+'"';
+function toCSV(){
+  const rows=[["topic","type","category","text","value","amount"].join(",")];
+  topics.forEach(t=>{if(!t.items.length)rows.push([q(t.name),"","","","",""].join(","));
+    t.items.forEach(i=>rows.push([q(t.name),i.type==="pro"?"fayda":"nuksan",q(C[i.cat]),q(i.text),i.value,i.amount].join(",")))});
+  return rows.join("\n");
+}
+function toHTML(){
+  return `<!DOCTYPE html><html lang="hi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Fayde-Nuksan Report</title><style>body{font-family:system-ui;max-width:760px;margin:20px auto;padding:0 14px}img{max-width:100%;border-radius:8px}table{border-collapse:collapse;width:100%;margin:8px 0 24px}td,th{border:1px solid #ccc;padding:6px;text-align:left}.pro td:first-child{color:#1f7a4d}.con td:first-child{color:#b3392f}</style></head><body><h1>Fayde-Nuksan Report</h1>`+
+  topics.map(t=>{const s=st(t);return `<h2>${esc(t.name)}</h2>${t.img?`<img src="${t.img}" alt="">`:""}<p>Fayde: ${s.ps} (${R(s.pa)}) | Nuksan: ${s.cs} (${R(s.ca)}) | ${verdict(s)[0]}</p><table><tr><th>Type</th><th>Category</th><th>Point</th><th>Value</th><th>Amount</th></tr>${t.items.map(i=>`<tr class="${i.type}"><td>${i.type==="pro"?"Fayda":"Nuksan"}</td><td>${C[i.cat]}</td><td>${esc(i.text)}</td><td>${i.value}</td><td>${R(i.amount)}</td></tr>`).join("")}</table>`}).join("")+
+  `<script type="application/json" id="fn-data">${JSON.stringify(topics).replace(/</g,"\\u003c")}<\/script></body></html>`;
+}
+function parseCSV(s){
+  const r=[];let row=[],f="",qq=false;
+  for(let i=0;i<s.length;i++){const c=s[i];
+    if(qq){if(c=='"'){if(s[i+1]=='"'){f+='"';i++}else qq=false}else f+=c}
+    else if(c=='"')qq=true;
+    else if(c==","){row.push(f);f=""}
+    else if(c=="\n"||c=="\r"){if(c=="\r"&&s[i+1]=="\n")i++;row.push(f);f="";r.push(row);row=[]}
+    else f+=c}
+  row.push(f);r.push(row);return r.filter(x=>x.join("").trim());
+}
+function fromCSV(s){
+  const rows=parseCSV(s),m=new Map();
+  if(rows.length&&String(rows[0][0]).trim().toLowerCase()==="topic")rows.shift();
+  rows.forEach(r=>{const n=String(r[0]||"").trim();if(!n)return;if(!m.has(n))m.set(n,{name:n,items:[]});
+    if(String(r[1]||"").trim())m.get(n).items.push({type:/^(n|con)/i.test(r[1].trim())?"con":"pro",cat:Math.max(0,C.findIndex(x=>x.toLowerCase()===String(r[2]).trim().toLowerCase())),text:r[3],value:r[4],amount:r[5]})});
+  return [...m.values()];
+}
+function doImport(txt){
+  let arr=[];txt=txt.trim();
+  if(!txt)return "Kuch paste ya file nahi mili.";
+  try{
+    if(txt[0]==="<"){const e=new DOMParser().parseFromString(txt,"text/html").getElementById("fn-data");if(!e)return "Is HTML mein import data nahi mila (sirf is app ka export chalega).";arr=JSON.parse(e.textContent)}
+    else arr=fromCSV(txt);
+    if(!Array.isArray(arr))return "Data sahi format mein nahi hai.";
+    let n=0;
+    arr.forEach((x,k)=>{if(!x||!x.name)return;
+      const t={id:Date.now()+k,name:String(x.name).slice(0,80),img:IMG.test(x.img||"")?x.img:"",
+        items:(Array.isArray(x.items)?x.items:[]).map(i=>({id:rid(),type:i.type==="con"?"con":"pro",text:String(i.text||"").slice(0,140),cat:clamp(Math.round(+i.cat)||0,0,9),value:clamp(+i.value||5,1,10),amount:Math.max(0,+i.amount||0)}))};
+      topics.push(t);save(t);n++});
+    return n+" topic import hue. Upar 💾 Save dabana mat bhoolna.";
+  }catch(e){return "Import fail: file padh nahi payi."}
+}
+function dl(name,txt,type){
+  $("#out").value=txt;
+  try{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type}));a.download=name;document.body.appendChild(a);a.click();a.remove();$("#ms").textContent="File download ho gayi. Na ho to neeche ka text copy karo."}
+  catch(e){$("#ms").textContent="Download nahi hua, neeche ka text copy karo."}
+}
+function pageBackup(){
+  app.innerHTML=`<h1>Backup</h1>
+  <div class="card"><h2>Export</h2><div class="row"><button id="eh">HTML export</button><button id="ec">CSV export</button></div>
+  <textarea id="out" readonly placeholder="Export ka text yahan aayega"></textarea><button id="cp">Copy karo</button>
+  <p class="hint">CSV mein image nahi jaati, HTML mein jaati hai.</p></div>
+  <div class="card"><h2>Import</h2><input type="file" id="if" accept=".csv,.html,.htm,text/csv,text/html">
+  <textarea id="inp" placeholder="Ya yahan CSV / HTML text paste karo"></textarea><button class="primary" id="im">Import karo</button></div>
+  <p id="ms" class="hint"></p>`;
+  $("#eh").onclick=()=>dl("fayde-nuksan.html",toHTML(),"text/html");
+  $("#ec").onclick=()=>dl("fayde-nuksan.csv","\ufeff"+toCSV(),"text/csv");
+  $("#cp").onclick=async()=>{try{await navigator.clipboard.writeText($("#out").value);$("#ms").textContent="Copy ho gaya."}catch(e){$("#out").select();$("#ms").textContent="Text select ho gaya, copy kar lo."}};
+  $("#if").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{$("#inp").value=r.result};r.readAsText(f)};
+  $("#im").onclick=()=>{$("#ms").textContent=doImport($("#inp").value)};
+}
 
+/* ---------- router ---------- */
+function route(){
+  const h=location.hash.slice(1),m=h.match(/^(topic|points)-(\d+)$/);
+  let page="home";
+  if(m){const t=topics.find(x=>x.id==m[2]);if(t){page=m[1];m[1]=="topic"?pageTopic(t):pagePoints(t)}else{location.hash="home";return}}
+  else if(h==="backup"){page="backup";pageBackup()}
+  else pageHome();
+  document.querySelectorAll("nav a").forEach(a=>a.classList.toggle("on",a.dataset.p===page||(page!=="backup"&&a.dataset.p==="home"&&page!=="home"&&false)));
+}
+addEventListener("hashchange",()=>{route();scrollTo(0,0)});
 (async()=>{
-  db=await openDB();
-  if(!db)$("dbwarn").classList.remove("hidden");
-  topics=await loadAll();
-  topics.sort((a,b)=>a.id-b.id);
-  cur=topics.length?topics[0].id:null;
-  render();
+  db=await openDB();if(!db)$("#warn").hidden=false;
+  topics=(await loadAll()).sort((a,b)=>a.id-b.id);topics.forEach(norm);
+  $("#sv").onclick=async()=>{
+    const b=$("#sv"),ok=await commit();
+    if(ok){b.textContent="✅ Save ho gaya";setTimeout(upd,1500)}
+    else alert("Save nahi hua. Is browser mein IndexedDB available nahi hai.");
+  };
+  addEventListener("beforeunload",e=>{if(dirty.size||gone.size){e.preventDefault();e.returnValue=""}});
+  upd();route();
 })();
 </script>
 </body>
